@@ -140,6 +140,18 @@ a.u:focus-visible {
   transform: translateY(0);
 }
 
+/*
+  A link sitting inline in a sentence is only as tall as its text — about
+  14px, well under a comfortable touch target. The padding grows the hit
+  area to 44px and the negative margin absorbs it again, so the line box is
+  unchanged and nothing moves.
+*/
+.tap {
+  display: inline-block;
+  padding-block: 0.95rem;
+  margin-block: -0.95rem;
+}
+
 /* Screen-reader-only, but still focusable and still read aloud. */
 .sr {
   position: absolute;

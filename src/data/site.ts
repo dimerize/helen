@@ -7,13 +7,10 @@ export const site = {
   name: 'Helen Zhang',
 
   /*
-    Where she is, stated without saying it. Coordinates sit in the same
-    register as the rest of the site's measurements, and read as location
-    to anyone who cares to look, rather than as a line of copy.
-    Paired with the local clock on /contact.
+    Where she is. Surfaced as the running local clock on the contact plate
+    rather than as a line of copy.
   */
   location: 'New York',
-  coordinates: { lat: '40.7128° N', lon: '74.0060° W' },
   timeZone: 'America/New_York',
 
   email: 'helen20040707@gmail.com',
@@ -39,9 +36,3 @@ export const nav = [
   { label: 'CV', href: '/cv', match: /^\/cv/ },
   { label: 'Contact', href: '/contact', match: /^\/contact/ },
 ] as const;
-
-/**
- * The standard centre height for hanging artwork in a gallery, in inches.
- * Drawn as a hairline across the entry screen.
- */
-export const HANGING_LINE_INCHES = 57;

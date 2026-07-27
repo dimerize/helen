@@ -1,6 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
-import { site, HANGING_LINE_INCHES } from '../data/site';
+import { site } from '../data/site';
+
+/* The real pixel size of public/textures/entry.jpg. Keep them in step. */
+const SCAN = { id: '03', w: 1100, h: 1370 };
 
 /*
   Entry.
@@ -19,15 +22,17 @@ import { site, HANGING_LINE_INCHES } from '../data/site';
   <div class="entry">
     <div class="entry__id">
       <h1 class="entry__name">{site.name}</h1>
-      <p class="entry__coords meta">
-        <span class="sr">Based in {site.location}. Coordinates: </span>
-        {site.coordinates.lat}<span class="entry__gap"></span>{site.coordinates.lon}
-      </p>
     </div>
 
+    <!--
+      The platen edge, with the scan's own readout set against it. This is
+      the machine stating what is on the glass, which is the only caption
+      the page needs.
+    -->
     <div class="entry__line">
-      <span class="sr">Gallery hanging line, {HANGING_LINE_INCHES} inches to centre.</span>
-      <span class="entry__gauge meta" aria-hidden="true">{HANGING_LINE_INCHES}&#8221; center</span>
+      <span class="entry__gauge meta" aria-hidden="true">
+        Scan {SCAN.id}<span class="entry__gap"></span>{SCAN.w} &#215; {SCAN.h}
+      </span>
     </div>
   </div>
 </Base>
@@ -51,14 +56,9 @@ import { site, HANGING_LINE_INCHES } from '../data/site';
     color: var(--ink);
   }
 
-  .entry__coords {
-    margin-top: 0.7rem;
-    color: var(--ink-faint);
-  }
-
   .entry__gap {
     display: inline-block;
-    width: 1.5em;
+    width: 1.25em;
   }
 
   /*

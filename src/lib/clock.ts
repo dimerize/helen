@@ -1,8 +1,8 @@
 /*
   A running local clock, standing in for the words "based in New York".
 
-  Paired with the coordinates above it, this says where she is without
-  saying it, and gives the page one thing that is alive.
+  It says where she is without saying it, and gives the page one thing
+  that is alive.
 
   If this never runs the element stays hidden by CSS, so nothing looks
   broken or half-finished.

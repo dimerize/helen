@@ -3,18 +3,15 @@ import Base from '../layouts/Base.astro';
 import { site } from '../data/site';
 
 /*
-  Contact is the last placement on the wall.
+  One plate on the glass, with registration marks at its corners that strike
+  once on arrival.
 
-  Everything else on this site is a work inside a taped rectangle with
-  registration marks at its corners, threaded by the hanging line. So is
-  she. The marks strike on load, the same alignment the works make.
+  There are no field labels: an envelope next to an address that has an @ and
+  a .com is an email, and a camera next to a handle beginning with @ is
+  Instagram. Screen readers get the labels through visually-hidden text, so
+  nothing is lost by not printing them.
 
-  There are no field labels: an address with an @ and a .com is an email,
-  and a handle beginning with @ is Instagram. Screen readers get the labels
-  they need through visually-hidden text, so nothing is lost by not
-  printing them.
-
-  Location is coordinates and a running local clock rather than the words
+  Where she is comes from the running local clock rather than the words
   "based in New York".
 */
 ---
@@ -44,11 +41,6 @@ import { site } from '../data/site';
     >
 
     <p class="card__name">{site.name}</p>
-
-    <p class="card__coords meta">
-      <span class="sr">Based in {site.location}. Coordinates: </span>
-      {site.coordinates.lat}<span class="card__gap"></span>{site.coordinates.lon}
-    </p>
 
     <ul class="card__links">
       <li>
@@ -119,21 +111,11 @@ import { site } from '../data/site';
     color: var(--ink);
   }
 
-  .card__coords {
-    margin-top: 0.55rem;
-    color: var(--ink-faint);
-  }
-
-  .card__gap {
-    display: inline-block;
-    width: 1.25em;
-  }
-
   .card__links {
     display: grid;
     gap: 0.15rem;
-    margin-top: 1.6rem;
-    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.4rem;
     border-top: 1px solid var(--line-faint);
   }
 
