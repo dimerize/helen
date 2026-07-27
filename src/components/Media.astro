@@ -91,6 +91,28 @@ const {
     border: 1px solid var(--line-faint);
   }
 
+  /*
+    Unpacking. The documentation opens outward from the centre rather than
+    fading in, the way a wrapped work is drawn out of its packing. Gated on
+    html.js so that without scripts the image is simply there, and the
+    reduced-motion rule in base.css lands it on the final frame at once.
+  */
+  :global(html.js) .media__img,
+  :global(html.js) .media__video {
+    animation: unpack 1100ms var(--ease-resolve) 100ms both;
+  }
+
+  @keyframes unpack {
+    from {
+      clip-path: inset(0 46% 0 46%);
+      opacity: 0.3;
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+      opacity: 1;
+    }
+  }
+
   .media__video {
     background: var(--ground-raised);
     aspect-ratio: 16 / 9;

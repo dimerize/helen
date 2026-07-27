@@ -12,15 +12,20 @@ import { site, HANGING_LINE_INCHES } from '../data/site';
 */
 ---
 
-<Base field="live" main="entry">
-  <div class="entry__id">
-    <h1 class="entry__name">{site.name}</h1>
-    <p class="entry__disc meta">{site.discipline} — {site.location}</p>
-  </div>
+<Base field="live">
+  <div class="entry">
+    <div class="entry__id">
+      <h1 class="entry__name">{site.name}</h1>
+      <p class="entry__coords meta">
+        <span class="sr">Based in {site.location}. Coordinates: </span>
+        {site.coordinates.lat}<span class="entry__gap"></span>{site.coordinates.lon}
+      </p>
+    </div>
 
-  <div class="entry__line">
-    <span class="sr">Gallery hanging line, {HANGING_LINE_INCHES} inches to centre.</span>
-    <span class="entry__gauge meta" aria-hidden="true">{HANGING_LINE_INCHES}&#8221; center</span>
+    <div class="entry__line">
+      <span class="sr">Gallery hanging line, {HANGING_LINE_INCHES} inches to centre.</span>
+      <span class="entry__gauge meta" aria-hidden="true">{HANGING_LINE_INCHES}&#8221; center</span>
+    </div>
   </div>
 </Base>
 
@@ -28,9 +33,7 @@ import { site, HANGING_LINE_INCHES } from '../data/site';
   /* The entry is a composition in the viewport, not a scrolling document. */
   .entry {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
+    flex: 1;
   }
 
   .entry__id {
@@ -45,8 +48,15 @@ import { site, HANGING_LINE_INCHES } from '../data/site';
     color: var(--ink);
   }
 
-  .entry__disc {
-    margin-top: 0.6rem;
+  .entry__coords {
+    margin-top: 0.7rem;
+    color: var(--ink-faint);
+  }
+
+  /* Wider than a space, narrower than a tab. Reads as two measured values. */
+  .entry__gap {
+    display: inline-block;
+    width: 1.5em;
   }
 
   /*

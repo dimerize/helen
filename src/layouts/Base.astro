@@ -9,11 +9,9 @@ interface Props {
   description?: string;
   /** 'live' gets the WebGL canvas. Entry page only. */
   field?: 'live' | 'still';
-  /** Extra class on <main>. */
-  main?: string;
 }
 
-const { title, description, field = 'still', main } = Astro.props;
+const { title, description, field = 'still' } = Astro.props;
 ---
 
 <!doctype html>
@@ -66,7 +64,7 @@ const { title, description, field = 'still', main } = Astro.props;
 
     <Field live={field === 'live'} />
 
-    <main id="main" class:list={['page', main]}>
+    <main id="main" class="page">
       <slot />
     </main>
 

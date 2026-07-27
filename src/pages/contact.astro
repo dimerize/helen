@@ -1,67 +1,203 @@
 ---
 import Base from '../layouts/Base.astro';
 import { site } from '../data/site';
+
+/*
+  Contact is the last placement on the wall.
+
+  Everything else on this site is a work inside a taped rectangle with
+  registration marks at its corners, threaded by the hanging line. So is
+  she. The marks strike on load, the same alignment the works make.
+
+  There are no field labels: an address with an @ and a .com is an email,
+  and a handle beginning with @ is Instagram. Screen readers get the labels
+  they need through visually-hidden text, so nothing is lost by not
+  printing them.
+
+  Location is coordinates and a running local clock rather than the words
+  "based in New York".
+*/
 ---
 
 <Base
   title="Contact"
-  description={`Contact ${site.name} — enquiries, collaboration and studio visits.`}
-  main="contact"
+  description={`Contact ${site.name}. Enquiries, collaboration and studio visits.`}
 >
-  <header class="page__head">
-    <p class="rule meta meta--lg meta--ink">Contact</p>
-  </header>
-
   <h1 class="sr">Contact {site.name}</h1>
 
-  <dl class="contact">
-    <div class="contact__row">
-      <dt class="meta">Email</dt>
-      <dd>
-        <a class="u contact__value" href={`mailto:${site.email}`}>{site.email}</a>
-      </dd>
-    </div>
+  <div class="contact">
+    <div class="hang" aria-hidden="true"></div>
 
-    <div class="contact__row">
-      <dt class="meta">Instagram</dt>
-      <dd>
-        <a class="u contact__value" href={site.instagramUrl} rel="me noopener">
-          @{site.instagram}
+    <article class="card">
+    <svg class="card__mark card__mark--tl" viewBox="0 0 10 10" aria-hidden="true"
+      ><path d="M0 0h10M0 0v10" /></svg
+    >
+    <svg class="card__mark card__mark--tr" viewBox="0 0 10 10" aria-hidden="true"
+      ><path d="M10 0H0M10 0v10" /></svg
+    >
+    <svg class="card__mark card__mark--bl" viewBox="0 0 10 10" aria-hidden="true"
+      ><path d="M0 10h10M0 10V0" /></svg
+    >
+    <svg class="card__mark card__mark--br" viewBox="0 0 10 10" aria-hidden="true"
+      ><path d="M10 10H0M10 10V0" /></svg
+    >
+
+    <p class="card__name">{site.name}</p>
+
+    <p class="card__coords meta">
+      <span class="sr">Based in {site.location}. Coordinates: </span>
+      {site.coordinates.lat}<span class="card__gap"></span>{site.coordinates.lon}
+    </p>
+
+    <ul class="card__links">
+      <li>
+        <a class="card__link" href={`mailto:${site.email}`}>
+          <span class="sr">Email. </span>{site.email}
         </a>
-      </dd>
-    </div>
+      </li>
+      <li>
+        <a class="card__link" href={site.instagramUrl} rel="me noopener">
+          <span class="sr">Instagram. </span>@{site.instagram}
+        </a>
+      </li>
+    </ul>
 
-    <div class="contact__row">
-      <dt class="meta">Based in</dt>
-      <dd class="contact__value contact__value--plain">{site.location}</dd>
-    </div>
-  </dl>
+    <p class="card__clock meta">
+      <span class="sr">Local time in {site.location}: </span>
+        <time data-clock data-tz={site.timeZone}></time>
+      </p>
+    </article>
+  </div>
 </Base>
 
+<script>
+  import '../lib/clock.ts';
+</script>
+
 <style>
+  /* Fills the page so the card hangs in the middle of the wall. */
   .contact {
+    position: relative;
+    flex: 1;
     display: grid;
-    gap: 1.6rem;
+    place-content: center;
+    justify-items: center;
   }
 
-  .contact__row {
-    display: grid;
-    gap: 0.45rem;
+  /* The same hanging line as the entry page and the wall, run through her. */
+  .hang {
+    position: absolute;
+    left: calc(var(--edge) * -1);
+    right: calc(var(--edge) * -1);
+    top: 50%;
+    height: 1px;
+    background: var(--line-faint);
   }
 
-  .contact__row dt {
-    color: var(--ink-faint);
+  .card {
+    position: relative;
+    width: min(26rem, 100%);
+    padding: clamp(1.75rem, 5vw, 2.5rem);
+    border: 1px solid var(--line);
+    background: rgb(255 255 255 / 0.012);
   }
 
-  .contact__value {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    font-size: var(--t-lead);
+  .card__name {
+    font-size: var(--t-title);
+    letter-spacing: var(--track-title);
+    text-transform: uppercase;
     color: var(--ink);
   }
 
-  .contact__value--plain {
-    color: var(--ink-muted);
+  .card__coords {
+    margin-top: 0.55rem;
+    color: var(--ink-faint);
+  }
+
+  .card__gap {
+    display: inline-block;
+    width: 1.25em;
+  }
+
+  .card__links {
+    display: grid;
+    gap: 0.15rem;
+    margin-top: 1.6rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line-faint);
+  }
+
+  .card__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: var(--t-body);
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 0.3em;
+    transition: text-decoration-color var(--dur-quick) var(--ease-out);
+  }
+
+  .card__link:hover,
+  .card__link:focus-visible {
+    text-decoration-color: var(--line-strong);
+  }
+
+  .card__clock {
+    margin-top: 1.4rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line-faint);
+    color: var(--ink-faint);
+    /* Filled in by JavaScript; hidden entirely without it. */
+    display: none;
+  }
+
+  :global(html.js) .card__clock {
+    display: block;
+  }
+
+  .card__mark {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    color: var(--ink-faint);
+    overflow: visible;
+    /*
+      Registration, once, on arrival — the same alignment every work makes.
+      Under reduced motion this lands immediately on its resting colour.
+    */
+    animation: register 1800ms var(--ease-out) 350ms both;
+  }
+
+  .card__mark path {
+    stroke: currentColor;
+    stroke-width: 1.5;
+    fill: none;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .card__mark--tl { top: -5px; left: -5px; }
+  .card__mark--tr { top: -5px; right: -5px; }
+  .card__mark--bl { bottom: -5px; left: -5px; }
+  .card__mark--br { bottom: -5px; right: -5px; }
+
+  @keyframes register {
+    0% {
+      opacity: 0;
+      color: var(--signal);
+    }
+    25% {
+      opacity: 1;
+      color: var(--signal);
+    }
+    55% {
+      opacity: 1;
+      color: var(--signal);
+    }
+    100% {
+      opacity: 1;
+      color: var(--ink-faint);
+    }
   }
 </style>

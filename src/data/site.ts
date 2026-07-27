@@ -5,9 +5,16 @@
 
 export const site = {
   name: 'Helen Zhang',
-  /** Shown under her name on the entry screen. Keep it to a few words. */
-  discipline: 'Installation, moving image, creative technology',
+
+  /*
+    Where she is, stated without saying it. Coordinates sit in the same
+    register as the rest of the site's measurements, and read as location
+    to anyone who cares to look, rather than as a line of copy.
+    Paired with the local clock on /contact.
+  */
   location: 'New York',
+  coordinates: { lat: '40.7128° N', lon: '74.0060° W' },
+  timeZone: 'America/New_York',
 
   email: 'helen20040707@gmail.com',
   instagram: 'helen100087',

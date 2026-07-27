@@ -218,6 +218,14 @@ a.u:focus-visible {
 .page {
   position: relative;
   z-index: var(--z-content);
+  /*
+    A column so a page can hand a child `flex: 1` and have it fill the
+    remaining height. Pages must style their own wrapper rather than this
+    element: <main> belongs to the layout, so a page's scoped styles will
+    not reach it.
+  */
+  display: flex;
+  flex-direction: column;
   padding: var(--edge);
   /* Keep content clear of the fixed bottom navigation. */
   padding-bottom: calc(var(--nav-h) + var(--edge) + env(safe-area-inset-bottom, 0px));

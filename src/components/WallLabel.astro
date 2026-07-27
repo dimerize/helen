@@ -34,7 +34,8 @@ const {
   as: Tag = 'h2',
 }: Props = Astro.props;
 
-const no = String(number).padStart(3, '0');
+/* Inventory number rather than a bare count: this is a handling register. */
+const no = `HZ-${String(number).padStart(3, '0')}`;
 const named = status !== 'placeholder';
 
 /* Second line: year and medium, whichever exist. */

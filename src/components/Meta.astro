@@ -9,7 +9,7 @@ interface Props {
 
 const { title, description = site.meta.description, ogImage = '/og-default.jpg' } = Astro.props;
 
-const fullTitle = title ? `${title} — ${site.name}` : site.meta.title;
+const fullTitle = title ? `${title} · ${site.name}` : site.meta.title;
 
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const canonical = new URL(path, Astro.site).href;

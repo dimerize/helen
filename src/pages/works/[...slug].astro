@@ -4,7 +4,9 @@ import Base from '../../layouts/Base.astro';
 import Media from '../../components/Media.astro';
 import PlacementRect from '../../components/PlacementRect.astro';
 import WallLabel from '../../components/WallLabel.astro';
-import { getWorks, neighbours } from '../../lib/works';
+import MountingDiagram from '../../components/MountingDiagram.astro';
+import HandlingMarks from '../../components/HandlingMarks.astro';
+import { getWorks, neighbours, inventory } from '../../lib/works';
 
 export async function getStaticPaths() {
   const works = await getWorks();
@@ -19,26 +21,26 @@ const { Content } = await render(work);
 const { index, prev, next } = neighbours(works, work.id);
 const d = work.data;
 
-const no = String(index + 1).padStart(3, '0');
+const no = inventory(index + 1);
 
 /*
-  The metadata block reads like a condition report: fixed-width field names
-  in a left column, values in a right. Empty fields are omitted rather than
-  shown as blanks — a wall label does not list what it does not know.
+  A condition report, not a caption. Fixed-width field names in a left
+  column, values in a right, and empty fields omitted rather than shown as
+  blanks — a report does not record what it does not know.
 */
 const fields: Array<[string, string]> = [
-  ['No.', no],
+  ['Inventory', no],
   ['Year', d.year !== undefined ? String(d.year) : ''],
   ['Medium', d.medium],
   ['Dimensions', d.dimensions],
   ['Duration', d.duration],
   [
-    'Status',
+    'Condition',
     d.status === 'placeholder'
       ? 'Reserved placement'
       : d.status === 'documentation pending'
         ? 'Documentation pending'
-        : '',
+        : 'Installed',
   ],
 ].filter((row): row is [string, string] => Boolean(row[1]));
 
@@ -48,10 +50,10 @@ const pageDesc =
   d.description ||
   (d.status === 'placeholder'
     ? `A reserved placement in Helen Zhang's index of works. Documentation has not been supplied yet.`
-    : `${d.title} — Helen Zhang.`);
+    : `${d.title}. Helen Zhang.`);
 ---
 
-<Base title={pageTitle} description={pageDesc} main="work">
+<Base title={pageTitle} description={pageDesc}>
   <article class="work">
     <header class="work__head">
       <WallLabel
@@ -130,6 +132,14 @@ const pageDesc =
           </section>
         )
       }
+
+      <section class="work__extra work__handling">
+        <h2 class="rule meta meta--ink">Handling</h2>
+        <div class="work__handling-body">
+          <MountingDiagram ratio={d.ratio} dimensions={d.dimensions} />
+          <HandlingMarks />
+        </div>
+      </section>
     </div>
 
     <nav class="work__nav" aria-label="Works">
@@ -230,6 +240,23 @@ const pageDesc =
   .work__list {
     display: grid;
     gap: 0.4rem;
+  }
+
+  .work__handling {
+    max-width: none;
+  }
+
+  .work__handling-body {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3.5rem);
+    align-items: end;
+    padding-top: 0.5rem;
+  }
+
+  @media (min-width: 42rem) {
+    .work__handling-body {
+      grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+    }
   }
 
   .work__nav {

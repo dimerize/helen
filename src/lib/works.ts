@@ -28,3 +28,12 @@ export function neighbours(works: Work[], id: string) {
 export function labelNumber(works: Work[], id: string): number {
   return works.findIndex((w) => w.id === id) + 1;
 }
+
+/**
+ * Inventory number, in the form an art handler would write on a crate and a
+ * condition report. Position on the wall, so it stays consistent with the
+ * label beside the work.
+ */
+export function inventory(number: number): string {
+  return `HZ-${String(number).padStart(3, '0')}`;
+}

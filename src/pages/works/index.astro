@@ -5,47 +5,57 @@ import WallLabel from '../../components/WallLabel.astro';
 import { getWorks } from '../../lib/works';
 
 /*
-  The wall.
+  The wall, as one suspended system.
 
-  Every work is centred on the same horizontal line no matter its size or
-  proportion — which is how work is actually hung, to a standard centre
-  height rather than a standard top or bottom. So the plates vary in width
-  and height, and the hairline runs through all of them.
+  Every work hangs from a line and is registered to a fixed datum, the
+  standard 57-inch centre. Scrolling drags the rig and the masses lag behind
+  it; pulling one swings it; and because the system is counterweighted,
+  displacing one work makes the others drift the opposite way.
+
+  The wall label does not move. It is mounted to the wall, not to the work,
+  so a swinging piece drifts off its own label and settles back onto it.
 */
 
 const works = await getWorks();
 const reserved = works.filter((w) => w.data.status === 'placeholder').length;
 ---
 
-<Base title="Works" description="Works by Helen Zhang." main="wall">
+<Base title="Works" description="Works by Helen Zhang.">
   <header class="page__head">
     <h1 class="rule meta meta--lg meta--ink">Works</h1>
     <p class="wall__count meta">
       {works.length} {works.length === 1 ? 'placement' : 'placements'}
-      {reserved > 0 && ` — ${reserved === works.length ? 'documentation in preparation' : `${reserved} reserved`}`}
+      {
+        reserved > 0 &&
+          ` · ${reserved === works.length ? 'documentation in preparation' : `${reserved} reserved`}`
+      }
     </p>
   </header>
 
-  <ul class="wall">
+  <ul class="rig">
     {
       works.map((work, i) => {
         const cover = work.data.assets[0];
         return (
-          <li>
-            <a class="wall__link" href={`/works/${work.id}`}>
-              <span class="wall__hang" aria-hidden="true" />
+          <li class="rig__unit">
+            <a class="rig__link" href={`/works/${work.id}`}>
+              <div class="rig__column" style={`--r:${work.data.ratio}`}>
+                <span class="rig__datum" aria-hidden="true" />
+                <span class="rig__hook" aria-hidden="true" />
+                <span class="rig__line" data-hang-line aria-hidden="true" />
 
-              <div class="wall__holder" style={`--r:${work.data.ratio}`}>
-                <PlacementRect
-                  ratio={work.data.ratio}
-                  image={cover?.image}
-                  alt={cover?.alt ?? ''}
-                  eager={i === 0}
-                  sizes="(max-width: 48rem) 92vw, 50vw"
-                />
+                <div class="rig__mass" data-hang data-ratio={work.data.ratio}>
+                  <PlacementRect
+                    ratio={work.data.ratio}
+                    image={cover?.image}
+                    alt={cover?.alt ?? ''}
+                    eager={i === 0}
+                    sizes="(max-width: 48rem) 92vw, 50vw"
+                  />
+                </div>
               </div>
 
-              <div class="wall__label">
+              <div class="rig__label">
                 <WallLabel
                   number={i + 1}
                   title={work.data.title}
@@ -67,6 +77,7 @@ const reserved = works.filter((w) => w.data.status === 'placeholder').length;
 
 <script>
   import '../../lib/resolve.ts';
+  import '../../lib/counterweight.ts';
 </script>
 
 <style>
@@ -75,78 +86,98 @@ const reserved = works.filter((w) => w.data.status === 'placeholder').length;
     color: var(--ink-faint);
   }
 
-  .wall {
-    /* The height every work is measured against. Width follows from ratio. */
+  .rig {
     --band: min(42vh, 68vw);
+    --line-len: 30px;
     display: grid;
-    gap: clamp(3rem, 9vh, 6rem);
+    gap: clamp(3.5rem, 10vh, 6rem);
   }
 
-  .wall__link {
-    position: relative;
+  .rig__link {
     display: grid;
-    /*
-      minmax(0, 1fr) rather than a bare 1fr. A grid column's default minimum
-      is min-content, so a wide work would size the column to its own
-      declared width and push straight off the side of a narrow phone —
-      max-width: 100% on the child resolves against the column, not the page.
-    */
     grid-template-columns: minmax(0, 1fr);
-    align-items: center;
     justify-items: start;
     gap: 1.25rem;
-    min-height: var(--band);
   }
 
-  /* The hanging line, threaded through the centre of every work. */
-  .wall__hang {
-    position: absolute;
-    top: 50%;
-    left: calc(var(--edge) * -1);
-    right: calc(var(--edge) * -1);
-    height: 1px;
-    background: var(--line-faint);
-  }
-
-  .wall__holder {
+  /*
+    Static. The suspension line is anchored here and the mass hangs from it,
+    so the line has something fixed to pivot against.
+  */
+  .rig__column {
     position: relative;
+    padding-top: var(--line-len);
     width: calc(var(--band) * var(--r));
     max-width: 100%;
   }
 
-  .wall__label {
+  /* The fixed datum: the 57-inch centre the work is registered to. */
+  .rig__datum {
+    position: absolute;
+    left: -50vw;
+    right: -50vw;
+    top: calc(var(--line-len) + (100% - var(--line-len)) / 2);
+    height: 1px;
+    background: var(--line-faint);
+  }
+
+  /* The eye the work hangs from. */
+  .rig__hook {
+    position: absolute;
+    top: 0;
+    left: calc(50% - 6px);
+    width: 12px;
+    height: 1px;
+    background: var(--line-strong);
+  }
+
+  .rig__line {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 1px;
+    height: var(--line-len);
+    background: var(--line);
+    transform-origin: top center;
+  }
+
+  .rig__mass {
+    /*
+      pan-y hands vertical gestures back to the page, so pulling a work
+      sideways can never take a scroll hostage.
+    */
+    touch-action: pan-y;
+  }
+
+  .rig__label {
     position: relative;
   }
 
   @media (min-width: 48rem) {
-    .wall {
+    .rig {
       --band: 46vh;
-      gap: clamp(4rem, 12vh, 8rem);
+      --line-len: 44px;
+      gap: clamp(4.5rem, 13vh, 8rem);
     }
 
-    /* Work on the left, label to its right, both on the centre line. */
-    .wall__link {
+    .rig__link {
       grid-template-columns: minmax(0, auto) minmax(9rem, 18rem);
       gap: clamp(1.5rem, 4vw, 3.5rem);
       align-items: center;
     }
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    /*
-      A hairline nudge on hover: the work steps very slightly forward, the
-      way a piece does when a light finds it. Pointer devices only — this
-      is decoration, and nothing depends on it.
-    */
-    @media (hover: hover) {
-      .wall__link .wall__holder {
-        transition: transform var(--dur-resolve) var(--ease-resolve);
-      }
+  /*
+    With motion reduced the rig is simply at rest: lines vertical, every work
+    hanging straight and registered to its datum. Nothing sways.
+  */
+  @media (prefers-reduced-motion: reduce) {
+    .rig__mass {
+      transform: none !important;
+    }
 
-      .wall__link:hover .wall__holder,
-      .wall__link:focus-visible .wall__holder {
-        transform: translateY(-3px);
-      }
+    .rig__line {
+      transform: none !important;
     }
   }
 </style>

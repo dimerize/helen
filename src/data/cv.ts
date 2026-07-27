@@ -16,7 +16,7 @@ export interface CVEntry {
   org: string;
   /** City / state. Optional. */
   place?: string;
-  /** Free text — displayed right-aligned. e.g. "2024 — 25" */
+  /** Free text, set right. e.g. "2024–25" */
   dates: string;
   /** One or two sentences. Optional; several entries need none. */
   note?: string;
@@ -35,13 +35,13 @@ export const cv: CVSection[] = [
         role: 'BFA Fine Arts, minor in Creative Coding',
         org: 'Parsons School of Design, The New School',
         place: 'New York',
-        dates: '2022 — 26',
+        dates: '2022–26',
       },
       {
         role: 'High School Diploma, Engineering (Honors)',
         org: 'Union County Magnet High School',
         place: 'New Jersey',
-        dates: '2018 — 22',
+        dates: '2018–22',
       },
     ],
   },
@@ -57,7 +57,7 @@ export const cv: CVSection[] = [
       },
       {
         role: 'Event Assistant, DATFEST',
-        org: 'DATLAB NYC — Digital Arts & Technology Lab',
+        org: 'DATLAB NYC',
         place: 'Brooklyn, NY',
         dates: '2025',
         note: 'Front-of-house at a day-long festival of media art and creative technology. Attendee check-in and entry data.',
@@ -66,7 +66,7 @@ export const cv: CVSection[] = [
         role: 'Exhibition Art Handling',
         org: 'YveYANG Gallery',
         place: 'New York',
-        dates: '2024 — ',
+        dates: '2024–',
         note: 'Installing and deinstalling exhibitions across painting, textile, sculpture and mixed media. Packing and organising artwork, preparing gallery spaces, lighting setups, logistics, and liaising with artists during installs. Ongoing, as needed.',
       },
       {
@@ -98,7 +98,7 @@ export const cv: CVSection[] = [
         role: 'Emergency Food Distribution',
         org: 'Union County',
         place: 'New Jersey',
-        dates: '2020 — 21',
+        dates: '2020–21',
         note: 'Drive-through distribution of produce and shelf-stable food during the pandemic, reaching over 2,000 vehicles per event at peak.',
       },
     ],

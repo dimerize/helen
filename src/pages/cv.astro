@@ -12,14 +12,13 @@ import { site } from '../data/site';
 
 <Base
   title="CV"
-  description={`Selected experience and education — ${site.name}.`}
-  main="cv"
+  description={`Selected experience and education. ${site.name}.`}
 >
   <header class="page__head">
     <p class="rule meta meta--lg meta--ink">Selected experience</p>
   </header>
 
-  <h1 class="sr">Curriculum vitae — {site.name}</h1>
+  <h1 class="sr">Curriculum vitae. {site.name}</h1>
 
   <div class="cv">
     {
@@ -34,7 +33,7 @@ import { site } from '../data/site';
                   <h3 class="cv__role">{entry.role}</h3>
                   <p class="cv__org meta">
                     {entry.org}
-                    {entry.place && <span class="cv__place"> — {entry.place}</span>}
+                    {entry.place && <span class="cv__place">, {entry.place}</span>}
                   </p>
                   {entry.note && <p class="cv__note">{entry.note}</p>}
                 </div>

@@ -19,7 +19,7 @@ import { writeFile } from 'node:fs/promises';
 import sharp from 'sharp';
 
 const NAME = 'HELEN ZHANG';
-const LINE = 'INSTALLATION  /  MOVING IMAGE  /  NEW YORK';
+const LINE = '40.7128° N     74.0060° W';
 
 const GROUND = '#050505';
 const INK = '#e6e8ea';
