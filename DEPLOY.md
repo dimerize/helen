@@ -138,30 +138,20 @@ The picture that shows up when the address is texted comes from one file: `publi
 
 To make the red-and-white image the preview:
 
-1. Put that image file into the `incoming/` folder in the project.
-2. Run:
-
-```bash
-npm run adopt -- --og whatever-you-named-it.jpg
-```
-
-That crops it to 1200×630, which is the shape iMessage, Slack, Instagram and Twitter all expect, and writes it to the right place. Then commit and push.
-
+1. Replace `public/og-default.jpg` with a 1200×630 crop of the image you want.
+2. Commit and push.
 3. Test it: send yourself the link in iMessage.
 
 > **Previews get cached hard.** If you change the image later and the old one still shows, that is Apple's cache, not a bug. Adding `?2` to the end of the link when testing forces a fresh fetch.
 
 ---
 
-## Adding Helen's artwork
+## Updating content later
 
-1. Drop the photographs into the `incoming/` folder.
-2. Run `npm run adopt`
-3. Open each `src/content/works/*/index.md` and fill in the title, year, medium and the alt text.
-4. `npm run verify` — this catches mistakes before they go anywhere.
-5. `git add -A && git commit -m "Add work" && git push`
+1. Edit `src/content/site/about.md`, `src/data/site.ts` or `src/data/cv.ts`.
+2. `npm run verify` — catches mistakes before they go anywhere.
+3. `git add -A && git commit -m "Update content" && git push`
 
-Full walkthrough in [CONTENT.md](CONTENT.md).
 
 ---
 

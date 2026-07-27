@@ -116,8 +116,23 @@ void main() {
 
   float trace = texture(uTrace, vUv).r;
 
+  /*
+    The scan bar. A horizontal line the full width of the wall, travelling
+    down and back up on a slow triangle wave and lighting the picture as it
+    passes — the same reveal the pointer makes, on rails.
+
+    A hard core with a short falloff either side, because a scanner's lamp is
+    a line rather than a glow. The turn at each end is eased so the bar
+    decelerates into the edge instead of snapping back.
+  */
+  float sweep = fract(uTime * 0.055);
+  float bar = abs(sweep * 2.0 - 1.0);
+  bar = bar * bar * (3.0 - 2.0 * bar);
+  float dist = vUv.y - bar;
+  float scan = exp(-dist * dist / 0.00035) * 0.5 + exp(-dist * dist / 0.007) * 0.13;
+
   // How much light is actually falling on the wall at this point.
-  float light = spill + trace * 0.92;
+  float light = spill + trace * 0.92 + scan;
 
   // Cover-fit, so the picture fills the viewport at any shape of window.
   vec2 iuv = vUv;

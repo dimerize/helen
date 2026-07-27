@@ -35,7 +35,6 @@ export const site = {
  * `match` decides which item is marked as current.
  */
 export const nav = [
-  { label: 'Works', href: '/#works', match: /^\/works/ },
   { label: 'About', href: '/about', match: /^\/about/ },
   { label: 'CV', href: '/cv', match: /^\/cv/ },
   { label: 'Contact', href: '/contact', match: /^\/contact/ },

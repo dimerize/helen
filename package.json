@@ -10,12 +10,10 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "placeholders": "node scripts/make-placeholders.mjs",
     "links": "node scripts/check-links.mjs",
     "verify": "npm run check && npm run build && npm run links",
     "astro": "astro",
-    "og": "node scripts/make-og.mjs",
-    "adopt": "node scripts/adopt.mjs"
+    "og": "node scripts/make-og.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.0",
