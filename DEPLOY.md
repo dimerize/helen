@@ -54,42 +54,48 @@ git push origin main
 
 ---
 
-## Step 4 — Create the Pages project
+## Step 4 — Create the Worker
 
-1. Cloudflare dashboard sidebar: **Compute (Workers & Pages)** → **Create** → **Pages** tab → **Connect to Git**
-2. Click **Connect GitHub**, authorise it, and pick the **`helen`** repository.
-3. On the setup screen enter exactly this:
+Cloudflare now sends new Git imports into **Workers** rather than Pages. That is the right path to take — it is the one they are actively developing, and for a static site it behaves identically. Static asset requests on Workers are **free and unlimited**, same as Pages.
+
+The repo already contains [`wrangler.jsonc`](wrangler.jsonc), which tells Cloudflare that `dist/` is the site. **That file must be pushed before you press Deploy**, or the build fails with nothing to deploy.
+
+1. Cloudflare dashboard: **Compute (Workers & Pages)** → **Create** → **Import a repository**
+2. Authorise GitHub, pick **`dimerize/helen`**
+3. The form should read:
 
 | Field | Value |
 | --- | --- |
-| Production branch | `main` |
-| Framework preset | `Astro` |
+| Project name | `helen` |
 | Build command | `npm run build` |
-| Build output directory | `dist` |
+| Deploy command | `npx wrangler deploy` |
+| Builds for non-production branches | ticked |
 
-4. Expand **Environment variables** and add one:
+4. Under **Advanced settings**, leave everything at its default:
 
-| Name | Value |
+| Field | Value |
 | --- | --- |
-| `NODE_VERSION` | `22` |
+| Non-production branch deploy command | `npx wrangler versions upload` |
+| Path | `/` |
+| API token | leave on **Create new token** — it makes one for itself |
 
-5. Click **Save and Deploy**.
+Node version is taken from [`.nvmrc`](.nvmrc), which is already set to 22. Nothing to add.
 
-Wait about a minute. When it finishes you get a live address like `helen-abc.pages.dev`. **Open it. The site is already live on the internet at this point.** The domain in the next step just gives it a nicer name.
+5. Click **Deploy**.
+
+Wait about a minute. You get a live address like `helen.<your-subdomain>.workers.dev`. **Open it. The site is on the internet at this point.** The domain in the next step only gives it a better name.
 
 ---
 
 ## Step 5 — Attach the domain
 
-1. In the Pages project: **Custom domains** tab → **Set up a custom domain**
-2. Type the domain you bought, e.g. `helenzhang.studio`
-3. Click **Continue** → **Activate domain**
+1. In the Worker: **Settings** → **Domains & Routes** → **Add** → **Custom domain**
+2. Enter `helenzhang.studio`, add it.
+3. Add `www.helenzhang.studio` the same way if you want that to work too.
 
-Because you bought the domain at Cloudflare, the DNS record is created for you. Nothing to copy or paste.
+Because the domain was bought at Cloudflare, the DNS record is written for you. Nothing to copy or paste.
 
-Wait 1–5 minutes. Then open `https://helenzhang.studio`. The padlock is already there — the HTTPS certificate is issued and renewed automatically, forever, at no cost.
-
-4. Repeat for `www.helenzhang.studio` if you want that to work too.
+Wait 1–5 minutes, then open `https://helenzhang.studio`. The padlock is already there — the certificate is issued and renewed automatically, forever, free.
 
 ---
 
@@ -163,7 +169,7 @@ Full walkthrough in [CONTENT.md](CONTENT.md).
 
 Nothing you push can take the site down. If a build fails, Cloudflare keeps serving the last good version and emails you.
 
-To undo a bad deploy that did go out: Pages project → **Deployments** → find the last good one → **⋯** → **Rollback to this deployment**. It is instant.
+To undo a bad deploy that did go out: the Worker → **Deployments** → find the last good one → **Rollback**. It is instant, and needs no rebuild.
 
 ---
 
@@ -174,6 +180,6 @@ To undo a bad deploy that did go out: Pages project → **Deployments** → find
 | Domain | ~$10–12/year |
 | Hosting, bandwidth, HTTPS, deploys, rollbacks | $0 |
 
-Cloudflare Pages' free tier has **unlimited bandwidth**, which is the reason it was chosen over Vercel or Netlify — both cap at 100 GB a month, and a portfolio full of video documentation can hit that.
+Requests to static assets on Cloudflare are **free and unlimited**, which is the reason it was chosen over Vercel or Netlify. Both of those cap at 100 GB a month, and a portfolio full of video documentation can reach that.
 
 There is no upgrade you will need.

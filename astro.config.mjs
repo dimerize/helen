@@ -1,9 +1,10 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
-// Update this once the custom domain is connected (see README → Deployment).
-// Until then it is only used for sitemap/canonical URLs and is harmless if wrong.
-export const SITE = 'https://helenzhang.pages.dev';
+// The live address. Drives canonical URLs, the sitemap, and the image used
+// for link previews in iMessage and elsewhere. If this ever changes, change
+// the Sitemap: line in public/robots.txt to match.
+export const SITE = 'https://helenzhang.studio';
 
 export default defineConfig({
   site: SITE,

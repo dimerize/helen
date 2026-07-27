@@ -1,0 +1,29 @@
+{
+  // Cloudflare Workers configuration.
+  //
+  // This is an assets-only Worker: there is no server code, just the static
+  // site that `npm run build` puts in dist/. `main` is deliberately absent,
+  // which is what makes it assets-only — and requests to static assets are
+  // free and unlimited, so nothing here can run up a bill.
+  //
+  // public/_headers is copied into dist/ by the build and is read from there
+  // by Cloudflare, which is where the cache rules come from.
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "helen",
+  "compatibility_date": "2026-07-27",
+
+  // No need to phone home about a static site.
+  "send_metrics": false,
+
+  "assets": {
+    "directory": "./dist",
+
+    // URLs are written without a trailing slash throughout the site, and the
+    // canonical tags match. This keeps the served URL identical to the
+    // canonical one instead of redirecting between two spellings.
+    "html_handling": "drop-trailing-slash",
+
+    // Serve the site's own 404 page rather than a bare Cloudflare error.
+    "not_found_handling": "404-page"
+  }
+}
