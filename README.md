@@ -144,7 +144,7 @@ Push to `main` → production deploy. Any other branch or pull request → its o
 1. Cloudflare dashboard → **Domain Registration → Register Domain**, search, buy. Cloudflare sells at wholesale with no markup and includes WHOIS privacy — about $10–12/year for `.com`, $20–30 for `.studio` or `.art`.
 2. Pages project → **Custom domains → Set up a domain** → enter it.
 3. Because the domain is registered at Cloudflare, DNS is created automatically. Nothing to copy or paste.
-4. Update `SITE` in [`astro.config.mjs`](astro.config.mjs) to the real domain and redeploy, so canonical URLs and the sitemap are correct.
+4. Update `SITE` in [`astro.config.mjs`](astro.config.mjs) **and the `Sitemap:` line in [`public/robots.txt`](public/robots.txt)** to the real domain, then redeploy, so canonical URLs and the sitemap are correct.
 
 The site goes live on a free `*.pages.dev` subdomain the moment it is connected, so it can be shared and reviewed before any money is spent.
 
