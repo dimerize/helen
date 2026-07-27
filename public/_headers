@@ -1,26 +1,40 @@
-# Cloudflare Pages reads this file and applies these headers at the edge.
+# Cloudflare reads this file and applies these headers at the edge.
+#
+# IMPORTANT: every matching rule is applied and the values are concatenated,
+# with the catch-all rule placed FIRST. So a `Cache-Control` on /* would be
+# joined ahead of the specific rules and win, because browsers honour the
+# first max-age they see. That silently turned the year-long asset cache into
+# "revalidate every request".
+#
+# So: /* carries only headers that are safe to combine. Cache-Control is set
+# on specific paths only, never on the catch-all.
 
-# Astro fingerprints everything in /_astro/ with a content hash, so these
-# files can never change under a given name. Cache them for a year.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+
+# Astro fingerprints everything in here with a content hash, so a given name
+# can never change. Cache it for a year and never revalidate.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Fonts are versioned by hand rather than hashed, so a month is the safe
-# ceiling — long enough that repeat visits never refetch 52 kB.
+# Fonts are versioned by hand rather than hashed, so a month is the ceiling —
+# long enough that repeat visits never refetch 52 kB.
 /fonts/*
   Cache-Control: public, max-age=2592000
   Access-Control-Allow-Origin: *
 
-/*.jpg
-  Cache-Control: public, max-age=604800
-/*.png
-  Cache-Control: public, max-age=604800
-/*.svg
+/og-default.jpg
   Cache-Control: public, max-age=604800
 
-# HTML is revalidated every time so a content update goes live immediately.
-/*
-  Cache-Control: public, max-age=0, must-revalidate
-  X-Content-Type-Options: nosniff
-  Referrer-Policy: strict-origin-when-cross-origin
-  X-Frame-Options: SAMEORIGIN
+/favicon.svg
+  Cache-Control: public, max-age=604800
+
+/icon-512.png
+  Cache-Control: public, max-age=604800
+
+# HTML is deliberately left alone. Cloudflare serves it with an ETag and
+# revalidates, and the edge cache is purged on every deploy, so a content
+# update is live immediately without a Cache-Control rule here that would
+# leak onto every other path.
