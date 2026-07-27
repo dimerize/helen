@@ -90,12 +90,28 @@ out vec4 outColor;
 
 uniform sampler2D uTrace;
 uniform sampler2D uImage;
+uniform sampler2D uImageNext;
 uniform vec2 uResolution;
 uniform vec2 uLight;
 uniform float uTime;
 uniform float uPeak;
 uniform float uImageAspect;
+uniform float uNextAspect;
 uniform float uImageReady;
+/** Overall strength of the light, 0–1. Reading pages turn it down. */
+uniform float uIntensity;
+/** 0 while idle. Rises to 1 across a navigation, driving the write head. */
+uniform float uSwap;
+
+/** Cover-fit, so a picture fills the viewport at any shape of window. */
+vec2 coverUv(vec2 uv, float screenAspect, float imageAspect) {
+  if (screenAspect > imageAspect) {
+    uv.y = (uv.y - 0.5) * (imageAspect / screenAspect) + 0.5;
+  } else {
+    uv.x = (uv.x - 0.5) * (screenAspect / imageAspect) + 0.5;
+  }
+  return uv;
+}
 
 float hash(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -117,32 +133,56 @@ void main() {
   float trace = texture(uTrace, vUv).r;
 
   /*
-    The scan bar. A horizontal line the full width of the wall, travelling
-    down and back up on a slow triangle wave and lighting the picture as it
-    passes — the same reveal the pointer makes, on rails.
+    The scan bar: a horizontal line the full width of the wall, lighting the
+    picture as it passes — the same reveal the pointer makes, on rails. A
+    hard core with a short falloff either side, because a scanner's lamp is a
+    line rather than a glow.
 
-    A hard core with a short falloff either side, because a scanner's lamp is
-    a line rather than a glow. The turn at each end is eased so the bar
-    decelerates into the edge instead of snapping back.
+    The preview pass. A flatbed makes one deliberate sweep before it settles,
+    so for the first few seconds the bar travels once from the top edge to the
+    bottom, eased at both ends, and only then picks up its loop.
+
+    The handoff is silent because the loop is phase-shifted to start exactly
+    where the preview finished — at the bottom, moving back up, from a
+    standstill.
   */
-  float sweep = fract(uTime * 0.055);
-  float bar = abs(sweep * 2.0 - 1.0);
-  bar = bar * bar * (3.0 - 2.0 * bar);
+  const float PREVIEW = 5.0;
+  float bar;
+  if (uTime < PREVIEW) {
+    float k = uTime / PREVIEW;
+    bar = 1.0 - k * k * (3.0 - 2.0 * k);
+  } else {
+    float phase = fract((uTime - PREVIEW) * 0.055 + 0.5);
+    bar = abs(phase * 2.0 - 1.0);
+    bar = bar * bar * (3.0 - 2.0 * bar);
+  }
+
+  /*
+    During a navigation the head is driven by uSwap instead, running top to
+    bottom once. That single pass is the transition.
+  */
+  float swapping = step(0.0001, uSwap);
+  float head = 1.0 - uSwap;
+  bar = mix(bar, head, swapping);
+
   float dist = vUv.y - bar;
   float scan = exp(-dist * dist / 0.00035) * 0.5 + exp(-dist * dist / 0.007) * 0.13;
 
   // How much light is actually falling on the wall at this point.
-  float light = spill + trace * 0.92 + scan;
+  float light = (spill + trace * 0.92 + scan) * uIntensity;
 
-  // Cover-fit, so the picture fills the viewport at any shape of window.
-  vec2 iuv = vUv;
-  if (aspect > uImageAspect) {
-    iuv.y = (iuv.y - 0.5) * (uImageAspect / aspect) + 0.5;
-  } else {
-    iuv.x = (iuv.x - 0.5) * (aspect / uImageAspect) + 0.5;
-  }
+  vec3 current = texture(uImage, coverUv(vUv, aspect, uImageAspect)).rgb;
+  vec3 incoming = texture(uImageNext, coverUv(vUv, aspect, uNextAspect)).rgb;
 
-  vec3 picture = texture(uImage, iuv).rgb;
+  /*
+    Everything the head has already crossed shows the new page; everything
+    ahead of it still shows the old one. So the picture is not cross-faded,
+    it is rewritten line by line behind the bar — which is what a scanner
+    does, and the only honest way to change the image on this site.
+  */
+  float written = step(bar, vUv.y) * swapping;
+  vec3 picture = mix(current, incoming, written);
+
   vec3 surface = mix(vec3(0.84, 0.87, 0.90), picture, uImageReady);
 
   light += 0.0035 * sin(vUv.y * 3.0 + uTime * 0.07);

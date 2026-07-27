@@ -40,8 +40,6 @@ import { site } from '../data/site';
       ><path d="M10 10H0M10 10V0" /></svg
     >
 
-    <p class="card__name">{site.name}</p>
-
     <ul class="card__links">
       <li>
         <a class="card__link" href={`mailto:${site.email}`}>
@@ -104,19 +102,9 @@ import { site } from '../data/site';
     background: rgb(255 255 255 / 0.012);
   }
 
-  .card__name {
-    font-size: var(--t-title);
-    letter-spacing: var(--track-title);
-    text-transform: uppercase;
-    color: var(--ink);
-  }
-
   .card__links {
     display: grid;
     gap: 0.15rem;
-    margin-top: 1.5rem;
-    padding-top: 1.4rem;
-    border-top: 1px solid var(--line-faint);
   }
 
   /* Line-drawn to match the registration marks, not a filled glyph set. */

@@ -1,44 +1,55 @@
 ---
 /*
-  The light field.
+  The light field. One machine, running for the whole site.
 
   Two layers, always:
 
     1. A CSS spill + grain still. This is in the HTML from the first byte.
        It is not a fallback in the apologetic sense — it is a composed image
        of the same light, and it is what you see with JavaScript disabled,
-       with WebGL unavailable, on a low-memory device, or with reduced
-       motion requested.
+       with WebGL unavailable, on a low-memory device, or on a data-saving
+       connection.
 
-    2. On the entry page only, a WebGL canvas that fades in on top of the
-       still once it has proved it can hold frame rate. It adds the part
-       that cannot be done in CSS: an afterimage that follows the pointer
-       and decays over a couple of seconds.
+    2. A WebGL canvas that fades in on top of the still once it has proved it
+       can hold frame rate. It adds the parts CSS cannot do: a bar travelling
+       the height of the page, and an afterimage that follows the pointer and
+       decays over a couple of seconds.
+
+  The canvas persists across navigations, so the machine never restarts. What
+  changes is the picture on the glass, written in behind the bar as it makes
+  a single pass.
 
   If layer 2 never arrives, nothing looks broken or missing.
 */
 
 interface Props {
-  /** Only the entry page gets the live canvas. */
-  live?: boolean;
   /**
    * A picture hanging in the dark, revealed by the light rather than
    * displayed. Path under /public. Also used as the still fallback.
    */
   texture?: string;
+  /**
+   * How hard the light runs, 0–1. The entry gets the full machine; reading
+   * pages are turned down, so the bar stays atmosphere behind the words
+   * instead of competing with them.
+   */
+  intensity?: number;
 }
 
-const { live = false, texture }: Props = Astro.props;
+const { texture, intensity = 1 }: Props = Astro.props;
 ---
 
-<div class="field" aria-hidden="true">
+<div class="field" aria-hidden="true" transition:persist="field">
   <div class="field__spill"></div>
-  {texture && <div class="field__plate" style={`background-image:url(${texture})`}></div>}
+  {texture && <div class="field__plate" data-plate style={`background-image:url(${texture})`} />}
   <div class="field__grain"></div>
-  {live && <canvas class="field__canvas" data-field data-texture={texture}></canvas>}
+  <canvas class="field__canvas" data-field data-texture={texture} data-intensity={intensity}
+  ></canvas>
 </div>
 
-{live && <script>import '../lib/field/index.ts';</script>}
+<script>
+  import '../lib/field/index.ts';
+</script>
 
 <style>
   .field {

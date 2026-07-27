@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import '../styles/base.css';
 import Meta from '../components/Meta.astro';
 import EdgeNav from '../components/EdgeNav.astro';
@@ -7,13 +8,13 @@ import Field from '../components/Field.astro';
 interface Props {
   title?: string;
   description?: string;
-  /** 'live' gets the WebGL canvas. Entry page only. */
-  field?: 'live' | 'still';
   /** A picture behind the darkness, revealed by the light. Path under /public. */
   texture?: string;
+  /** How hard the light runs, 0–1. Reading pages turn it down. */
+  intensity?: number;
 }
 
-const { title, description, field = 'still', texture }: Props = Astro.props;
+const { title, description, texture, intensity = 0.42 }: Props = Astro.props;
 ---
 
 <!doctype html>
@@ -37,13 +38,28 @@ const { title, description, field = 'still', texture }: Props = Astro.props;
 
     <Meta title={title} description={description} />
 
+    <!--
+      Navigation is a scan pass: the router swaps the document while the
+      field, which persists, runs its bar down the page and writes the new
+      picture in behind it.
+    -->
+    <ClientRouter />
+
+    <!--
+      The field persists across navigations, so its own attributes are always
+      the ones it started with. These travel with the document instead, and
+      are what the router hands to the machine on each swap.
+    -->
+    <meta name="scan-texture" content={texture} />
+    <meta name="scan-intensity" content={String(intensity)} />
+
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon-512.png" />
     <link rel="sitemap" href="/sitemap-index.xml" />
 
     <!--
       Both faces are needed above the fold — the sans for her name, the mono
-      for every wall label — so both are preloaded rather than discovered.
+      for every readout — so both are preloaded rather than discovered.
     -->
     <link
       rel="preload"
@@ -64,7 +80,7 @@ const { title, description, field = 'still', texture }: Props = Astro.props;
   <body>
     <a class="skip" href="#main">Skip to content</a>
 
-    <Field live={field === 'live'} texture={texture} />
+    <Field texture={texture} intensity={intensity} />
 
     <main id="main" class="page">
       <slot />

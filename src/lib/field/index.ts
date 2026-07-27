@@ -111,50 +111,148 @@ function start(canvas: HTMLCanvasElement): void {
     composite: {
       trace: gl.getUniformLocation(compositeProgram, 'uTrace'),
       image: gl.getUniformLocation(compositeProgram, 'uImage'),
+      imageNext: gl.getUniformLocation(compositeProgram, 'uImageNext'),
       resolution: gl.getUniformLocation(compositeProgram, 'uResolution'),
       light: gl.getUniformLocation(compositeProgram, 'uLight'),
       time: gl.getUniformLocation(compositeProgram, 'uTime'),
       peak: gl.getUniformLocation(compositeProgram, 'uPeak'),
       imageAspect: gl.getUniformLocation(compositeProgram, 'uImageAspect'),
+      nextAspect: gl.getUniformLocation(compositeProgram, 'uNextAspect'),
       imageReady: gl.getUniformLocation(compositeProgram, 'uImageReady'),
+      swap: gl.getUniformLocation(compositeProgram, 'uSwap'),
+      intensity: gl.getUniformLocation(compositeProgram, 'uIntensity'),
     },
   };
 
   /*
-    The picture on the wall. Loaded after the field is already running, so
-    it never delays anything — until it arrives the wall is a neutral
-    surface and the composition is exactly as it was.
+    Two pictures: the one on the glass, and the one being written in behind
+    the head during a navigation. They swap roles when a pass completes, so
+    neither is ever reallocated.
+
+    Loaded after the field is already running, so nothing here delays first
+    paint — until a picture arrives the wall is a neutral surface and the
+    composition is exactly as it was.
   */
-  const picture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, picture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, new Uint8Array([214, 222, 230]));
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  function makePicture(): WebGLTexture {
+    const t = gl!.createTexture()!;
+    gl!.bindTexture(gl!.TEXTURE_2D, t);
+    gl!.texImage2D(
+      gl!.TEXTURE_2D, 0, gl!.RGB, 1, 1, 0, gl!.RGB, gl!.UNSIGNED_BYTE,
+      new Uint8Array([214, 222, 230]),
+    );
+    gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_MIN_FILTER, gl!.LINEAR);
+    gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_MAG_FILTER, gl!.LINEAR);
+    gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_WRAP_S, gl!.CLAMP_TO_EDGE);
+    gl!.texParameteri(gl!.TEXTURE_2D, gl!.TEXTURE_WRAP_T, gl!.CLAMP_TO_EDGE);
+    return t;
+  }
 
-  let imageAspect = 1;
+  let pictures = [makePicture(), makePicture()];
+  let aspects = [1, 1];
   let imageReady = 0;
+  let loadedUrl = '';
+  let intensity = Number(canvas.dataset.intensity ?? 1) || 1;
 
-  const textureUrl = canvas.dataset.texture;
-  if (textureUrl) {
+  /** Decode a picture into the given slot. Resolves false if it never arrives. */
+  async function loadPicture(url: string, slot: number): Promise<boolean> {
     const image = new Image();
     image.decoding = 'async';
-    image.src = textureUrl;
-    image
-      .decode()
-      .then(() => {
-        if (!alive) return;
-        gl.bindTexture(gl.TEXTURE_2D, picture);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
-        imageAspect = image.naturalWidth / image.naturalHeight;
-        imageReady = 1;
-      })
-      .catch(() => {
-        /* No picture. The neutral wall is a complete composition already. */
-      });
+    image.src = url;
+    try {
+      await image.decode();
+      if (!alive) return false;
+      gl!.bindTexture(gl!.TEXTURE_2D, pictures[slot]);
+      gl!.pixelStorei(gl!.UNPACK_FLIP_Y_WEBGL, true);
+      gl!.texImage2D(gl!.TEXTURE_2D, 0, gl!.RGB, gl!.RGB, gl!.UNSIGNED_BYTE, image);
+      aspects[slot] = image.naturalWidth / image.naturalHeight;
+      return true;
+    } catch {
+      // No picture. The neutral wall is a complete composition already.
+      return false;
+    }
   }
+
+  const firstUrl = canvas.dataset.texture;
+  if (firstUrl) {
+    loadedUrl = firstUrl;
+    loadPicture(firstUrl, 0).then((ok) => {
+      if (ok) imageReady = 1;
+    });
+  }
+
+  /*
+    A navigation. The head runs once from the top edge to the bottom and the
+    new picture is written in behind it, then the two slots swap roles.
+    `swap` is the head's progress; 0 means idle.
+  */
+  const SWAP_MS = 1150;
+  /**
+   * Where the still frame parks the head when motion is reduced: partway
+   * down its preview travel, so the bar is a composed element of the
+   * picture rather than clipped against the top edge.
+   */
+  const STILL_TIME = 2.2;
+
+  let swap = 0;
+  let swapStart = 0;
+  let swapping = false;
+  const reduced = prefersReducedMotion();
+
+  /** The pass is over: the incoming picture becomes the one on the glass. */
+  function finishSwap() {
+    pictures = [pictures[1], pictures[0]];
+    aspects = [aspects[1], aspects[0]];
+    swap = 0;
+    swapping = false;
+  }
+
+  async function scanTo(url: string) {
+    if (!alive || !url || url === loadedUrl || swapping) return;
+    const ok = await loadPicture(url, 1);
+    if (!ok || !alive) return;
+
+    loadedUrl = url;
+    if (!imageReady) imageReady = 1;
+
+    // No pass to watch when motion is reduced — just change what is there.
+    if (reduced) {
+      finishSwap();
+      drawComposite(STILL_TIME);
+      return;
+    }
+
+    swapping = true;
+    swapStart = performance.now();
+  }
+
+  /* The router asks for a pass; the field decides how to run it. */
+  document.addEventListener('field:scan', (event) => {
+    const url = (event as CustomEvent<{ texture?: string }>).detail?.texture;
+    if (url) void scanTo(url);
+  });
+
+  /*
+    Every navigation, including the first. The field persists across swaps,
+    so its own attributes are stale by definition — the document carries the
+    current values in <meta> and this reads them from there.
+
+    On the first load the URL already matches and scanTo returns immediately,
+    so arriving on a page never costs a pass.
+  */
+  const meta = (name: string) =>
+    document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`)?.content ?? '';
+
+  document.addEventListener('astro:page-load', () => {
+    const next = Number(meta('scan-intensity'));
+    if (Number.isFinite(next) && next > 0) intensity = next;
+
+    // Keep the CSS still in step too, for the case where WebGL never started.
+    const texture = meta('scan-texture');
+    const plate = document.querySelector<HTMLElement>('[data-plate]');
+    if (plate && texture) plate.style.backgroundImage = `url(${texture})`;
+
+    if (texture) void scanTo(texture);
+  });
 
   // Some drivers require a bound vertex array even when drawing without
   // attributes, which is what gl_VertexID lets us do.
@@ -211,8 +309,12 @@ function start(canvas: HTMLCanvasElement): void {
     gl!.uniform1i(u.composite.trace, 0);
 
     gl!.activeTexture(gl!.TEXTURE1);
-    gl!.bindTexture(gl!.TEXTURE_2D, picture);
+    gl!.bindTexture(gl!.TEXTURE_2D, pictures[0]);
     gl!.uniform1i(u.composite.image, 1);
+
+    gl!.activeTexture(gl!.TEXTURE2);
+    gl!.bindTexture(gl!.TEXTURE_2D, pictures[1]);
+    gl!.uniform1i(u.composite.imageNext, 2);
 
     gl!.uniform2f(u.composite.resolution, canvas.width, canvas.height);
     gl!.uniform2f(u.composite.light, 0.63, 1 - 0.33);
@@ -222,8 +324,11 @@ function start(canvas: HTMLCanvasElement): void {
       and no more. Everything past that has to be uncovered by hand.
     */
     gl!.uniform1f(u.composite.peak, 0.2);
-    gl!.uniform1f(u.composite.imageAspect, imageAspect);
+    gl!.uniform1f(u.composite.imageAspect, aspects[0]);
+    gl!.uniform1f(u.composite.nextAspect, aspects[1]);
     gl!.uniform1f(u.composite.imageReady, imageReady);
+    gl!.uniform1f(u.composite.swap, swap);
+    gl!.uniform1f(u.composite.intensity, intensity);
 
     gl!.drawArrays(gl!.TRIANGLES, 0, 3);
   }
@@ -237,8 +342,8 @@ function start(canvas: HTMLCanvasElement): void {
     the light, the grain and the dither — just none of the movement, and no
     animation frame loop running behind the page.
   */
-  if (prefersReducedMotion()) {
-    drawComposite(0);
+  if (reduced) {
+    drawComposite(STILL_TIME);
     ready();
     return;
   }
@@ -297,6 +402,16 @@ function start(canvas: HTMLCanvasElement): void {
     moved = false;
 
     targets.reverse();
+
+    /*
+      Drive the write head across a navigation. Easing at both ends so the
+      pass starts and stops like a mechanism rather than a wipe.
+    */
+    if (swapping) {
+      const k = Math.min(1, (now - swapStart) / SWAP_MS);
+      swap = k * k * (3 - 2 * k);
+      if (k >= 1) finishSwap();
+    }
 
     // ── Composite pass ───────────────────────────────────────────────────
     drawComposite(elapsed / 1000);
