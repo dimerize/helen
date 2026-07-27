@@ -9,14 +9,14 @@ title: Untitled
 description: ""
 
 # placeholder | documentation pending | uncatalogued | installed
-status: uncatalogued
+status: placeholder
 
 # Width divided by height. Read from the image by `npm run adopt`.
 ratio: 0.78
 
 assets:
-  - image: ./documentation.jpg
-    alt: "A banana split photographed close up against flat yellow, whipped cream and glace cherries overdrawn with loops of red crayon."
+  - image: ./plate.png
+    alt: "Calibration plate marking a reserved placement. Artwork documentation has not been supplied yet."
 
 order: 4
 draft: false

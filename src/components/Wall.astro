@@ -1,8 +1,7 @@
 ---
-import Base from '../../layouts/Base.astro';
-import PlacementRect from '../../components/PlacementRect.astro';
-import WallLabel from '../../components/WallLabel.astro';
-import { getWorks } from '../../lib/works';
+import PlacementRect from './PlacementRect.astro';
+import WallLabel from './WallLabel.astro';
+import { getWorks } from '../lib/works';
 
 /*
   The wall, as one suspended system.
@@ -20,9 +19,9 @@ const works = await getWorks();
 const reserved = works.filter((w) => w.data.status === 'placeholder').length;
 ---
 
-<Base title="Works" description="Works by Helen Zhang.">
-  <header class="page__head">
-    <h1 class="rule meta meta--lg meta--ink">Works</h1>
+<section class="wall" id="works" aria-labelledby="wall-heading">
+  <header class="wall__head">
+    <h2 id="wall-heading" class="rule meta meta--lg meta--ink">Works</h2>
     <p class="wall__count meta">
       {works.length} {works.length === 1 ? 'placement' : 'placements'}
       {
@@ -49,7 +48,6 @@ const reserved = works.filter((w) => w.data.status === 'placeholder').length;
                     ratio={work.data.ratio}
                     image={cover?.image}
                     alt={cover?.alt ?? ''}
-                    eager={i === 0}
                     sizes="(max-width: 48rem) 92vw, 50vw"
                   />
                 </div>
@@ -64,7 +62,7 @@ const reserved = works.filter((w) => w.data.status === 'placeholder').length;
                   dimensions={work.data.dimensions}
                   duration={work.data.duration}
                   status={work.data.status}
-                  as="h2"
+                  as="h3"
                 />
               </div>
             </a>
@@ -73,14 +71,27 @@ const reserved = works.filter((w) => w.data.status === 'placeholder').length;
       })
     }
   </ul>
-</Base>
+</section>
 
+<!--
+  The wall's behaviour travels with the wall. Previously these were imported
+  by the page, which meant moving the component to a different page silently
+  left every work stuck at opacity 0 with the rig frozen.
+-->
 <script>
-  import '../../lib/resolve.ts';
-  import '../../lib/counterweight.ts';
+  import '../lib/resolve.ts';
+  import '../lib/counterweight.ts';
 </script>
 
 <style>
+  .wall {
+    padding-top: clamp(3rem, 12vh, 7rem);
+  }
+
+  .wall__head {
+    margin-bottom: clamp(2.5rem, 8vh, 4.5rem);
+  }
+
   .wall__count {
     margin-top: 0.85rem;
     color: var(--ink-faint);
@@ -172,10 +183,7 @@ const reserved = works.filter((w) => w.data.status === 'placeholder').length;
     hanging straight and registered to its datum. Nothing sways.
   */
   @media (prefers-reduced-motion: reduce) {
-    .rig__mass {
-      transform: none !important;
-    }
-
+    .rig__mass,
     .rig__line {
       transform: none !important;
     }

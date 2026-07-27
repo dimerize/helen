@@ -21,15 +21,21 @@
 interface Props {
   /** Only the entry page gets the live canvas. */
   live?: boolean;
+  /**
+   * A picture hanging in the dark, revealed by the light rather than
+   * displayed. Path under /public. Also used as the still fallback.
+   */
+  texture?: string;
 }
 
-const { live = false } = Astro.props;
+const { live = false, texture }: Props = Astro.props;
 ---
 
 <div class="field" aria-hidden="true">
   <div class="field__spill"></div>
+  {texture && <div class="field__plate" style={`background-image:url(${texture})`}></div>}
   <div class="field__grain"></div>
-  {live && <canvas class="field__canvas" data-field></canvas>}
+  {live && <canvas class="field__canvas" data-field data-texture={texture}></canvas>}
 </div>
 
 {live && <script>import '../lib/field/index.ts';</script>}
@@ -66,6 +72,32 @@ const { live = false } = Astro.props;
     inset: -50%;
     opacity: 0.055;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /*
+    The still version of the same idea: the picture, almost entirely dark,
+    with the lamp's falloff masking it so only the lit part is legible. This
+    is what you get without JavaScript or WebGL, and on every page that does
+    not run the live canvas.
+  */
+  .field__plate {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.11;
+    mask-image: radial-gradient(
+      110% 80% at var(--field-x) var(--field-y),
+      #000 0%,
+      rgb(0 0 0 / 0.45) 42%,
+      transparent 72%
+    );
+    -webkit-mask-image: radial-gradient(
+      110% 80% at var(--field-x) var(--field-y),
+      #000 0%,
+      rgb(0 0 0 / 0.45) 42%,
+      transparent 72%
+    );
   }
 
   .field__canvas {

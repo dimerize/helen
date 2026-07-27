@@ -9,14 +9,14 @@ title: Untitled
 description: ""
 
 # placeholder | documentation pending | uncatalogued | installed
-status: uncatalogued
+status: placeholder
 
 # Width divided by height. Read from the image by `npm run adopt`.
 ratio: 0.8
 
 assets:
-  - image: ./documentation.jpg
-    alt: "I LOVE YOU sprayed in red over a scraped white and black painted surface, the image broken into three offset horizontal bands with circular lens distortions punched through the lettering."
+  - image: ./plate.png
+    alt: "Calibration plate marking a reserved placement. Artwork documentation has not been supplied yet."
 
 order: 1
 draft: false

@@ -9,9 +9,11 @@ interface Props {
   description?: string;
   /** 'live' gets the WebGL canvas. Entry page only. */
   field?: 'live' | 'still';
+  /** A picture behind the darkness, revealed by the light. Path under /public. */
+  texture?: string;
 }
 
-const { title, description, field = 'still' } = Astro.props;
+const { title, description, field = 'still', texture }: Props = Astro.props;
 ---
 
 <!doctype html>
@@ -62,7 +64,7 @@ const { title, description, field = 'still' } = Astro.props;
   <body>
     <a class="skip" href="#main">Skip to content</a>
 
-    <Field live={field === 'live'} />
+    <Field live={field === 'live'} texture={texture} />
 
     <main id="main" class="page">
       <slot />

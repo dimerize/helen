@@ -52,7 +52,8 @@ void main() {
   vec2 b = vec2(uTo.x * uAspect, uTo.y);
 
   float d = segmentDistance(p, a, b);
-  float stamp = exp(-(d * d) / 0.0022) * uStrength;
+  // Wide enough that a single pass of the hand uncovers a readable area.
+  float stamp = exp(-(d * d) / 0.0065) * uStrength;
 
   outColor = vec4(min(1.0, previous * uDecay + stamp * 0.30), 0.0, 0.0, 1.0);
 }
@@ -61,8 +62,14 @@ void main() {
 /*
   Pass 2 — the composite.
 
-  One lamp aimed off-axis, the trace raising the wall very slightly where
-  the visitor has passed, a slow drift, and grain.
+  There is an image on the wall, and the room is dark. The lamp wanders
+  slowly across it, so a little of the picture is always surfacing
+  somewhere; wherever the visitor's hand has passed, the trace buffer opens
+  it up almost completely, and then it sinks back as the trace decays.
+
+  So the picture is never "displayed". It is found, and only as much of it
+  as you have lit. Until the texture has downloaded, the wall is a neutral
+  white surface and the composition is unchanged.
 
   Two details worth keeping:
 
@@ -82,10 +89,13 @@ in vec2 vUv;
 out vec4 outColor;
 
 uniform sampler2D uTrace;
+uniform sampler2D uImage;
 uniform vec2 uResolution;
 uniform vec2 uLight;
 uniform float uTime;
 uniform float uPeak;
+uniform float uImageAspect;
+uniform float uImageReady;
 
 float hash(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -96,22 +106,37 @@ float hash(vec2 p) {
 void main() {
   float aspect = uResolution.x / uResolution.y;
 
-  vec2 d = (vUv - uLight) * vec2(aspect, 1.0);
+  // The lamp is never quite still, so the picture keeps surfacing in
+  // different places instead of the page sitting dead until it is touched.
+  vec2 lamp = uLight + vec2(sin(uTime * 0.11) * 0.14, cos(uTime * 0.083) * 0.10);
+
+  vec2 d = (vUv - lamp) * vec2(aspect, 1.0);
   float r = length(d / vec2(1.18, 0.88));
-  float spill = uPeak * exp(-r * r * 1.9);
+  float spill = uPeak * exp(-r * r * 1.7);
 
   float trace = texture(uTrace, vUv).r;
 
-  float luminance = spill + trace * 0.055;
+  // How much light is actually falling on the wall at this point.
+  float light = spill + trace * 0.92;
 
-  // A slow drift across the wall, like a projector settling.
-  luminance += 0.0035 * sin(vUv.y * 3.0 + uTime * 0.07);
+  // Cover-fit, so the picture fills the viewport at any shape of window.
+  vec2 iuv = vUv;
+  if (aspect > uImageAspect) {
+    iuv.y = (iuv.y - 0.5) * (uImageAspect / aspect) + 0.5;
+  } else {
+    iuv.x = (iuv.x - 0.5) * (aspect / uImageAspect) + 0.5;
+  }
+
+  vec3 picture = texture(uImage, iuv).rgb;
+  vec3 surface = mix(vec3(0.84, 0.87, 0.90), picture, uImageReady);
+
+  light += 0.0035 * sin(vUv.y * 3.0 + uTime * 0.07);
 
   float step = floor(uTime * 9.0);
   float grain = hash(vUv * uResolution * 0.5 + step) - 0.5;
-  luminance += grain * (0.016 + trace * 0.022);
+  light += grain * (0.016 + trace * 0.03);
 
-  vec3 colour = vec3(0.0196) + vec3(0.84, 0.87, 0.90) * luminance;
+  vec3 colour = vec3(0.0196) + surface * light;
 
   // Sub-code-value dither. Removes banding without being visible.
   colour += (hash(vUv * uResolution + step * 0.37) - 0.5) / 255.0;

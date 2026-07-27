@@ -9,14 +9,14 @@ title: Untitled
 description: ""
 
 # placeholder | documentation pending | uncatalogued | installed
-status: uncatalogued
+status: placeholder
 
 # Width divided by height. Read from the image by `npm run adopt`.
 ratio: 0.8
 
 assets:
-  - image: ./documentation.jpg
-    alt: "Two white pedestrian figures on red retroreflective sign material, separated by a vertical white line, above a wave of white rubble."
+  - image: ./plate.png
+    alt: "Calibration plate marking a reserved placement. Artwork documentation has not been supplied yet."
 
 order: 3
 draft: false

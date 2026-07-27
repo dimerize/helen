@@ -110,22 +110,61 @@ function start(canvas: HTMLCanvasElement): void {
     },
     composite: {
       trace: gl.getUniformLocation(compositeProgram, 'uTrace'),
+      image: gl.getUniformLocation(compositeProgram, 'uImage'),
       resolution: gl.getUniformLocation(compositeProgram, 'uResolution'),
       light: gl.getUniformLocation(compositeProgram, 'uLight'),
       time: gl.getUniformLocation(compositeProgram, 'uTime'),
       peak: gl.getUniformLocation(compositeProgram, 'uPeak'),
+      imageAspect: gl.getUniformLocation(compositeProgram, 'uImageAspect'),
+      imageReady: gl.getUniformLocation(compositeProgram, 'uImageReady'),
     },
   };
+
+  /*
+    The picture on the wall. Loaded after the field is already running, so
+    it never delays anything — until it arrives the wall is a neutral
+    surface and the composition is exactly as it was.
+  */
+  const picture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, picture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, new Uint8Array([214, 222, 230]));
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+  let imageAspect = 1;
+  let imageReady = 0;
+
+  const textureUrl = canvas.dataset.texture;
+  if (textureUrl) {
+    const image = new Image();
+    image.decoding = 'async';
+    image.src = textureUrl;
+    image
+      .decode()
+      .then(() => {
+        if (!alive) return;
+        gl.bindTexture(gl.TEXTURE_2D, picture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+        imageAspect = image.naturalWidth / image.naturalHeight;
+        imageReady = 1;
+      })
+      .catch(() => {
+        /* No picture. The neutral wall is a complete composition already. */
+      });
+  }
 
   // Some drivers require a bound vertex array even when drawing without
   // attributes, which is what gl_VertexID lets us do.
   gl.bindVertexArray(gl.createVertexArray());
 
-  let scale = 1;
+  let alive = true;
   let targets: Array<{ texture: WebGLTexture; framebuffer: WebGLFramebuffer }> = [];
   let traceWidth = 0;
   let traceHeight = 0;
-  let alive = true;
+  let scale = 1;
 
   const pointer = { x: 0.5, y: 0.62 };
   const previousPointer = { x: 0.5, y: 0.62 };
@@ -170,10 +209,21 @@ function start(canvas: HTMLCanvasElement): void {
     gl!.activeTexture(gl!.TEXTURE0);
     gl!.bindTexture(gl!.TEXTURE_2D, targets[0].texture);
     gl!.uniform1i(u.composite.trace, 0);
+
+    gl!.activeTexture(gl!.TEXTURE1);
+    gl!.bindTexture(gl!.TEXTURE_2D, picture);
+    gl!.uniform1i(u.composite.image, 1);
+
     gl!.uniform2f(u.composite.resolution, canvas.width, canvas.height);
     gl!.uniform2f(u.composite.light, 0.63, 1 - 0.33);
     gl!.uniform1f(u.composite.time, seconds);
-    gl!.uniform1f(u.composite.peak, 0.09);
+    /*
+      Enough ambient light that the picture is legible where the lamp falls,
+      and no more. Everything past that has to be uncovered by hand.
+    */
+    gl!.uniform1f(u.composite.peak, 0.2);
+    gl!.uniform1f(u.composite.imageAspect, imageAspect);
+    gl!.uniform1f(u.composite.imageReady, imageReady);
 
     gl!.drawArrays(gl!.TRIANGLES, 0, 3);
   }

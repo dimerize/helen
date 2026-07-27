@@ -9,14 +9,14 @@ title: Untitled
 description: ""
 
 # placeholder | documentation pending | uncatalogued | installed
-status: uncatalogued
+status: placeholder
 
 # Width divided by height. Read from the image by `npm run adopt`.
 ratio: 0.8
 
 assets:
-  - image: ./documentation.jpg
-    alt: "A basketball player mid-dunk printed in saturated green over torn magazine fragments, black marker scrawl and a yellow ring, with a Wilson ball and an Oklahoma jersey at the edges."
+  - image: ./plate.png
+    alt: "Calibration plate marking a reserved placement. Artwork documentation has not been supplied yet."
 
 order: 2
 draft: false
