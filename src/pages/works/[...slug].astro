@@ -1,0 +1,294 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Media from '../../components/Media.astro';
+import PlacementRect from '../../components/PlacementRect.astro';
+import WallLabel from '../../components/WallLabel.astro';
+import { getWorks, neighbours } from '../../lib/works';
+
+export async function getStaticPaths() {
+  const works = await getWorks();
+  return works.map((work) => ({
+    params: { slug: work.id },
+    props: { work, works },
+  }));
+}
+
+const { work, works } = Astro.props;
+const { Content } = await render(work);
+const { index, prev, next } = neighbours(works, work.id);
+const d = work.data;
+
+const no = String(index + 1).padStart(3, '0');
+
+/*
+  The metadata block reads like a condition report: fixed-width field names
+  in a left column, values in a right. Empty fields are omitted rather than
+  shown as blanks — a wall label does not list what it does not know.
+*/
+const fields: Array<[string, string]> = [
+  ['No.', no],
+  ['Year', d.year !== undefined ? String(d.year) : ''],
+  ['Medium', d.medium],
+  ['Dimensions', d.dimensions],
+  ['Duration', d.duration],
+  [
+    'Status',
+    d.status === 'placeholder'
+      ? 'Reserved placement'
+      : d.status === 'documentation pending'
+        ? 'Documentation pending'
+        : '',
+  ],
+].filter((row): row is [string, string] => Boolean(row[1]));
+
+const named = d.status !== 'placeholder';
+const pageTitle = named ? d.title : `Placement ${no}`;
+const pageDesc =
+  d.description ||
+  (d.status === 'placeholder'
+    ? `A reserved placement in Helen Zhang's index of works. Documentation has not been supplied yet.`
+    : `${d.title} — Helen Zhang.`);
+---
+
+<Base title={pageTitle} description={pageDesc} main="work">
+  <article class="work">
+    <header class="work__head">
+      <WallLabel
+        number={index + 1}
+        title={d.title}
+        status={d.status}
+        size="work"
+        as="h1"
+      />
+
+      <dl class="work__spec">
+        {
+          fields.map(([key, value]) => (
+            <div class="work__row">
+              <dt class="meta">{key}</dt>
+              <dd class="meta work__value">{value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      {d.description && <p class="work__desc prose">{d.description}</p>}
+    </header>
+
+    <div class="work__body">
+      {
+        d.assets.length > 0 ? (
+          d.assets.map((asset, i) => (
+            <Media
+              image={asset.image}
+              video={asset.video}
+              poster={asset.poster}
+              alt={asset.alt}
+              caption={asset.caption}
+              eager={i === 0}
+            />
+          ))
+        ) : (
+          <div class="work__empty">
+            <PlacementRect ratio={d.ratio} />
+            <p class="meta work__emptynote">No documentation supplied</p>
+          </div>
+        )
+      }
+
+      <div class="work__notes prose">
+        <Content />
+      </div>
+
+      {
+        d.credits.length > 0 && (
+          <section class="work__extra">
+            <h2 class="rule meta meta--ink">Credits</h2>
+            <ul class="work__list">
+              {d.credits.map((credit) => (
+                <li class="meta work__value">{credit}</li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+
+      {
+        d.links.length > 0 && (
+          <section class="work__extra">
+            <h2 class="rule meta meta--ink">Links</h2>
+            <ul class="work__list">
+              {d.links.map((link) => (
+                <li>
+                  <a class="u meta work__value" href={link.href} rel="noopener">
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+    </div>
+
+    <nav class="work__nav" aria-label="Works">
+      {
+        prev ? (
+          <a class="work__step meta" href={`/works/${prev.id}`} data-key-prev>
+            <span aria-hidden="true">&#8592;</span>
+            <span>Previous work</span>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+
+      <a class="work__step work__step--index meta" href="/works">
+        All works
+      </a>
+
+      {
+        next ? (
+          <a class="work__step work__step--next meta" href={`/works/${next.id}`} data-key-next>
+            <span>Next work</span>
+            <span aria-hidden="true">&#8594;</span>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+    </nav>
+  </article>
+</Base>
+
+<script>
+  import '../../lib/resolve.ts';
+  import '../../lib/keynav.ts';
+</script>
+
+<style>
+  .work {
+    display: grid;
+    gap: clamp(2.5rem, 7vh, 4.5rem);
+  }
+
+  .work__spec {
+    margin-top: 1.75rem;
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .work__row {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .work__row dt {
+    color: var(--ink-faint);
+  }
+
+  /* Values are metadata, but they are read as prose — so not uppercased. */
+  .work__value {
+    text-transform: none;
+    letter-spacing: 0.02em;
+    color: var(--ink-muted);
+  }
+
+  .work__desc {
+    margin-top: 1.75rem;
+    color: var(--ink);
+  }
+
+  .work__body {
+    display: grid;
+    gap: clamp(2rem, 6vh, 3.5rem);
+  }
+
+  .work__empty {
+    display: grid;
+    gap: 0.9rem;
+    max-width: 32rem;
+  }
+
+  .work__emptynote {
+    color: var(--ink-faint);
+  }
+
+  /* Empty when the markdown body is blank; collapses to nothing. */
+  .work__notes:empty {
+    display: none;
+  }
+
+  .work__extra {
+    display: grid;
+    gap: 0.9rem;
+    max-width: var(--measure);
+  }
+
+  .work__list {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .work__nav {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line-faint);
+  }
+
+  .work__step {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    color: var(--ink-muted);
+    transition: color var(--dur-quick) var(--ease-out);
+  }
+
+  .work__step:hover,
+  .work__step:focus-visible {
+    color: var(--ink);
+  }
+
+  .work__step--index {
+    justify-self: center;
+  }
+
+  .work__step--next {
+    justify-self: end;
+  }
+
+  @media (min-width: 60rem) {
+    .work {
+      grid-template-columns: 17rem minmax(0, 1fr);
+      column-gap: clamp(2.5rem, 6vw, 5rem);
+      align-items: start;
+    }
+
+    /* The label stays with you while the documentation scrolls past. */
+    .work__head {
+      position: sticky;
+      top: var(--edge);
+    }
+
+    .work__nav {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .work__row {
+      grid-template-columns: 5.5rem minmax(0, 1fr);
+    }
+
+    /* Room is tight; the middle link is reachable from the edge nav anyway. */
+    .work__step--index {
+      display: none;
+    }
+  }
+</style>

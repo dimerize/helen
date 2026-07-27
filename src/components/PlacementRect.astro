@@ -1,0 +1,225 @@
+---
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+/*
+  A placement rectangle — the site's central object.
+
+  Before a work resolves it is an empty rectangle at the work's true
+  proportion, with registration marks at the corners: a placement taped out
+  on a wall before anything is hung. As it enters view the image pulls into
+  focus inside it, and the corner marks flash to the signal colour at the
+  moment of alignment before settling. Leaving it, the image decays to a
+  ghost and then back to an empty rectangle.
+
+  Note there is no low-quality image placeholder. In this design the empty
+  rectangle IS the loading state and it is the intended one — a blurred
+  preview would give the work away before it resolves.
+
+  All of the state changes are driven by src/lib/resolve.ts via
+  IntersectionObserver, so none of it depends on hover.
+*/
+
+interface Props {
+  /** Width ÷ height. */
+  ratio: number;
+  image?: ImageMetadata;
+  alt?: string;
+  /** Responsive `sizes`. Set it per context — it drives which file is fetched. */
+  sizes?: string;
+  /** True for the first item on a page, so it is not lazy-loaded. */
+  eager?: boolean;
+  class?: string;
+}
+
+const {
+  ratio,
+  image,
+  alt = '',
+  sizes = '(max-width: 48rem) 90vw, 45vw',
+  eager = false,
+  class: className,
+} = Astro.props;
+---
+
+<div
+  class:list={['plate', className, { 'is-empty': !image }]}
+  style={`--r:${ratio}`}
+  data-plate
+  data-state="idle"
+>
+  {
+    image && (
+      <Picture
+        class="plate__img"
+        src={image}
+        alt={alt}
+        formats={['avif', 'webp']}
+        widths={[480, 768, 1200, 1800]}
+        sizes={sizes}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+        data-plate-img
+      />
+    )
+  }
+
+  <svg class="plate__mark plate__mark--tl" viewBox="0 0 10 10" aria-hidden="true"
+    ><path d="M0 0h10M0 0v10" /></svg
+  >
+  <svg class="plate__mark plate__mark--tr" viewBox="0 0 10 10" aria-hidden="true"
+    ><path d="M10 0H0M10 0v10" /></svg
+  >
+  <svg class="plate__mark plate__mark--bl" viewBox="0 0 10 10" aria-hidden="true"
+    ><path d="M0 10h10M0 10V0" /></svg
+  >
+  <svg class="plate__mark plate__mark--br" viewBox="0 0 10 10" aria-hidden="true"
+    ><path d="M10 10H0M10 10V0" /></svg
+  >
+</div>
+
+<style>
+  .plate {
+    position: relative;
+    aspect-ratio: var(--r);
+    width: 100%;
+    border: 1px solid var(--line);
+    background: rgb(255 255 255 / 0.012);
+  }
+
+  /* No work assigned: the placement is taped out but nothing is hung. */
+  .plate.is-empty {
+    border-style: dashed;
+    border-color: var(--line);
+  }
+
+  /*
+    Default state is fully present. Without JavaScript — blocked, failed or
+    thrown — the wall is simply an installed exhibition, which is a perfectly
+    good version of this site.
+  */
+  .plate__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Only once we know scripts are running do works start out unresolved. */
+  :global(html.js) .plate__img {
+    opacity: 0;
+    /* The focus pull. Slightly over-scaled and dim, like a lamp warming. */
+    transform: scale(1.012);
+    filter: blur(10px) brightness(0.35);
+    transition:
+      opacity var(--dur-resolve) var(--ease-resolve),
+      transform var(--dur-resolve) var(--ease-resolve),
+      filter var(--dur-resolve) var(--ease-resolve);
+  }
+
+  .plate[data-state='resolved'] .plate__img {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0) brightness(1);
+  }
+
+  /*
+    The afterimage. Not a fade to nothing — it holds a faint ghost first,
+    and takes longer going out than it took coming in.
+  */
+  .plate[data-state='ghost'] .plate__img {
+    opacity: 0.12;
+    transform: scale(1.004);
+    filter: blur(3px) brightness(0.6);
+    transition-duration: var(--dur-decay);
+  }
+
+  .plate[data-state='idle'] .plate__img {
+    transition-duration: var(--dur-ghost);
+  }
+
+  .plate__mark {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    color: var(--ink-faint);
+    overflow: visible;
+    transition: opacity var(--dur-ghost) var(--ease-out);
+  }
+
+  :global(html.js) .plate__mark {
+    opacity: 0;
+  }
+
+  .plate__mark path {
+    stroke: currentColor;
+    stroke-width: 1.5;
+    fill: none;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .plate__mark--tl { top: -5px; left: -5px; }
+  .plate__mark--tr { top: -5px; right: -5px; }
+  .plate__mark--bl { bottom: -5px; left: -5px; }
+  .plate__mark--br { bottom: -5px; right: -5px; }
+
+  /* An empty placement keeps its corner marks visible — it is waiting. */
+  .plate.is-empty .plate__mark {
+    opacity: 1;
+  }
+
+  /*
+    Alignment. The one moment the signal colour is allowed on the page:
+    the marks strike red as the work registers, then settle back.
+  */
+  .plate[data-state='resolved'] .plate__mark {
+    animation: align 1600ms var(--ease-out) forwards;
+  }
+
+  @keyframes align {
+    0% {
+      opacity: 0;
+      color: var(--signal);
+    }
+    22% {
+      opacity: 1;
+      color: var(--signal);
+    }
+    50% {
+      opacity: 1;
+      color: var(--signal);
+    }
+    100% {
+      opacity: 1;
+      color: var(--ink-faint);
+    }
+  }
+
+  .plate[data-state='ghost'] .plate__mark {
+    opacity: 0.5;
+  }
+
+  /*
+    Reduced motion: everything is already installed. No focus pull, no
+    decay, no strike — the works are simply present, and the corner marks
+    sit quietly at their resting colour.
+  */
+  @media (prefers-reduced-motion: reduce) {
+    .plate__img {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+
+    .plate[data-state='ghost'] .plate__img {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+
+    .plate__mark {
+      opacity: 1;
+      color: var(--ink-faint);
+      animation: none;
+    }
+  }
+</style>

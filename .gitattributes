@@ -1,0 +1,13 @@
+# Normalise line endings for text, leave binaries alone.
+* text=auto eol=lf
+
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.mp4  binary
+*.webm binary
+*.mov  binary
+*.woff2 binary
+*.pdf  binary

@@ -1,0 +1,101 @@
+/*
+  Design tokens — the single source of truth for the site's visual system.
+  Every colour, size, duration and easing used anywhere lives here.
+  Changing a value here changes it everywhere; nothing else hardcodes.
+
+  Contrast ratios below are measured against --ground (#050505).
+*/
+
+:root {
+  /* ─── Ground ──────────────────────────────────────────────────────────
+     Near-black, very slightly warm-neutral so it doesn't read as blue.  */
+  --ground: #050505;
+  --ground-raised: #0a0a0b;
+
+  /* ─── Ink ─────────────────────────────────────────────────────────────
+     Cool white through pale grey. Never warm cream.                     */
+  --ink: #e6e8ea; /* 16.6:1 — titles, body copy */
+  --ink-muted: #8a9099; /*  6.3:1 — metadata, wall labels, nav */
+  --ink-faint: #565c63; /*  3.0:1 — NON-TEXT ONLY: rules, marks, ticks */
+
+  /* ─── Signal ──────────────────────────────────────────────────────────
+     5.7:1. Appears in exactly three places sitewide:
+       1. registration corner marks at the instant a work resolves
+       2. the current page in the edge navigation
+       3. the focus-visible ring
+     Do not use it for anything else.                                    */
+  --signal: #ff3b2e;
+
+  /* ─── Hairlines ───────────────────────────────────────────────────────
+     Alpha rather than solid, so they sit correctly over the light field. */
+  --line-faint: rgb(230 232 234 / 0.08);
+  --line: rgb(230 232 234 / 0.14);
+  --line-strong: rgb(230 232 234 / 0.26);
+
+  /* ─── Type ────────────────────────────────────────────────────────────
+     To swap the typefaces: replace the woff2 files in /public/fonts,
+     update the @font-face blocks in fonts.css, and change these two
+     lines. Nothing else refers to a font by name.                       */
+  --font-sans: 'Geist', 'Geist Fallback', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback', ui-monospace, 'SF Mono', monospace;
+
+  /* Deliberately small. Nothing on this site is larger than the work. */
+  --t-meta: 0.6875rem; /* 11px — wall-label metadata, nav */
+  --t-meta-lg: 0.75rem; /* 12px — work numbers, section heads */
+  --t-title: 0.8125rem; /* 13px — work titles, her name */
+  --t-body: clamp(0.9375rem, 0.9rem + 0.2vw, 1rem); /* 15 → 16px */
+  --t-lead: clamp(1rem, 0.95rem + 0.3vw, 1.125rem); /* 16 → 18px, About only */
+
+  --track-meta: 0.09em; /* mono metadata tracking */
+  --track-title: 0.14em; /* her name, section heads */
+  --lh-body: 1.62;
+  --lh-meta: 1.5;
+  --lh-tight: 1.28;
+
+  /* ─── Space ───────────────────────────────────────────────────────────*/
+  --edge: clamp(1.125rem, 3.2vw, 2.125rem); /* page margin, all four sides */
+  --gap: clamp(1.5rem, 3vw, 2.5rem);
+  --measure: 62ch; /* max reading width */
+  --nav-h: 3.25rem; /* reserved height of the bottom edge nav */
+
+  /* ─── Motion ──────────────────────────────────────────────────────────
+     Slow, no bounce. The resolve is a projector pulling focus; the decay
+     is an afterimage fading off the retina. Neither is snappy.          */
+  --dur-quick: 240ms;
+  --dur-resolve: 900ms;
+  --dur-ghost: 600ms;
+  --dur-decay: 1400ms;
+  --dur-field-in: 900ms;
+
+  --ease-resolve: cubic-bezier(0.16, 0.84, 0.28, 1);
+  --ease-out: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --ease-linear: linear;
+
+  /* ─── Field ───────────────────────────────────────────────────────────
+     Shared by the WebGL composite pass and the CSS fallback, so the two
+     read as the same light. Keep them in step.                          */
+  --field-x: 63%; /* light centre, off-axis on purpose */
+  --field-y: 33%;
+  --field-peak: 0.09; /* peak luminance of the spill */
+  --field-mid: 0.028;
+
+  /* ─── Depth ───────────────────────────────────────────────────────────*/
+  --z-field: 0;
+  --z-content: 1;
+  --z-nav: 10;
+  --z-skip: 100;
+}
+
+/*
+  Increased-contrast users get stronger hairlines and brighter metadata.
+  The composition is unchanged; only legibility steps up.
+*/
+@media (prefers-contrast: more) {
+  :root {
+    --ink-muted: #b6bcc4; /* 10.0:1 */
+    --ink-faint: #8a9099; /*  6.3:1 */
+    --line-faint: rgb(230 232 234 / 0.18);
+    --line: rgb(230 232 234 / 0.3);
+    --line-strong: rgb(230 232 234 / 0.5);
+  }
+}

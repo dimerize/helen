@@ -1,0 +1,75 @@
+---
+import '../styles/base.css';
+import Meta from '../components/Meta.astro';
+import EdgeNav from '../components/EdgeNav.astro';
+import Field from '../components/Field.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** 'live' gets the WebGL canvas. Entry page only. */
+  field?: 'live' | 'still';
+  /** Extra class on <main>. */
+  main?: string;
+}
+
+const { title, description, field = 'still', main } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#050505" />
+
+    <!--
+      Marks the document as scripted, before first paint.
+
+      Everything that starts hidden and is revealed by JavaScript is gated
+      on html.js. So if scripts are blocked, fail to load, or throw, the
+      page falls back to showing all of its content rather than to a wall of
+      empty rectangles. This must stay inline and in <head> to avoid a flash.
+    -->
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+
+    <Meta title={title} description={description} />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-512.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <!--
+      Both faces are needed above the fold — the sans for her name, the mono
+      for every wall label — so both are preloaded rather than discovered.
+    -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/geist-latin-wght-normal.woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/geist-mono-latin-wght-normal.woff2"
+      crossorigin
+    />
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <Field live={field === 'live'} />
+
+    <main id="main" class:list={['page', main]}>
+      <slot />
+    </main>
+
+    <EdgeNav />
+  </body>
+</html>

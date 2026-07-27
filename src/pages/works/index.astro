@@ -1,0 +1,152 @@
+---
+import Base from '../../layouts/Base.astro';
+import PlacementRect from '../../components/PlacementRect.astro';
+import WallLabel from '../../components/WallLabel.astro';
+import { getWorks } from '../../lib/works';
+
+/*
+  The wall.
+
+  Every work is centred on the same horizontal line no matter its size or
+  proportion — which is how work is actually hung, to a standard centre
+  height rather than a standard top or bottom. So the plates vary in width
+  and height, and the hairline runs through all of them.
+*/
+
+const works = await getWorks();
+const reserved = works.filter((w) => w.data.status === 'placeholder').length;
+---
+
+<Base title="Works" description="Works by Helen Zhang." main="wall">
+  <header class="page__head">
+    <h1 class="rule meta meta--lg meta--ink">Works</h1>
+    <p class="wall__count meta">
+      {works.length} {works.length === 1 ? 'placement' : 'placements'}
+      {reserved > 0 && ` — ${reserved === works.length ? 'documentation in preparation' : `${reserved} reserved`}`}
+    </p>
+  </header>
+
+  <ul class="wall">
+    {
+      works.map((work, i) => {
+        const cover = work.data.assets[0];
+        return (
+          <li>
+            <a class="wall__link" href={`/works/${work.id}`}>
+              <span class="wall__hang" aria-hidden="true" />
+
+              <div class="wall__holder" style={`--r:${work.data.ratio}`}>
+                <PlacementRect
+                  ratio={work.data.ratio}
+                  image={cover?.image}
+                  alt={cover?.alt ?? ''}
+                  eager={i === 0}
+                  sizes="(max-width: 48rem) 92vw, 50vw"
+                />
+              </div>
+
+              <div class="wall__label">
+                <WallLabel
+                  number={i + 1}
+                  title={work.data.title}
+                  year={work.data.year}
+                  medium={work.data.medium}
+                  dimensions={work.data.dimensions}
+                  duration={work.data.duration}
+                  status={work.data.status}
+                  as="h2"
+                />
+              </div>
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
+</Base>
+
+<script>
+  import '../../lib/resolve.ts';
+</script>
+
+<style>
+  .wall__count {
+    margin-top: 0.85rem;
+    color: var(--ink-faint);
+  }
+
+  .wall {
+    /* The height every work is measured against. Width follows from ratio. */
+    --band: min(42vh, 68vw);
+    display: grid;
+    gap: clamp(3rem, 9vh, 6rem);
+  }
+
+  .wall__link {
+    position: relative;
+    display: grid;
+    /*
+      minmax(0, 1fr) rather than a bare 1fr. A grid column's default minimum
+      is min-content, so a wide work would size the column to its own
+      declared width and push straight off the side of a narrow phone —
+      max-width: 100% on the child resolves against the column, not the page.
+    */
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    gap: 1.25rem;
+    min-height: var(--band);
+  }
+
+  /* The hanging line, threaded through the centre of every work. */
+  .wall__hang {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--edge) * -1);
+    right: calc(var(--edge) * -1);
+    height: 1px;
+    background: var(--line-faint);
+  }
+
+  .wall__holder {
+    position: relative;
+    width: calc(var(--band) * var(--r));
+    max-width: 100%;
+  }
+
+  .wall__label {
+    position: relative;
+  }
+
+  @media (min-width: 48rem) {
+    .wall {
+      --band: 46vh;
+      gap: clamp(4rem, 12vh, 8rem);
+    }
+
+    /* Work on the left, label to its right, both on the centre line. */
+    .wall__link {
+      grid-template-columns: minmax(0, auto) minmax(9rem, 18rem);
+      gap: clamp(1.5rem, 4vw, 3.5rem);
+      align-items: center;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /*
+      A hairline nudge on hover: the work steps very slightly forward, the
+      way a piece does when a light finds it. Pointer devices only — this
+      is decoration, and nothing depends on it.
+    */
+    @media (hover: hover) {
+      .wall__link .wall__holder {
+        transition: transform var(--dur-resolve) var(--ease-resolve);
+      }
+
+      .wall__link:hover .wall__holder,
+      .wall__link:focus-visible .wall__holder {
+        transform: translateY(-3px);
+      }
+    }
+  }
+</style>

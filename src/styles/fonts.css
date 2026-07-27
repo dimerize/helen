@@ -1,0 +1,45 @@
+/*
+  Self-hosted variable fonts. No CDN — one less DNS lookup, no third-party
+  request from a visitor's browser, and nothing to break if a CDN changes.
+
+  Both files are the latin subset only (weights 100–900 in a single variable
+  axis): 29kb + 23kb. Licensed under the SIL Open Font License 1.1 —
+  see /public/fonts/LICENSE.txt.
+
+  The Fallback faces below carry metric overrides so that the swap from
+  system font to Geist does not shift layout (CLS).
+*/
+
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/geist-latin-wght-normal.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/geist-mono-latin-wght-normal.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Fallback';
+  src: local('Helvetica Neue'), local('Arial'), local('Segoe UI'), local('Roboto');
+  size-adjust: 97%;
+  ascent-override: 95%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Geist Mono Fallback';
+  src: local('SF Mono'), local('Menlo'), local('Consolas'), local('DejaVu Sans Mono');
+  size-adjust: 98%;
+  ascent-override: 95%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}

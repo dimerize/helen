@@ -1,0 +1,102 @@
+---
+import Base from '../layouts/Base.astro';
+import { site, HANGING_LINE_INCHES } from '../data/site';
+
+/*
+  Entry.
+
+  A dark room, one lamp off-axis, and the hanging line — the standard
+  centre height for artwork in a gallery. Nothing else. The field responds
+  to a pointer or a finger the moment it is touched, which is the only
+  instruction the page needs; there is no "drag me" caption.
+*/
+---
+
+<Base field="live" main="entry">
+  <div class="entry__id">
+    <h1 class="entry__name">{site.name}</h1>
+    <p class="entry__disc meta">{site.discipline} — {site.location}</p>
+  </div>
+
+  <div class="entry__line">
+    <span class="sr">Gallery hanging line, {HANGING_LINE_INCHES} inches to centre.</span>
+    <span class="entry__gauge meta" aria-hidden="true">{HANGING_LINE_INCHES}&#8221; center</span>
+  </div>
+</Base>
+
+<style>
+  /* The entry is a composition in the viewport, not a scrolling document. */
+  .entry {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .entry__id {
+    padding-top: clamp(1rem, 8vh, 5rem);
+  }
+
+  .entry__name {
+    font-size: clamp(1rem, 0.9rem + 0.55vw, 1.25rem);
+    font-weight: 400;
+    letter-spacing: var(--track-title);
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .entry__disc {
+    margin-top: 0.6rem;
+  }
+
+  /*
+    57% down the viewport. The number is a coincidence worth keeping: the
+    hanging line is 57 inches, and this sits at 57% of the field.
+  */
+  .entry__line {
+    position: absolute;
+    left: calc(var(--edge) * -1);
+    right: calc(var(--edge) * -1);
+    top: 57%;
+    height: 1px;
+    background: var(--line);
+  }
+
+  /*
+    Tick marks at each end, as on a measured drawing.
+
+    The line itself is pulled --edge beyond the page on both sides so it
+    runs full bleed, which means anything positioned inside it needs twice
+    --edge to sit on the page's text margin rather than on the glass.
+  */
+  .entry__line::before,
+  .entry__line::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    width: 1px;
+    height: 9px;
+    background: var(--line-strong);
+  }
+
+  .entry__line::before {
+    left: calc(var(--edge) * 2);
+  }
+
+  .entry__line::after {
+    right: calc(var(--edge) * 2);
+  }
+
+  .entry__gauge {
+    position: absolute;
+    right: calc(var(--edge) * 2);
+    bottom: 0.65rem;
+    color: var(--ink-faint);
+  }
+
+  @media (max-width: 30rem) {
+    .entry__gauge {
+      font-size: 0.625rem;
+    }
+  }
+</style>

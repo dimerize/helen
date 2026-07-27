@@ -1,0 +1,52 @@
+---
+import Base from '../layouts/Base.astro';
+
+/*
+  Not found, in the register of the rest of the site: a placement that has
+  no work in it. Honest about what happened, and one clear way back.
+*/
+---
+
+<Base title="Not found" description="This page does not exist." main="notfound">
+  <div class="nf">
+    <p class="meta nf__code">404</p>
+    <h1 class="nf__title">Nothing is hung here</h1>
+    <p class="nf__body prose">
+      This address does not correspond to a work or a page.
+    </p>
+    <p class="meta nf__back">
+      <a class="u" href="/works">Go to works</a>
+      <span aria-hidden="true"> · </span>
+      <a class="u" href="/">Entry</a>
+    </p>
+  </div>
+</Base>
+
+<style>
+  .nf {
+    display: grid;
+    gap: 0.9rem;
+    align-content: center;
+    justify-items: start;
+    min-height: 60vh;
+    max-width: var(--measure);
+  }
+
+  .nf__code {
+    color: var(--ink-faint);
+  }
+
+  .nf__title {
+    font-size: var(--t-lead);
+    font-weight: 400;
+    color: var(--ink);
+  }
+
+  .nf__body {
+    color: var(--ink-muted);
+  }
+
+  .nf__back {
+    margin-top: 1.25rem;
+  }
+</style>

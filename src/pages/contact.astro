@@ -1,0 +1,67 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+---
+
+<Base
+  title="Contact"
+  description={`Contact ${site.name} — enquiries, collaboration and studio visits.`}
+  main="contact"
+>
+  <header class="page__head">
+    <p class="rule meta meta--lg meta--ink">Contact</p>
+  </header>
+
+  <h1 class="sr">Contact {site.name}</h1>
+
+  <dl class="contact">
+    <div class="contact__row">
+      <dt class="meta">Email</dt>
+      <dd>
+        <a class="u contact__value" href={`mailto:${site.email}`}>{site.email}</a>
+      </dd>
+    </div>
+
+    <div class="contact__row">
+      <dt class="meta">Instagram</dt>
+      <dd>
+        <a class="u contact__value" href={site.instagramUrl} rel="me noopener">
+          @{site.instagram}
+        </a>
+      </dd>
+    </div>
+
+    <div class="contact__row">
+      <dt class="meta">Based in</dt>
+      <dd class="contact__value contact__value--plain">{site.location}</dd>
+    </div>
+  </dl>
+</Base>
+
+<style>
+  .contact {
+    display: grid;
+    gap: 1.6rem;
+  }
+
+  .contact__row {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .contact__row dt {
+    color: var(--ink-faint);
+  }
+
+  .contact__value {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: var(--t-lead);
+    color: var(--ink);
+  }
+
+  .contact__value--plain {
+    color: var(--ink-muted);
+  }
+</style>

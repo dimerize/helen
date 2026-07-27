@@ -1,0 +1,102 @@
+---
+import { nav, site } from '../data/site';
+
+/*
+  Navigation lives on the bottom edge. There is no top bar.
+
+  It is small and quiet, but it is always on screen, always in the tab
+  order, and marked with aria-current — a curator should never have to hunt
+  for the CV, and nothing here depends on hover to be discoverable.
+*/
+
+const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isHome = path === '/';
+---
+
+<nav class="nav" aria-label="Primary">
+  <ul class="nav__list">
+    {
+      nav.map((item) => {
+        const current = item.match.test(path);
+        return (
+          <li>
+            <a
+              class:list={['nav__link', 'meta', { 'is-current': current }]}
+              href={item.href}
+              aria-current={current ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
+
+  <a
+    class:list={['nav__link', 'nav__home', 'meta', { 'is-current': isHome }]}
+    href="/"
+    aria-current={isHome ? 'page' : undefined}
+  >
+    <span aria-hidden="true">HZ</span>
+    <span class="sr">{site.name} — home</span>
+  </a>
+</nav>
+
+<style>
+  .nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-nav);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-inline: var(--edge);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: var(--nav-h);
+    /*
+      A short wash back to ground so the labels stay legible over a bright
+      photograph without drawing a hard bar across the composition.
+    */
+    background: linear-gradient(to top, var(--ground) 22%, rgb(5 5 5 / 0) 100%);
+  }
+
+  .nav__list {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.5rem, 2.6vw, 1.5rem);
+  }
+
+  .nav__link {
+    display: flex;
+    align-items: center;
+    /* 44px minimum touch target, met by height rather than a visible box. */
+    min-height: 44px;
+    padding-inline: 0.125rem;
+    color: var(--ink-muted);
+    transition: color var(--dur-quick) var(--ease-out);
+  }
+
+  .nav__link:hover,
+  .nav__link:focus-visible {
+    color: var(--ink);
+  }
+
+  /* One of the three places the signal colour is allowed to appear. */
+  .nav__link.is-current {
+    color: var(--signal);
+  }
+
+  .nav__home {
+    letter-spacing: 0.16em;
+  }
+
+  @media (max-width: 24rem) {
+    .nav {
+      padding-inline: calc(var(--edge) * 0.7);
+    }
+  }
+</style>

@@ -1,0 +1,36 @@
+---
+import { getEntry, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+
+const entry = await getEntry('site', 'about');
+if (!entry) throw new Error('Missing src/content/site/about.md');
+const { Content } = await render(entry);
+---
+
+<Base title={entry.data.title} description={entry.data.summary} main="about">
+  <header class="page__head">
+    <p class="rule meta meta--lg meta--ink">About</p>
+  </header>
+
+  <div class="about__body prose">
+    <h1 class="sr">About {site.name}</h1>
+    <Content />
+  </div>
+
+  <p class="about__more meta">
+    <a class="u" href="/cv">Selected experience</a>
+    <span aria-hidden="true"> · </span>
+    <a class="u" href="/contact">Contact</a>
+  </p>
+</Base>
+
+<style>
+  .about__body {
+    font-size: var(--t-lead);
+  }
+
+  .about__more {
+    margin-top: clamp(2.5rem, 8vh, 4rem);
+  }
+</style>

@@ -1,0 +1,110 @@
+---
+/*
+  A wall label, in the register of the printed card beside a work in a
+  gallery: number, title, year, medium, dimensions.
+
+  What it shows depends on how complete the work is. A reserved placement
+  shows only its number and its condition — inventing a title for a work
+  that does not exist yet would be worse than saying nothing.
+*/
+
+interface Props {
+  number: number;
+  title: string;
+  year?: number | string;
+  medium?: string;
+  dimensions?: string;
+  duration?: string;
+  status: 'placeholder' | 'documentation pending' | 'installed';
+  /** Larger type and more air, for the individual work page. */
+  size?: 'index' | 'work';
+  /** The work's own page uses h1; the index uses h2 under its own h1. */
+  as?: 'h1' | 'h2' | 'h3' | 'p';
+}
+
+const {
+  number,
+  title,
+  year,
+  medium,
+  dimensions,
+  duration,
+  status,
+  size = 'index',
+  as: Tag = 'h2',
+}: Props = Astro.props;
+
+const no = String(number).padStart(3, '0');
+const named = status !== 'placeholder';
+
+/* Second line: year and medium, whichever exist. */
+const line = [year, medium].filter(Boolean).join('  ·  ');
+/* Third line: physical facts. */
+const spec = [dimensions, duration].filter(Boolean).join('  ·  ');
+
+const condition =
+  status === 'placeholder'
+    ? 'Reserved placement'
+    : status === 'documentation pending'
+      ? 'Documentation pending'
+      : null;
+---
+
+<div class:list={['label', `label--${size}`]}>
+  <p class="label__no meta" aria-hidden="true">{no}</p>
+
+  {
+    named ? (
+      <Tag class="label__title">{title}</Tag>
+    ) : (
+      <Tag class="label__title label__title--muted">
+        <span class="sr">Work {no} — </span>Untitled
+      </Tag>
+    )
+  }
+
+  {line && <p class="label__line meta">{line}</p>}
+  {spec && <p class="label__spec meta">{spec}</p>}
+  {condition && <p class="label__condition meta">{condition}</p>}
+</div>
+
+<style>
+  .label {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .label__no {
+    color: var(--ink-faint);
+  }
+
+  .label__title {
+    font-size: var(--t-title);
+    font-weight: 400;
+    line-height: var(--lh-tight);
+    letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+
+  .label__title--muted {
+    color: var(--ink-muted);
+  }
+
+  .label__condition {
+    color: var(--ink-faint);
+  }
+
+  /* The individual work page: same structure, more room to breathe. */
+  .label--work {
+    gap: 0.45rem;
+  }
+
+  .label--work .label__title {
+    font-size: var(--t-lead);
+    margin-bottom: 0.2rem;
+  }
+
+  .label--work .label__no {
+    margin-bottom: 0.35rem;
+  }
+</style>

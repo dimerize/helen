@@ -1,0 +1,129 @@
+---
+import Base from '../layouts/Base.astro';
+import { cv, tools } from '../data/cv';
+import { site } from '../data/site';
+
+/*
+  A ledger rather than a résumé layout: role and organisation on the left,
+  dates set right in tabular figures so they align down the page. It should
+  read like an inventory list, which is also the fastest thing to scan.
+*/
+---
+
+<Base
+  title="CV"
+  description={`Selected experience and education — ${site.name}.`}
+  main="cv"
+>
+  <header class="page__head">
+    <p class="rule meta meta--lg meta--ink">Selected experience</p>
+  </header>
+
+  <h1 class="sr">Curriculum vitae — {site.name}</h1>
+
+  <div class="cv">
+    {
+      cv.map((section) => (
+        <section class="cv__section">
+          <h2 class="rule meta meta--ink">{section.heading}</h2>
+
+          <ul class="cv__entries">
+            {section.entries.map((entry) => (
+              <li class="cv__entry">
+                <div class="cv__main">
+                  <h3 class="cv__role">{entry.role}</h3>
+                  <p class="cv__org meta">
+                    {entry.org}
+                    {entry.place && <span class="cv__place"> — {entry.place}</span>}
+                  </p>
+                  {entry.note && <p class="cv__note">{entry.note}</p>}
+                </div>
+                <p class="cv__dates meta">{entry.dates}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+
+    <section class="cv__section">
+      <h2 class="rule meta meta--ink">Tools</h2>
+      <p class="cv__tools meta">{tools.join('  ·  ')}</p>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .cv {
+    display: grid;
+    gap: clamp(2.5rem, 7vh, 4rem);
+    max-width: 46rem;
+  }
+
+  .cv__section {
+    display: grid;
+    gap: 1.4rem;
+  }
+
+  .cv__entries {
+    display: grid;
+    gap: 1.75rem;
+  }
+
+  .cv__entry {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 0.5rem 1.5rem;
+  }
+
+  .cv__main {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .cv__role {
+    font-size: var(--t-body);
+    font-weight: 400;
+    line-height: var(--lh-tight);
+    color: var(--ink);
+  }
+
+  .cv__org {
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+
+  .cv__place {
+    color: var(--ink-faint);
+  }
+
+  .cv__note {
+    margin-top: 0.4rem;
+    max-width: var(--measure);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--ink-muted);
+  }
+
+  .cv__dates {
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  .cv__tools {
+    text-transform: none;
+    letter-spacing: 0.03em;
+  }
+
+  @media (max-width: 34rem) {
+    /* Dates move above the role rather than squeezing into a column. */
+    .cv__entry {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cv__dates {
+      order: -1;
+    }
+  }
+</style>

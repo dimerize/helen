@@ -1,0 +1,109 @@
+---
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+/*
+  One asset on a work page: a still, or a video.
+
+  Video uses native controls with `preload="none"` and a poster frame. That
+  is a deliberate choice over a custom player with autoplay:
+
+    - nothing downloads until someone asks for it, which matters on cellular
+    - the resting state is just the poster, which suits the design
+    - it works with JavaScript disabled and cannot be defeated by an
+      autoplay policy, because it never tries to autoplay
+    - scrubbing, volume, captions, fullscreen and keyboard control come free
+      and are already familiar to every visitor
+
+  A custom overlay would look marginally cleaner and be worse in every one
+  of those respects.
+*/
+
+interface Props {
+  image?: ImageMetadata;
+  video?: string;
+  poster?: ImageMetadata;
+  alt: string;
+  caption?: string;
+  eager?: boolean;
+  sizes?: string;
+}
+
+const {
+  image,
+  video,
+  poster,
+  alt,
+  caption,
+  eager = false,
+  sizes = '(max-width: 60rem) 92vw, 68vw',
+} = Astro.props;
+---
+
+<figure class="media">
+  {
+    video ? (
+      <video
+        class="media__video"
+        controls
+        playsinline
+        preload="none"
+        poster={poster?.src}
+        aria-label={alt}
+      >
+        <source src={video} type={video.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
+        <p class="media__nosupport">
+          This browser cannot play the video.{' '}
+          <a class="u" href={video} download>
+            Download the file
+          </a>
+          .
+        </p>
+      </video>
+    ) : image ? (
+      <Picture
+        class="media__img"
+        src={image}
+        alt={alt}
+        formats={['avif', 'webp']}
+        widths={[480, 768, 1200, 1800, 2400]}
+        sizes={sizes}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+      />
+    ) : null
+  }
+
+  {caption && <figcaption class="media__caption meta">{caption}</figcaption>}
+</figure>
+
+<style>
+  .media {
+    display: grid;
+    gap: 0.9rem;
+    justify-items: start;
+  }
+
+  .media__img,
+  .media__video {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line-faint);
+  }
+
+  .media__video {
+    background: var(--ground-raised);
+    aspect-ratio: 16 / 9;
+  }
+
+  .media__nosupport {
+    padding: 1.5rem;
+    color: var(--ink-muted);
+  }
+
+  .media__caption {
+    max-width: var(--measure);
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+</style>
