@@ -66,9 +66,18 @@ if (ogName) {
     process.exit(1);
   }
 
+  /*
+    Cropped from the top, not the centre. A social card is a wide letterbox
+    and most artwork is not, so a centre crop of an upright image takes a
+    band out of its middle and loses whatever is at the top. Chroma
+    subsampling stays off: hard graphic edges fringe badly with 4:2:0.
+  */
+  const { height = 0, width = 0 } = await sharp(src).metadata();
+  const position = height > width ? 'top' : 'centre';
+
   await sharp(src)
-    .resize(1200, 630, { fit: 'cover', position: 'centre' })
-    .jpeg({ quality: 90, chromaSubsampling: '4:4:4', mozjpeg: true })
+    .resize(1200, 630, { fit: 'cover', position })
+    .jpeg({ quality: 88, chromaSubsampling: '4:4:4', mozjpeg: true })
     .toFile(OG_OUT);
 
   const { size } = await stat(OG_OUT);
@@ -96,8 +105,8 @@ async function ratioOf(path) {
 let placed = 0;
 
 for (const file of files) {
-  if (ogName && file === basename(ogName) && files.length > 1) continue;
-
+  // The preview image is placed as a work too. Being the picture that shows
+  // up in a text message is not a reason to leave it out of the portfolio.
   const folder = folders[placed];
   if (!folder) {
     console.log(`  ! no placement left for ${file} — add another folder under ${WORKS}/`);
@@ -121,7 +130,11 @@ for (const file of files) {
 
   let next = source
     .replace(/^ratio: .*$/m, `ratio: ${ratio}`)
-    .replace(/^status: placeholder$/m, 'status: documentation pending')
+    /*
+      Photographed, but not yet titled, dated or described. That is exactly
+      what "uncatalogued" means, and it is the honest state to publish in.
+    */
+    .replace(/^status: placeholder$/m, 'status: uncatalogued')
     .replace(
       /^assets:\n(?: {2}- image: \.\/plate\.png\n)(?: {4}alt: .*\n)/m,
       `assets:\n  - image: ./documentation${ext}\n    alt: "TODO: describe this image for someone who cannot see it."\n`,

@@ -22,11 +22,10 @@ title: Untitled
 
 description: ""
 
-# placeholder | documentation pending | installed
+# placeholder | documentation pending | uncatalogued | installed
 status: placeholder
 
-# Width divided by height (4:3 landscape). Gives the empty rectangle its
-# true proportion before any photograph exists.
+# Width divided by height. Read from the image by `npm run adopt`.
 ratio: 1.333
 
 assets:

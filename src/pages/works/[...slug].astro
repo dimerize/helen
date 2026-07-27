@@ -40,12 +40,14 @@ const fields: Array<[string, string]> = [
       ? 'Reserved placement'
       : d.status === 'documentation pending'
         ? 'Documentation pending'
-        : 'Installed',
+        : d.status === 'uncatalogued'
+          ? 'Uncatalogued'
+          : 'Installed',
   ],
 ].filter((row): row is [string, string] => Boolean(row[1]));
 
-const named = d.status !== 'placeholder';
-const pageTitle = named ? d.title : `Placement ${no}`;
+const named = d.status === 'installed' || d.status === 'documentation pending';
+const pageTitle = named ? d.title : no;
 const pageDesc =
   d.description ||
   (d.status === 'placeholder'

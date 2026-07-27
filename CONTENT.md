@@ -20,11 +20,32 @@ The **folder name becomes the web address**. `src/content/works/holding-pattern/
 
 ## How the site looks right now
 
-Six placements are reserved and empty. Each one shows a grey calibration plate — the kind of test card a photographer puts in frame — rather than artwork, because no documentation has been supplied yet.
+There are six placements. **Four hold Helen's artwork** and are marked `uncatalogued` — the image is there, but the title, year and medium are not, so the site shows the work without claiming anything about it.
 
-This is intentional, not a bug. The site is designed so that empty placements read as a gallery before the show is hung, so it looks finished today and will still look right when work is added one piece at a time.
+The remaining **two are reserved and empty**, showing a grey calibration plate — the kind of test card a photographer puts in frame. That is intentional, not a bug: an empty placement reads as a gallery before the show is hung, so the site looks finished today and still looks right as work is added one piece at a time.
 
-Replace them whenever you are ready. You do not have to fill all six, and you can delete any you do not want.
+To finish the four: give each a title, year, medium and description, then change `status` to `installed`. To add more, drop images into `incoming/` and run `npm run adopt`.
+
+---
+
+## The fastest way to add images
+
+1. Put the photographs in the `incoming/` folder.
+2. Run:
+
+```bash
+npm run adopt
+```
+
+That copies each image into the next free placement, reads its shape from the file so the rectangle matches, removes the calibration plate, and sets the status to `uncatalogued`.
+
+To also make one of them the picture that shows up when the link is texted:
+
+```bash
+npm run adopt -- --og whichever-image.jpg
+```
+
+Then fill in the details by hand as below.
 
 ---
 
@@ -89,11 +110,12 @@ If that passes, commit and push. The site updates itself in about a minute.
 | `order` | yes | Lower numbers appear first |
 | `draft` | yes | `true` hides it from the published site but keeps it visible locally |
 
-### `status` — the three states
+### `status` — the four states
 
 - **`placeholder`** — nothing here yet. Shows as a reserved placement with no title.
 - **`documentation pending`** — the work exists but has not been photographed. Shows the title and details, marked as awaiting documentation.
-- **`installed`** — finished and public.
+- **`uncatalogued`** — the opposite: the photograph exists, but the title, year and medium do not. Shows the image with no title claimed. This is what `npm run adopt` sets.
+- **`installed`** — finished and public. Requires a title, year, medium, description and at least one image, or the build fails.
 
 ### `ratio` — the shape of the work
 

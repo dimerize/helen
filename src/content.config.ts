@@ -52,10 +52,15 @@ const works = defineCollection({
         /**
          * `placeholder`            — a reserved placement, no work yet
          * `documentation pending`  — the work exists, photographs do not
+         * `uncatalogued`           — photographs exist, catalogue details do not
          * `installed`              — complete and public
+         *
+         * `uncatalogued` is the honest state for a work that has been
+         * photographed but not yet titled, dated or described. It shows the
+         * image without asserting anything about it.
          */
         status: z
-          .enum(['placeholder', 'documentation pending', 'installed'])
+          .enum(['placeholder', 'documentation pending', 'uncatalogued', 'installed'])
           .default('placeholder'),
         /**
          * Width ÷ height. Gives the empty placement rectangle its true

@@ -15,7 +15,7 @@ interface Props {
   medium?: string;
   dimensions?: string;
   duration?: string;
-  status: 'placeholder' | 'documentation pending' | 'installed';
+  status: 'placeholder' | 'documentation pending' | 'uncatalogued' | 'installed';
   /** Larger type and more air, for the individual work page. */
   size?: 'index' | 'work';
   /** The work's own page uses h1; the index uses h2 under its own h1. */
@@ -36,7 +36,13 @@ const {
 
 /* Inventory number rather than a bare count: this is a handling register. */
 const no = `HZ-${String(number).padStart(3, '0')}`;
-const named = status !== 'placeholder';
+
+/*
+  Only show a title when there is a real one. An uncatalogued work has been
+  photographed but not yet named, so it keeps the muted "Untitled" that a
+  reserved placement uses.
+*/
+const named = status === 'installed' || status === 'documentation pending';
 
 /* Second line: year and medium, whichever exist. */
 const line = [year, medium].filter(Boolean).join('  ·  ');
@@ -48,7 +54,9 @@ const condition =
     ? 'Reserved placement'
     : status === 'documentation pending'
       ? 'Documentation pending'
-      : null;
+      : status === 'uncatalogued'
+        ? 'Uncatalogued'
+        : null;
 ---
 
 <div class:list={['label', `label--${size}`]}>

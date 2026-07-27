@@ -1,18 +1,4 @@
 ---
-# ─────────────────────────────────────────────────────────────────────────
-#  RESERVED PLACEMENT — no work has been assigned here yet.
-#
-#  To publish a real work in this slot:
-#    1. Put the photographs in this folder, next to this file.
-#    2. Fill in title, year, medium, dimensions and description below.
-#    3. List every photograph under `assets:`, each with alt text.
-#    4. Delete plate.png and remove its entry from `assets:`.
-#    5. Change status to:  installed
-#    6. Rename this folder to match the title — it becomes the web address.
-#
-#  CONTENT.md has the full walkthrough with examples.
-# ─────────────────────────────────────────────────────────────────────────
-
 title: Untitled
 
 # year:       2026
@@ -22,16 +8,15 @@ title: Untitled
 
 description: ""
 
-# placeholder | documentation pending | installed
-status: placeholder
+# placeholder | documentation pending | uncatalogued | installed
+status: uncatalogued
 
-# Width divided by height (3:4 portrait). Gives the empty rectangle its
-# true proportion before any photograph exists.
-ratio: 0.75
+# Width divided by height. Read from the image by `npm run adopt`.
+ratio: 0.8
 
 assets:
-  - image: ./plate.png
-    alt: "Calibration plate marking a reserved placement. Artwork documentation has not been supplied yet."
+  - image: ./documentation.jpg
+    alt: "A basketball player mid-dunk printed in saturated green over torn magazine fragments, black marker scrawl and a yellow ring, with a Wilson ball and an Oklahoma jersey at the edges."
 
 order: 2
 draft: false
