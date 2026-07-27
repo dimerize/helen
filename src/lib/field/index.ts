@@ -121,6 +121,7 @@ function start(canvas: HTMLCanvasElement): void {
       imageReady: gl.getUniformLocation(compositeProgram, 'uImageReady'),
       swap: gl.getUniformLocation(compositeProgram, 'uSwap'),
       intensity: gl.getUniformLocation(compositeProgram, 'uIntensity'),
+      loopStart: gl.getUniformLocation(compositeProgram, 'uLoopStart'),
     },
   };
 
@@ -192,18 +193,26 @@ function start(canvas: HTMLCanvasElement): void {
    * picture rather than clipped against the top edge.
    */
   const STILL_TIME = 2.2;
+  /** Length of the opening preview pass. Must match PREVIEW in the shader. */
+  const PREVIEW_SECONDS = 5;
 
   let swap = 0;
   let swapStart = 0;
   let swapping = false;
+  let loopStart = PREVIEW_SECONDS;
   const reduced = prefersReducedMotion();
 
-  /** The pass is over: the incoming picture becomes the one on the glass. */
-  function finishSwap() {
+  /**
+   * The pass is over: the incoming picture becomes the one on the glass, and
+   * the idle loop is restarted from this instant so the bar carries on from
+   * the bottom instead of jumping to wherever a free-running clock had got to.
+   */
+  function finishSwap(atSeconds: number) {
     pictures = [pictures[1], pictures[0]];
     aspects = [aspects[1], aspects[0]];
     swap = 0;
     swapping = false;
+    loopStart = atSeconds;
   }
 
   async function scanTo(url: string) {
@@ -216,7 +225,7 @@ function start(canvas: HTMLCanvasElement): void {
 
     // No pass to watch when motion is reduced — just change what is there.
     if (reduced) {
-      finishSwap();
+      finishSwap(STILL_TIME);
       drawComposite(STILL_TIME);
       return;
     }
@@ -329,6 +338,7 @@ function start(canvas: HTMLCanvasElement): void {
     gl!.uniform1f(u.composite.imageReady, imageReady);
     gl!.uniform1f(u.composite.swap, swap);
     gl!.uniform1f(u.composite.intensity, intensity);
+    gl!.uniform1f(u.composite.loopStart, loopStart);
 
     gl!.drawArrays(gl!.TRIANGLES, 0, 3);
   }
@@ -410,7 +420,7 @@ function start(canvas: HTMLCanvasElement): void {
     if (swapping) {
       const k = Math.min(1, (now - swapStart) / SWAP_MS);
       swap = k * k * (3 - 2 * k);
-      if (k >= 1) finishSwap();
+      if (k >= 1) finishSwap(elapsed / 1000);
     }
 
     // ── Composite pass ───────────────────────────────────────────────────

@@ -102,6 +102,12 @@ uniform float uImageReady;
 uniform float uIntensity;
 /** 0 while idle. Rises to 1 across a navigation, driving the write head. */
 uniform float uSwap;
+/**
+ * When the idle loop last restarted, in seconds. Reset at the end of every
+ * pass so the bar always picks up from the bottom rather than snapping to
+ * wherever a free-running clock happened to put it.
+ */
+uniform float uLoopStart;
 
 /** Cover-fit, so a picture fills the viewport at any shape of window. */
 vec2 coverUv(vec2 uv, float screenAspect, float imageAspect) {
@@ -147,12 +153,18 @@ void main() {
     standstill.
   */
   const float PREVIEW = 5.0;
+  bool previewing = uTime < PREVIEW;
   float bar;
-  if (uTime < PREVIEW) {
+  if (previewing) {
     float k = uTime / PREVIEW;
     bar = 1.0 - k * k * (3.0 - 2.0 * k);
   } else {
-    float phase = fract((uTime - PREVIEW) * 0.055 + 0.5);
+    /*
+      Phase 0.5 puts the bar at the bottom, moving back up. Because
+      uLoopStart is set to the moment each pass ends, the loop always
+      resumes from exactly where the head stopped.
+    */
+    float phase = fract((uTime - uLoopStart) * 0.055 + 0.5);
     bar = abs(phase * 2.0 - 1.0);
     bar = bar * bar * (3.0 - 2.0 * bar);
   }
@@ -192,6 +204,18 @@ void main() {
   light += grain * (0.016 + trace * 0.03);
 
   vec3 colour = vec3(0.0196) + surface * light;
+
+  /*
+    On the very first pass, and only then, everything the head has not yet
+    reached is held under an extra layer of dark that the bar wipes off as it
+    descends. It resolves to exactly the normal ground by the time the pass
+    ends, so nothing is left brighter or darker than it would otherwise be —
+    and because it is keyed to the machine's own clock rather than to the
+    page, coming back to the entry later never replays it.
+  */
+  float intro = previewing ? 1.0 - swapping : 0.0;
+  float unscanned = (1.0 - smoothstep(bar - 0.004, bar + 0.004, vUv.y)) * intro;
+  colour *= mix(1.0, 0.16, unscanned);
 
   // Sub-code-value dither. Removes banding without being visible.
   colour += (hash(vUv * uResolution + step * 0.37) - 0.5) / 255.0;
