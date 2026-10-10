@@ -4,18 +4,20 @@ import Meta from "../components/Meta.astro";
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#080809"><Meta title="Images in translation" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/studio/room.css">
   <script is:inline type="module" src="/studio/scanner.js"></script>
   <link rel="stylesheet" href="/studio/shared.css">
+  <link rel="stylesheet" href="/studio/doorway.css">
+  <script is:inline type="module" src="/studio/doorway.js"></script>
 </head>
 <body>
   <a class="skip" href="#entrances">Skip to work and archive</a>
   <header class="site-header">
     <a class="wordmark" href="/" aria-current="page">Helen Zhang</a>
-    <nav aria-label="Main navigation"><a href="/work">Work</a><a href="/archive">Archive</a><a href="/about">About</a><a href="/cv">CV</a><a href="/contact">Contact</a></nav>
+    <nav aria-label="Main navigation"><a href="/work">Work</a><a href="/archive">Archive</a><a href="/gallery" data-open-gallery>Gallery</a><a href="/about">About</a><a href="/cv">CV</a><a href="/contact">Contact</a></nav>
   </header>
   <main>
     <section class="scanner-room" aria-label="An automatic scanner, collecting images">
@@ -24,20 +26,29 @@ import Meta from "../components/Meta.astro";
       </div>
       <div class="room-title"><h1>Images,<br>in translation.</h1><p>Art, moving image<br>& material experiments.</p></div>
       <div class="scan-caption"><span id="scan-caption">Found on the train</span><span id="scan-count">1 / 3</span></div>
-      <div class="room-actions"><button type="button" id="lift-scan">Lift a scan <span aria-hidden="true">↗</span></button><span class="lift-hint">Take an image out of the machine.</span></div>
+      <div class="room-actions"><button type="button" id="lift-scan">Lift a scan <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></button><span class="lift-hint">Take an image out of the machine.</span></div>
       <div class="motion-control"><button type="button" id="pause-motion" aria-pressed="false">Pause motion</button></div>
       <div id="print-layer" aria-label="Your loose scans"></div>
       <p id="print-status" class="sr-only" aria-live="polite"></p>
     </section>
     <section id="entrances" class="entrances" aria-label="Explore Helen’s work">
-      <a href="/work"><span>Selected work</span><small>Projects, films, installations</small><span aria-hidden="true">↗</span></a>
-      <a href="/archive"><span>The archive</span><small>Things collected along the way</small><span aria-hidden="true">↗</span></a>
+      <a href="/work"><span>Selected work</span><small>Projects, films, installations</small><span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a>
+      <a href="/archive"><span>The archive</span><small>Things collected along the way</small><span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a>
     </section>
-    <a class="gallery-door" href="/gallery">
-      <div class="gallery-door-image"><img src="/artwork/thesis-installation.webp" alt="Paintings and a projected interpretation in a narrow gallery" loading="lazy" width="1600" height="1200"></div>
-      <div class="gallery-door-copy"><span class="gallery-door-kicker">Beyond the Humanized Machine</span><h2>There’s a room<br>inside this image.</h2><p>Step into the installation. Get close to a painting.<br>See what someone else sees.</p><span class="gallery-door-link">Visit the gallery <span aria-hidden="true">↗</span></span></div>
+    <a class="gallery-door" href="/gallery" data-open-gallery aria-label="Open the gallery door, Beyond the Humanized Machine">
+      <div class="gallery-door-image door-scene" aria-hidden="true">
+        <div class="door-recess"><img src="/artwork/thesis-installation.webp" alt="" loading="lazy" width="1600" height="1200"><div class="door-leaf"><span class="door-label">Helen Zhang<span>Beyond the Humanized Machine</span></span><span class="door-handle"></span><span class="door-foot">Come in.</span></div></div>
+      </div>
+      <div class="gallery-door-copy"><span class="gallery-door-kicker">Beyond the Humanized Machine</span><h2>There’s a room<br>behind this door.</h2><p>Step into the installation. Get close to a painting.<br>See what someone else sees.</p><span class="gallery-door-link">Open the gallery <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></span></div>
     </a>
   </main>
   <footer><span>Helen Zhang</span><a href="/about">About Helen</a><a href="/contact">Get in touch</a></footer>
+  <dialog id="studio-portal" aria-label="Helen Zhang’s gallery">
+    <div class="portal-toolbar"><span>Beyond the Humanized Machine</span><button id="close-studio" type="button"><span class="ui-icon icon-arrow-left" aria-hidden="true"></span> Back to the scanner</button></div>
+    <div id="studio-frame"></div>
+    <div class="portal-curtain" aria-hidden="true"><div class="portal-doorway"><img src="/artwork/thesis-installation.webp" alt=""><div class="door-leaf"><span class="door-label">Helen Zhang<span>Beyond the Humanized Machine</span></span><span class="door-handle"></span><span class="door-foot">Come in.</span></div></div></div>
+    <p id="portal-status" role="status">Opening the room…</p>
+    <p id="portal-fallback" hidden>The room is taking a moment. <a href="/gallery">Open it directly</a>.</p>
+  </dialog>
 </body>
 </html>

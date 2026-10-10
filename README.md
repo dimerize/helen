@@ -2,7 +2,7 @@
 
 Helen’s portfolio combines an autonomous 3D scanner, a moving selected-work strip, a spatial archive, a walkable gallery, and project pages with media-specific controls. About, CV, and Contact retain the existing content and reading layouts.
 
-Built as static Astro pages. Three.js 0.180.0 is vendored under `public/studio/vendor` with its MIT license. The work strip and archive use ordinary DOM elements, CSS transforms, and small JavaScript modules.
+Built as static Astro pages. Three.js 0.180.0, Camera Controls 3.1.2, and Motion 14.1.0 are served locally under `public/studio/vendor` with their licenses. Camera Controls owns the gallery camera; Motion provides restrained spring transitions. The work strip and archive use ordinary DOM elements and CSS transforms.
 
 ## Develop and verify
 
@@ -21,6 +21,9 @@ npm run verify
 - `src/pages/archive.astro`: draggable image surfaces, index, detail viewer.
 - `src/pages/project.astro`: shared project structure. `public/studio/project.js` supplies each project's content and media.
 - `src/pages/gallery.astro`: walkable reconstruction of the thesis installation. `gallery-room.js` builds the architecture, artwork and projected drawings; `gallery.js` provides navigation and accessible controls.
+- `public/studio/doorway.js`: lazy gallery overlay and browser history. The scanner page stays mounted beneath the room. Close restores its scroll position, lifted scans and focus.
+- `public/studio/gallery-controls.js`: first-person Camera Controls adapter, damped movement, bounded eye height, and short-arc viewpoint changes.
+- `public/studio/studio-motion.js`: reduced-motion-aware, cancellable reveal and native-dialog springs.
 - `public/studio`: page styles and interactions, with shared navigation styles.
 - `public/artwork`: optimized WebP derivatives of Helen's artwork and documentation.
 - `src/content/site/about.md`, `src/data/cv.ts`, `src/data/site.ts`: existing biography, CV, contact details and navigation.
@@ -29,7 +32,9 @@ The scanner runs without input. Visitors may lift a scan into a movable image, p
 
 Project URLs use `/project?work=thesis`, `standing`, `8ppi`, `jack`, and `side-effects`. Some film documentation is forthcoming and is labeled accordingly. Artwork captions distinguish photographed work from source installation mockups.
 
-The gallery at `/gallery` uses the supplied installation view as a reference; dimensions and lighting are interpreted. Drag to look, scroll or use WASD/arrow keys to walk, click a painting to approach it, or use the named view buttons. Touch users have a direction pad. Viewer drawings can be projected on the central painting, switched, or turned off. This effect is a digital reinterpretation of supplied drawings, not footage. The original installation image is the WebGL fallback. Reduced motion makes guided movement and projection changes immediate. Rendering pauses in hidden tabs.
+The Gallery tab and hinged door open the room over the scanner at `/?room=gallery`. `/gallery` also works independently. The gallery uses the supplied installation view as a reference; dimensions and lighting are interpreted. Drag to look, scroll or use WASD/arrow keys to walk, click a painting to approach it, or use named view buttons. Touch users have a direction pad. Viewer drawings can be projected on the central painting, switched, or turned off. This effect is a digital reinterpretation of supplied drawings, not footage. The original installation image is the WebGL fallback. Reduced motion makes guided movement and projection changes immediate. The background scanner pauses while the room is open, and rendering pauses in hidden tabs.
+
+Studio pages load the existing self-hosted Geist font and use local SVG icons to avoid mobile font/emoji substitutions. `npm run vendor:studio` rebuilds the motion bundle and copies the camera library from pinned npm dependencies; the production build runs it automatically. It does not load third-party scripts at runtime.
 
 ## Publish
 

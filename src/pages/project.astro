@@ -10,7 +10,7 @@ import Meta from "../components/Meta.astro";
   <Meta title="Projects" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/studio/project.css">
-  <script is:inline src="/studio/project.js" defer></script>
+  <script is:inline type="module" src="/studio/project.js"></script>
   <link rel="stylesheet" href="/studio/shared.css">
 </head>
 <body>
@@ -29,7 +29,7 @@ import Meta from "../components/Meta.astro";
   <noscript><p style="padding:24px">For the interactive image views, enable JavaScript. You can also <a href="/work">browse selected work</a> or <a href="/contact">get in touch</a>.</p></noscript>
   <main id="main">
     <section class="project-intro" aria-labelledby="project-title">
-      <a class="back-link" href="/work"><span aria-hidden="true">←</span> All work</a>
+      <a class="back-link" href="/work"><span class="ui-icon icon-arrow-left" aria-hidden="true"></span> All work</a>
       <h1 id="project-title">Beyond the<br>Humanized Machine</h1>
       <div class="intro-bottom">
         <p id="project-type" class="project-type">Fine art installation</p>
@@ -47,7 +47,7 @@ import Meta from "../components/Meta.astro";
         <figure class="project-figure">
           <div id="art-stage" class="art-stage">
             <div id="art-content" class="art-content"></div>
-            <button id="enlarge" class="enlarge-button" type="button" aria-label="Enlarge current image"><span aria-hidden="true">↗</span> Enlarge</button>
+            <button id="enlarge" class="enlarge-button" type="button" aria-label="Enlarge current image"><span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span> Enlarge</button>
           </div>
           <figcaption id="figure-caption" class="figure-caption" aria-live="polite"></figcaption>
         </figure>
@@ -68,15 +68,15 @@ import Meta from "../components/Meta.astro";
 
     <nav class="more-work" aria-label="More projects">
       <p>Continue exploring</p>
-      <a id="next-project" href="/project?work=standing"><span>Standing Room Only</span><span aria-hidden="true">↗</span></a>
+      <a id="next-project" href="/project?work=standing"><span>Standing Room Only</span><span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a>
       <a class="all-work-link" href="/work">All work</a>
     </nav>
   </main>
 
-  <footer><a href="/">Helen Zhang</a><span>Images, in translation.</span><a href="#main">Back to top ↑</a></footer>
+  <footer><a href="/">Helen Zhang</a><span>Images, in translation.</span><a href="#main">Back to top <span class="ui-icon icon-arrow-up" aria-hidden="true"></span></a></footer>
 
   <dialog id="image-dialog" aria-labelledby="dialog-caption">
-    <div class="dialog-header"><p>Look closer</p><button id="close-dialog" type="button">Close <span aria-hidden="true">×</span></button></div>
+    <div class="dialog-header"><p>Look closer</p><button id="close-dialog" type="button">Close <span class="ui-icon icon-close" aria-hidden="true"></span></button></div>
     <div id="dialog-content" class="dialog-content"></div>
     <p id="dialog-caption" class="dialog-caption"></p>
   </dialog>

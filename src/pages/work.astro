@@ -10,7 +10,7 @@ import Meta from "../components/Meta.astro";
   <Meta title="Selected work" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/studio/work.css">
-  <script is:inline src="/studio/work.js" defer></script>
+  <script is:inline type="module" src="/studio/work.js"></script>
   <link rel="stylesheet" href="/studio/shared.css">
 </head>
 <body>
@@ -26,7 +26,7 @@ import Meta from "../components/Meta.astro";
     </div>
     <div class="view-bar">
       <div class="view-options" role="group" aria-label="View selected work"><button id="strip-view" aria-pressed="true" aria-controls="strip">In motion</button><button id="index-view" aria-pressed="false" aria-controls="index">Index</button></div>
-      <button class="motion-button" id="motion-button" aria-pressed="false"><span class="motion-icon" aria-hidden="true">Ⅱ</span><span id="motion-label">Pause motion</span></button>
+      <button class="motion-button" id="motion-button" aria-pressed="false"><span class="motion-icon ui-icon icon-pause" aria-hidden="true"></span><span id="motion-label">Pause motion</span></button>
     </div>
     <section id="strip" aria-label="Selected projects in a moving strip" aria-describedby="motion-hint">
       <div class="conveyor" id="conveyor">
@@ -55,7 +55,7 @@ import Meta from "../components/Meta.astro";
           </div>
         </div>
       </div>
-      <div class="strip-foot"><p id="motion-hint">Hold over a work to look closer.</p><div class="step-buttons" role="group" aria-label="Browse projects"><button id="previous" aria-label="Previous project">←</button><button id="next" aria-label="Next project">→</button></div></div>
+      <div class="strip-foot"><p id="motion-hint">Hold over a work to look closer.</p><div class="step-buttons" role="group" aria-label="Browse projects"><button id="previous" aria-label="Previous project"><span class="ui-icon icon-arrow-left" aria-hidden="true"></span></button><button id="next" aria-label="Next project"><span class="ui-icon icon-arrow-right" aria-hidden="true"></span></button></div></div>
     </section>
     <section id="index" class="work-index" aria-label="Project index" hidden>
       <a href="/project?work=thesis"><span class="index-title">Beyond the Humanized Machine</span><span>Painting, projection &amp; installation</span><span class="index-open">View project</span></a>
@@ -65,6 +65,6 @@ import Meta from "../components/Meta.astro";
       <a href="/project?work=side-effects"><span class="index-title">Side Effects May Include</span><span>Archival video &amp; supercuts</span><span class="index-open">View project</span></a>
     </section>
   </main>
-  <footer class="work-footer"><p>Other pieces, unfinished thoughts,<br>things picked up along the way.</p><a href="/archive">Enter the archive <span aria-hidden="true">↗</span></a></footer>
+  <footer class="work-footer"><p>Other pieces, unfinished thoughts,<br>things picked up along the way.</p><a href="/archive">Enter the archive <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a></footer>
 </body>
 </html>

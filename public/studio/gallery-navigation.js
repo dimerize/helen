@@ -25,3 +25,10 @@ export function rotateView(yaw, pitch, deltaX, deltaY) {
 export function nearestAngle(current, target) {
   return current + Math.atan2(Math.sin(target - current), Math.cos(target - current));
 }
+
+// WheelEvent may report pixels, text lines, or whole pages. Cap each impulse
+// before the controller caps the total distance waiting to be travelled.
+export function wheelDistance(event, viewportHeight = 800) {
+  const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? viewportHeight : 1;
+  return limit(finite(event.deltaY) * finite(unit, 1) * .0024, -.45, .45);
+}

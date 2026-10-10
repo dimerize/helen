@@ -13,6 +13,7 @@ const fullTitle = title ? `${title} · ${site.name}` : site.meta.title;
 
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const canonical = new URL(path, Astro.site).href;
+const isStudioPage = ['/', '/work', '/archive', '/project', '/gallery'].includes(path);
 const ogUrl = new URL(ogImage, Astro.site).href;
 
 /*
@@ -34,6 +35,7 @@ const jsonLd = {
 <title>{fullTitle}</title>
 <meta name="description" content={description} />
 <link rel="canonical" href={canonical} />
+{isStudioPage && <link rel="preload" href="/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />}
 
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content={site.name} />

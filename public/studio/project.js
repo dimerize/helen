@@ -1,3 +1,5 @@
+import { reveal, createDialogMotion } from './studio-motion.js';
+
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
@@ -64,7 +66,7 @@
     {file: 'train-scan-notice.webp', title: 'Surveillance notice', note: 'Handheld scan of a train notice; process material.'}
   ];
   let currentCaption = '';
-  let returnFocus = null;
+  const detailMotion = createDialogMotion($('image-dialog'), {initialFocus: $('close-dialog'), fallbackFocus: $('enlarge')});
 
   document.title = `${project.title} — Helen Zhang`;
   $('project-title').innerHTML = project.titleHTML || project.title;
@@ -82,7 +84,7 @@
   function chooseGroup(label, choices, selected, name) {
     return `<div class="choice-group" role="group" aria-label="${label}"><span class="choice-label">${label}</span>${choices.map((choice, i) => `<button class="choice-button" type="button" data-choice="${name}" data-index="${i}" aria-pressed="${i === selected}">${choice}</button>`).join('')}</div>`;
   }
-  function render() {
+  function render(withMotion = true) {
     const content = $('art-content');
     const controls = $('sub-controls');
     const tabs = [...$('view-tabs').children];
@@ -112,7 +114,7 @@
         file = 'thesis-installation.webp'; title = 'Installation mockup';
         note = 'Proposed arrangement of paintings and projected interpretations, from the thesis materials.';
         content.classList.add('landscape');
-        controls.innerHTML = '<a class="gallery-project-link" href="/gallery">Step inside the installation <span aria-hidden="true">↗</span></a>';
+        controls.innerHTML = '<a class="gallery-project-link" href="/gallery">Step inside the installation <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a>';
       }
     } else if (key === '8ppi' && state.view !== 'Film') {
       file = state.view === 'Installation' ? '8ppi-installation.webp' : '8ppi-panels.webp';
@@ -144,6 +146,7 @@
       const message = document.createElement('span'); message.className = 'missing-media'; message.textContent = `${img.alt} — image unavailable. Please try again.`; img.replaceWith(message);
       if (!content.querySelector('img')) $('enlarge').hidden = true;
     }, {once: true}));
+    if (withMotion) reveal(content, {distance: 8});
   }
 
   $('view-tabs').addEventListener('click', event => {
@@ -173,25 +176,17 @@
   });
   function openDetail() {
     if ($('enlarge').hidden) return;
-    returnFocus = document.activeElement;
     $('dialog-content').innerHTML = $('art-content').innerHTML;
     $('dialog-caption').textContent = currentCaption;
-    $('image-dialog').showModal();
-    document.body.style.overflow = 'hidden';
-    $('close-dialog').focus();
+    detailMotion.open();
   }
   $('enlarge').addEventListener('click', openDetail);
   $('art-content').addEventListener('click', event => { if (event.target.tagName === 'IMG') openDetail(); });
-  $('close-dialog').addEventListener('click', () => $('image-dialog').close());
+  $('close-dialog').addEventListener('click', () => detailMotion.close());
   $('image-dialog').addEventListener('click', event => {
     if (event.target !== $('image-dialog')) return;
     const rect = $('image-dialog').getBoundingClientRect();
-    if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) $('image-dialog').close();
+    if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) detailMotion.close();
   });
-  $('image-dialog').addEventListener('close', () => {
-    document.body.style.overflow = '';
-    if (returnFocus && returnFocus !== document.body) returnFocus.focus({preventScroll: true});
-    else $('enlarge').focus({preventScroll: true});
-  });
-  render();
+  render(false);
 })();

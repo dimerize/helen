@@ -5,7 +5,7 @@ import Meta from "../components/Meta.astro";
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#e7e6e1">
   <Meta title="Inside the installation" description="Step inside a digital reconstruction of Helen Zhang’s Beyond the Humanized Machine. Move between paintings and see the images other viewers found in them." />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -29,7 +29,7 @@ import Meta from "../components/Meta.astro";
       <img id="gallery-fallback" src="/artwork/thesis-installation.webp" alt="Helen’s installation arrangement: elongated paintings on the side walls and a projected image over a painting on the back wall." fetchpriority="high">
     </div>
 
-    <a class="back-link" href="/project?work=thesis"><span aria-hidden="true">←</span> The project</a>
+    <a class="back-link" href="/"><span class="ui-icon icon-arrow-left" aria-hidden="true"></span> Back to the scanner</a>
     <details class="room-note">
       <summary>About this room</summary>
       <p>Digital reconstruction from Helen’s installation view. Room proportions and lighting are interpreted from the reference; projection uses recorded viewer drawings.</p>
@@ -40,7 +40,7 @@ import Meta from "../components/Meta.astro";
       <p class="entry-kicker">Beyond the Humanized Machine</p>
       <h1 id="gallery-title">Step inside.</h1>
       <p class="entry-copy">A painting. A closer look.<br>Someone else’s way of seeing.</p>
-      <button id="enter-gallery" type="button" disabled>Enter the room <span aria-hidden="true">↗</span></button>
+      <button id="enter-gallery" type="button" disabled>Enter the room <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></button>
       <p id="gallery-loading" role="status">Opening the room…</p>
       <noscript><p class="no-script">This room needs JavaScript to open. <a href="/project?work=thesis">See the paintings and installation images.</a></p></noscript>
     </section>
@@ -54,15 +54,15 @@ import Meta from "../components/Meta.astro";
           <button type="button" data-view="center" aria-pressed="false" title="Gaps in Netted Mesh">Gaps</button>
           <button type="button" data-view="right" aria-pressed="false" title="Bent Mesh">Bent Mesh</button>
         </div>
-        <p id="gallery-help"><span>Drag to look</span><span>Scroll to move</span><span>Arrow keys or WASD to walk</span></p>
+        <p id="gallery-help"><span>Drag to look</span><span class="help-desktop">Scroll to move</span><span class="help-desktop">Arrow keys or WASD to walk</span><span class="help-touch">Use the arrows to walk</span></p>
       </div>
 
       <div class="gallery-tools-panel">
         <div id="walk-pad" role="group" aria-label="Walk through the gallery">
-          <button type="button" data-move="forward" aria-label="Walk forward" title="Walk forward"><span aria-hidden="true">↑</span></button>
-          <button type="button" data-move="left" aria-label="Walk left" title="Walk left"><span aria-hidden="true">←</span></button>
-          <button type="button" data-move="back" aria-label="Walk backward" title="Walk backward"><span aria-hidden="true">↓</span></button>
-          <button type="button" data-move="right" aria-label="Walk right" title="Walk right"><span aria-hidden="true">→</span></button>
+          <button type="button" data-move="forward" aria-label="Walk forward" title="Walk forward"><span class="ui-icon icon-arrow-up" aria-hidden="true"></span></button>
+          <button type="button" data-move="left" aria-label="Walk left" title="Walk left"><span class="ui-icon icon-arrow-left" aria-hidden="true"></span></button>
+          <button type="button" data-move="back" aria-label="Walk backward" title="Walk backward"><span class="ui-icon icon-arrow-down" aria-hidden="true"></span></button>
+          <button type="button" data-move="right" aria-label="Walk right" title="Walk right"><span class="ui-icon icon-arrow-right" aria-hidden="true"></span></button>
         </div>
         <div class="projection-controls" role="group" aria-label="Viewer interpretations">
           <button id="projection-toggle" type="button" aria-pressed="true"><span class="projection-dot" aria-hidden="true"></span>Projection on</button>
@@ -75,10 +75,10 @@ import Meta from "../components/Meta.astro";
   </main>
 
   <dialog id="art-detail" aria-labelledby="detail-title" aria-describedby="detail-copy">
-    <button id="detail-close" type="button">Back to the room <span aria-hidden="true">×</span></button>
+    <button id="detail-close" type="button">Back to the room <span class="ui-icon icon-close" aria-hidden="true"></span></button>
     <div class="detail-layout">
       <div class="detail-art"><img id="detail-image" src="/artwork/thesis-painting.webp" alt="Gaps in Netted Mesh"></div>
-      <div class="detail-text"><p class="detail-kicker">Beyond the Humanized Machine</p><h2 id="detail-title">Gaps in Netted Mesh</h2><p id="detail-copy"></p><a id="detail-project" href="/project?work=thesis">Explore the project <span aria-hidden="true">↗</span></a></div>
+      <div class="detail-text"><p class="detail-kicker">Beyond the Humanized Machine</p><h2 id="detail-title">Gaps in Netted Mesh</h2><p id="detail-copy"></p><a id="detail-project" href="/project?work=thesis">Explore the project <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a></div>
     </div>
   </dialog>
 </body>

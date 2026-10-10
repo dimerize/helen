@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three.module.min.js';
+import { animate as springAnimate } from './vendor/motion.js';
 
 const scans = [
   {image:'train-scan.webp',title:'Found on the train',alt:'Red exit and caution lettering, distorted by a handheld scan'},
@@ -15,6 +16,8 @@ let renderScene = () => {};
 let frame = 0;
 let previous = 0;
 let pointer = {x:0,y:0};
+let galleryOpen = false;
+let sceneReady = false;
 pause.textContent = paused ? 'Resume motion' : 'Pause motion';
 pause.setAttribute('aria-pressed',String(paused));
 pause.addEventListener('click',()=>{
@@ -89,7 +92,8 @@ async function createScene(){
   const light=new THREE.PointLight(0xd1d5ff,8,5,2);light.position.set(1,.75,.4);wand.add(light);
   const status=new THREE.Mesh(new THREE.CircleGeometry(.035,16),new THREE.MeshBasicMaterial({color:0xf3bd94}));status.rotation.x=-Math.PI/2;status.position.set(-3.9,.455,0);wand.add(status);
   // A small real label gives the hardware scale without turning the home into a dashboard.
-  const labelCanvas=document.createElement('canvas');labelCanvas.width=1024;labelCanvas.height=64;const ctx=labelCanvas.getContext('2d');ctx.clearRect(0,0,1024,64);ctx.fillStyle='#b8b9bd';ctx.font='24px Helvetica, Arial';ctx.fillText('H. ZHANG     /     IMAGE READER',15,40);const labelTex=new THREE.CanvasTexture(labelCanvas);labelTex.colorSpace=THREE.SRGBColorSpace;
+  await document.fonts.load('24px Geist').catch(() => {});
+  const labelCanvas=document.createElement('canvas');labelCanvas.width=1024;labelCanvas.height=64;const ctx=labelCanvas.getContext('2d');ctx.clearRect(0,0,1024,64);ctx.fillStyle='#b8b9bd';ctx.font='24px Geist, sans-serif';ctx.fillText('H. ZHANG     /     IMAGE READER',15,40);const labelTex=new THREE.CanvasTexture(labelCanvas);labelTex.colorSpace=THREE.SRGBColorSpace;
   const label=new THREE.Mesh(new THREE.PlaneGeometry(3.15,.20),new THREE.MeshBasicMaterial({map:labelTex,transparent:true,depthWrite:false}));label.rotation.x=-Math.PI/2;label.position.set(-2.1,.458,0);wand.add(label);
   // Cable makes the hardware feel attached to the room, not stranded in a blank page.
   const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(5.15,-.05,-2.6),new THREE.Vector3(5.8,-.1,-2.9),new THREE.Vector3(6.5,-.12,-1.8),new THREE.Vector3(7.9,-.1,-1.8),new THREE.Vector3(10,-.1,-3)]);
@@ -112,11 +116,14 @@ async function createScene(){
   };
   renderScene(elapsed);
 }
-function animate(now){const dt=previous?Math.min((now-previous)/1000,.06):0;previous=now;if(!paused&&!document.hidden)elapsed+=dt;renderScene(elapsed);frame=requestAnimationFrame(animate);}
-createScene().then(()=>{frame=requestAnimationFrame(animate);}).catch(error=>{console.warn('Scanner uses its still-image fallback:',error.message);document.querySelector('#pause-motion').hidden=true;});
-document.addEventListener('visibilitychange',()=>{previous=0;});
+function animate(now){const dt=previous?Math.min((now-previous)/1000,.06):0;previous=now;if(!paused)elapsed+=dt;renderScene(elapsed);frame=requestAnimationFrame(animate);}
+function resumeScanner(){if(sceneReady&&!frame&&!galleryOpen&&!document.hidden){previous=0;frame=requestAnimationFrame(animate);}}
+function suspendScanner(){cancelAnimationFrame(frame);frame=0;previous=0;}
+createScene().then(()=>{sceneReady=true;galleryOpen=document.body.classList.contains('studio-open');resumeScanner();}).catch(error=>{console.warn('Scanner uses its still-image fallback:',error.message);document.querySelector('#pause-motion').hidden=true;});
+document.addEventListener('visibilitychange',()=>{document.hidden?suspendScanner():resumeScanner();});
+document.addEventListener('studio:gallery',event=>{galleryOpen=event.detail.open;galleryOpen?suspendScanner():resumeScanner();});
 window.addEventListener('pagehide',()=>{cancelAnimationFrame(frame);frame=0;});
-window.addEventListener('pageshow',event=>{if(event.persisted&&!frame){previous=0;frame=requestAnimationFrame(animate);}});
+window.addEventListener('pageshow',event=>{if(event.persisted)resumeScanner();});
 
 let printNumber=0;
 document.querySelector('#lift-scan').addEventListener('click',()=>{
@@ -127,10 +134,11 @@ document.querySelector('#lift-scan').addEventListener('click',()=>{
   card.style.left=`${Math.min(Math.max(18,innerWidth*.48+(n%3)*34),innerWidth-245)}px`;
   card.style.top=`${Math.max(70,(layer.clientHeight-350)*.32+(n%3)*22)}px`;
   card.style.setProperty('--turn',`${[-7,6,-2][n%3]}deg`);
-  card.innerHTML='<div class="print-handle" tabindex="0" role="group" aria-label="Move loose scan with arrow keys"><span>Fresh from the scanner</span><button class="print-close" aria-label="Put scan away">×</button></div><img><a href="/archive"><span>Find it in the archive</span><span aria-hidden="true">↗</span></a>';
+  card.innerHTML='<div class="print-handle" tabindex="0" role="group" aria-label="Move loose scan with arrow keys"><span>Fresh from the scanner</span><button class="print-close" aria-label="Put scan away"><span class="ui-icon icon-close" aria-hidden="true"></span></button></div><img><a href="/archive"><span>Find it in the archive</span><span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a>';
   const img=card.querySelector('img');img.src='/artwork/'+item.image;img.alt=item.alt;
-  card.querySelector('.print-close').addEventListener('click',()=>{card.remove();document.querySelector('#lift-scan').focus();});
+  card.querySelector('.print-close').addEventListener('click',async()=>{if(!reduced.matches)await springAnimate(card,{opacity:0,y:18,scale:.96},{type:'spring',visualDuration:.2,bounce:0});card.remove();document.querySelector('#lift-scan').focus();});
   layer.append(card);
+  if(!reduced.matches)springAnimate(card,{opacity:[0,1],y:[52,0],rotate:[0,[-7,6,-2][n%3]],scale:[.9,1]},{type:'spring',visualDuration:.48,bounce:.12});
   const handle=card.querySelector('.print-handle');handle.focus();
   let origin=null;
   handle.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;origin={x:e.clientX,y:e.clientY,left:card.offsetLeft,top:card.offsetTop};handle.setPointerCapture(e.pointerId);card.style.zIndex=String(printNumber+1);});

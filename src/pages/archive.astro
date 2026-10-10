@@ -10,7 +10,7 @@ import Meta from "../components/Meta.astro";
   <Meta title="Archive" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/studio/archive.css">
-  <script is:inline src="/studio/archive.js" defer></script>
+  <script is:inline type="module" src="/studio/archive.js"></script>
   <link rel="stylesheet" href="/studio/shared.css">
 </head>
 <body>
@@ -46,15 +46,15 @@ import Meta from "../components/Meta.astro";
     <div class="room" id="room"><div class="image-space" id="image-space" aria-label="Archive images"></div></div>
     <p id="archive-status" class="archive-status" role="status" aria-live="polite">14 fragments</p>
     <noscript><p>Please enable JavaScript for the image room. <a href="/project?work=thesis">Explore the thesis project.</a></p></noscript>
-    <footer class="archive-footer"><p>More things in progress.</p><a href="/work">Selected work ↗</a></footer>
+    <footer class="archive-footer"><p>More things in progress.</p><a href="/work">Selected work <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a></footer>
   </main>
   <dialog id="image-dialog" aria-labelledby="detail-title" aria-describedby="detail-caption">
     <div class="detail-layout">
       <div class="detail-picture"><img id="detail-image" src="/artwork/train-scan-wide.webp" alt=""></div>
       <div class="detail-panel">
-        <button class="close-dialog" type="button" aria-label="Close image">Close ×</button>
-        <div class="detail-copy"><p id="detail-type"></p><h2 id="detail-title"></h2><p id="detail-caption"></p><a id="related-link" href="/project?work=standing">View project ↗</a></div>
-        <div class="detail-pagination"><button id="previous-image" type="button" aria-label="Previous image">←</button><span id="detail-position" aria-live="polite"></span><button id="next-image" type="button" aria-label="Next image">→</button></div>
+        <button class="close-dialog" type="button" aria-label="Close image">Close <span class="ui-icon icon-close" aria-hidden="true"></span></button>
+        <div class="detail-copy"><p id="detail-type"></p><h2 id="detail-title"></h2><p id="detail-caption"></p><a id="related-link" href="/project?work=standing">View project <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a></div>
+        <div class="detail-pagination"><button id="previous-image" type="button" aria-label="Previous image"><span class="ui-icon icon-arrow-left" aria-hidden="true"></span></button><span id="detail-position" aria-live="polite"></span><button id="next-image" type="button" aria-label="Next image"><span class="ui-icon icon-arrow-right" aria-hidden="true"></span></button></div>
       </div>
     </div>
   </dialog>

@@ -1,3 +1,5 @@
+import { reveal } from './studio-motion.js';
+
 (() => {
   'use strict';
   const conveyor = document.getElementById('conveyor');
@@ -29,16 +31,19 @@
     motionButton.hidden = manualMode() || inIndex;
     motionButton.setAttribute('aria-pressed', String(userPaused));
     motionLabel.textContent = userPaused ? 'Resume motion' : 'Pause motion';
-    motionButton.firstElementChild.textContent = userPaused ? '▷' : 'Ⅱ';
+    motionButton.firstElementChild.classList.toggle('icon-play', userPaused);
+    motionButton.firstElementChild.classList.toggle('icon-pause', !userPaused);
     hint.textContent = touch.matches ? 'Swipe through the work. Tap one to open.' : reduce.matches ? 'Scroll through the work, or use the arrows.' : 'Hold over a work to look closer.';
   }
   function showIndex(show) {
+    if (show === inIndex) return;
     inIndex = show;
     strip.hidden = show;
     index.hidden = !show;
     stripButton.setAttribute('aria-pressed', String(!show));
     indexButton.setAttribute('aria-pressed', String(show));
     updateControls();
+    reveal(show ? index : strip);
   }
   stripButton.addEventListener('click', () => showIndex(false));
   indexButton.addEventListener('click', () => showIndex(true));

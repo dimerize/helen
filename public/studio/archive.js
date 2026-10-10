@@ -1,3 +1,5 @@
+import { reveal, createDialogMotion } from './studio-motion.js';
+
 (() => {
   'use strict';
   const assets = '/artwork/';
@@ -42,11 +44,12 @@
   const room=document.getElementById('room');
   const space=document.getElementById('image-space');
   const dialog=document.getElementById('image-dialog');
+  const detailMotion=createDialogMotion(dialog,{initialFocus:document.querySelector('.close-dialog')});
   const status=document.getElementById('archive-status');
   const categoryNames={scans:'Scan',material:'Material study',interpretations:'Interpretation'};
   const mobileQuery=matchMedia('(max-width:650px)');
   const reducedMotion=matchMedia('(prefers-reduced-motion:reduce)');
-  let view='room',filter='all',activeId=null,returnFocus=null;
+  let view='room',filter='all',activeId=null;
   let placements=items.map((_,index)=>index);
   let drag=null,lastDragged=null,highestDepth=50,shuffleTimer;
   const offsets=new Map();
@@ -186,16 +189,15 @@
     document.getElementById('detail-title').textContent=item.title;
     document.getElementById('detail-type').textContent=[...new Set([categoryNames[item.category],item.type,item.date].filter(Boolean))].join(' / ');
     document.getElementById('detail-caption').textContent=item.caption;
-    const link=document.getElementById('related-link');link.href=`/project?work=${encodeURIComponent(item.project)}`;link.textContent=`View ${item.relatedTitle} ↗`;
+    const link=document.getElementById('related-link');link.href=`/project?work=${encodeURIComponent(item.project)}`;link.replaceChildren(document.createTextNode(`View ${item.relatedTitle} `));const arrow=document.createElement('span');arrow.className='ui-icon icon-arrow-up-right';arrow.setAttribute('aria-hidden','true');link.append(arrow);
     const selected=visibleItems();document.getElementById('detail-position').textContent=`${selected.findIndex(entry=>entry.id===id)+1} / ${selected.length}`;
   }
-  function openItem(id,trigger){returnFocus=trigger;showItem(id);dialog.showModal();document.body.classList.add('dialog-open');}
-  function step(direction){const selected=visibleItems(),index=selected.findIndex(item=>item.id===activeId);showItem(selected[(index+direction+selected.length)%selected.length].id);}
-  document.querySelector('.close-dialog').addEventListener('click',()=>dialog.close());
+  function openItem(id,trigger){showItem(id);detailMotion.open(trigger);}
+  function step(direction){const selected=visibleItems(),index=selected.findIndex(item=>item.id===activeId);showItem(selected[(index+direction+selected.length)%selected.length].id);reveal(document.querySelector('.detail-picture'),{distance:6});}
+  document.querySelector('.close-dialog').addEventListener('click',()=>detailMotion.close());
   document.getElementById('previous-image').addEventListener('click',()=>step(-1));
   document.getElementById('next-image').addEventListener('click',()=>step(1));
   dialog.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'){event.preventDefault();step(-1);}if(event.key==='ArrowRight'){event.preventDefault();step(1);}});
-  dialog.addEventListener('click',event=>{if(event.target===dialog){const rect=dialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)dialog.close();}});
-  dialog.addEventListener('close',()=>{document.body.classList.remove('dialog-open');if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});});
+  dialog.addEventListener('click',event=>{if(event.target===dialog){const rect=dialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)detailMotion.close();}});
   render();
 })();
