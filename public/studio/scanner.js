@@ -13,6 +13,7 @@ let paused = reduced.matches;
 let scanIndex = 0;
 let elapsed = 3.6;
 let renderScene = () => {};
+let copyFrame = () => {};
 let frame = 0;
 let previous = 0;
 let pointer = {x:0,y:0};
@@ -114,6 +115,11 @@ async function createScene(){
     rig.rotation.y+=((targetAspect<1?-.12:-.18)+pointer.x*.075-rig.rotation.y)*.03;
     renderer.render(scene,camera);
   };
+  copyFrame = target => {
+    if (renderer.getContext().isContextLost()) return false;
+    target.getContext('2d').drawImage(renderer.domElement, 0, 0, target.width, target.height);
+    return true;
+  };
   renderScene(elapsed);
 }
 function animate(now){const dt=previous?Math.min((now-previous)/1000,.06):0;previous=now;if(!paused)elapsed+=dt;renderScene(elapsed);frame=requestAnimationFrame(animate);}
@@ -122,6 +128,17 @@ function suspendScanner(){cancelAnimationFrame(frame);frame=0;previous=0;}
 createScene().then(()=>{sceneReady=true;galleryOpen=document.body.classList.contains('studio-open');resumeScanner();}).catch(error=>{console.warn('Scanner uses its still-image fallback:',error.message);document.querySelector('#pause-motion').hidden=true;});
 document.addEventListener('visibilitychange',()=>{document.hidden?suspendScanner():resumeScanner();});
 document.addEventListener('studio:gallery',event=>{galleryOpen=event.detail.open;galleryOpen?suspendScanner():resumeScanner();});
+// The gallery's rear window borrows this scene at a capped rate. Rendering and
+// copying in the same task preserves the WebGL pixels without retaining every
+// drawing buffer, and the visitor's pause/reduced-motion choice still applies.
+document.addEventListener('studio:scanner-capture', event => {
+  if (!sceneReady || !event.detail?.canvas) return;
+  if (galleryOpen && !paused && !document.hidden) elapsed += Math.min(.15, Math.max(0, event.detail.delta || 0));
+  renderScene(elapsed);
+  if (!copyFrame(event.detail.canvas)) return;
+  event.detail.ready = true;
+  event.detail.revision = scanIndex;
+});
 window.addEventListener('pagehide',()=>{cancelAnimationFrame(frame);frame=0;});
 window.addEventListener('pageshow',event=>{if(event.persisted)resumeScanner();});
 

@@ -1,5 +1,6 @@
 ---
 import Meta from "../components/Meta.astro";
+import StudioPortal from "../components/StudioPortal.astro";
 ---
 <!doctype html>
 <html lang="en">
@@ -11,6 +12,7 @@ import Meta from "../components/Meta.astro";
   <script is:inline type="module" src="/studio/scanner.js"></script>
   <link rel="stylesheet" href="/studio/shared.css">
   <link rel="stylesheet" href="/studio/doorway.css">
+  <link rel="stylesheet" href="/studio/gallery.css">
   <script is:inline type="module" src="/studio/doorway.js"></script>
 </head>
 <body>
@@ -43,12 +45,6 @@ import Meta from "../components/Meta.astro";
     </a>
   </main>
   <footer><span>Helen Zhang</span><a href="/about">About Helen</a><a href="/contact">Get in touch</a></footer>
-  <dialog id="studio-portal" aria-label="Helen Zhang’s gallery">
-    <div class="portal-toolbar"><span>Beyond the Humanized Machine</span><button id="close-studio" type="button"><span class="ui-icon icon-arrow-left" aria-hidden="true"></span> Back to the scanner</button></div>
-    <div id="studio-frame"></div>
-    <div class="portal-curtain" aria-hidden="true"><div class="portal-doorway"><img src="/artwork/thesis-installation.webp" alt=""><div class="door-leaf"><span class="door-label">Helen Zhang<span>Beyond the Humanized Machine</span></span><span class="door-handle"></span><span class="door-foot">Come in.</span></div></div></div>
-    <p id="portal-status" role="status">Opening the room…</p>
-    <p id="portal-fallback" hidden>The room is taking a moment. <a href="/gallery">Open it directly</a>.</p>
-  </dialog>
+  <StudioPortal />
 </body>
 </html>

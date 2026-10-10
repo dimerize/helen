@@ -5,81 +5,13 @@ import Meta from "../components/Meta.astro";
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#e7e6e1">
-  <Meta title="Inside the installation" description="Step inside a digital reconstruction of Helen Zhang’s Beyond the Humanized Machine. Move between paintings and see the images other viewers found in them." />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <Meta title="Inside the installation" description="Step through the studio door into Helen Zhang’s Beyond the Humanized Machine." />
   <link rel="stylesheet" href="/studio/shared.css">
-  <link rel="stylesheet" href="/studio/gallery.css">
-  <script type="module" is:inline src="/studio/gallery.js"></script>
+  <script is:inline>window.location.replace('/?room=gallery');</script>
 </head>
-<body class="gallery-page">
-  <a class="skip-link" href="#enter-gallery">Skip to the gallery entrance</a>
-  <header class="site-header">
-    <a class="wordmark" href="/">Helen Zhang</a>
-    <nav aria-label="Main navigation">
-      <a href="/work">Work</a>
-      <a href="/archive">Archive</a>
-      <a href="/about">About</a>
-    </nav>
-  </header>
-
-  <main id="gallery" aria-label="Beyond the Humanized Machine gallery">
-    <div id="gallery-stage" tabindex="0" aria-label="Interactive gallery. Drag to look around. Use the arrow keys or W A S D to move.">
-      <img id="gallery-fallback" src="/artwork/thesis-installation.webp" alt="Helen’s installation arrangement: elongated paintings on the side walls and a projected image over a painting on the back wall." fetchpriority="high">
-    </div>
-
-    <a class="back-link" href="/"><span class="ui-icon icon-arrow-left" aria-hidden="true"></span> Back to the scanner</a>
-    <details class="room-note">
-      <summary>About this room</summary>
-      <p>Digital reconstruction from Helen’s installation view. Room proportions and lighting are interpreted from the reference; projection uses recorded viewer drawings.</p>
-      <a href="/project?work=thesis">Read about the work</a>
-    </details>
-
-    <section id="gallery-intro" aria-labelledby="gallery-title">
-      <p class="entry-kicker">Beyond the Humanized Machine</p>
-      <h1 id="gallery-title">Step inside.</h1>
-      <p class="entry-copy">A painting. A closer look.<br>Someone else’s way of seeing.</p>
-      <button id="enter-gallery" type="button" disabled>Enter the room <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></button>
-      <p id="gallery-loading" role="status">Opening the room…</p>
-      <noscript><p class="no-script">This room needs JavaScript to open. <a href="/project?work=thesis">See the paintings and installation images.</a></p></noscript>
-    </section>
-
-    <section id="gallery-controls" aria-label="Explore the room" hidden>
-      <div class="gallery-view-panel">
-        <p id="focus-caption">At the entrance</p>
-        <div class="view-buttons" role="group" aria-label="Move to a painting">
-          <button type="button" data-view="entrance" aria-pressed="true" title="Entrance">Entrance</button>
-          <button type="button" data-view="left" aria-pressed="false" title="Elongated">Elongated</button>
-          <button type="button" data-view="center" aria-pressed="false" title="Gaps in Netted Mesh">Gaps</button>
-          <button type="button" data-view="right" aria-pressed="false" title="Bent Mesh">Bent Mesh</button>
-        </div>
-        <p id="gallery-help"><span>Drag to look</span><span class="help-desktop">Scroll to move</span><span class="help-desktop">Arrow keys or WASD to walk</span><span class="help-touch">Use the arrows to walk</span></p>
-      </div>
-
-      <div class="gallery-tools-panel">
-        <div id="walk-pad" role="group" aria-label="Walk through the gallery">
-          <button type="button" data-move="forward" aria-label="Walk forward" title="Walk forward"><span class="ui-icon icon-arrow-up" aria-hidden="true"></span></button>
-          <button type="button" data-move="left" aria-label="Walk left" title="Walk left"><span class="ui-icon icon-arrow-left" aria-hidden="true"></span></button>
-          <button type="button" data-move="back" aria-label="Walk backward" title="Walk backward"><span class="ui-icon icon-arrow-down" aria-hidden="true"></span></button>
-          <button type="button" data-move="right" aria-label="Walk right" title="Walk right"><span class="ui-icon icon-arrow-right" aria-hidden="true"></span></button>
-        </div>
-        <div class="projection-controls" role="group" aria-label="Viewer interpretations">
-          <button id="projection-toggle" type="button" aria-pressed="true"><span class="projection-dot" aria-hidden="true"></span>Projection on</button>
-          <button id="next-reading" type="button">Another reading <span aria-hidden="true">↻</span></button>
-        </div>
-        <div class="gallery-control-foot"><p id="reading-status" aria-live="polite">A viewer’s interpretation</p><button id="gallery-reset" type="button">Start again</button></div>
-      </div>
-    </section>
-    <p id="gallery-status" class="sr-only" aria-live="polite"></p>
-  </main>
-
-  <dialog id="art-detail" aria-labelledby="detail-title" aria-describedby="detail-copy">
-    <button id="detail-close" type="button">Back to the room <span class="ui-icon icon-close" aria-hidden="true"></span></button>
-    <div class="detail-layout">
-      <div class="detail-art"><img id="detail-image" src="/artwork/thesis-painting.webp" alt="Gaps in Netted Mesh"></div>
-      <div class="detail-text"><p class="detail-kicker">Beyond the Humanized Machine</p><h2 id="detail-title">Gaps in Netted Mesh</h2><p id="detail-copy"></p><a id="detail-project" href="/project?work=thesis">Explore the project <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a></div>
-    </div>
-  </dialog>
+<body style="margin:0;background:#111311;color:#f4f3ef;padding:32px;font-family:var(--studio-font)">
+  <a href="/?room=gallery" style="color:inherit">Enter Helen’s studio</a>
+  <noscript><p><a href="/project?work=thesis" style="color:inherit">View the installation photographs</a></p></noscript>
 </body>
 </html>
