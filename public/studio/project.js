@@ -112,6 +112,7 @@
         file = 'thesis-installation.webp'; title = 'Installation mockup';
         note = 'Proposed arrangement of paintings and projected interpretations, from the thesis materials.';
         content.classList.add('landscape');
+        controls.innerHTML = '<a class="gallery-project-link" href="/gallery">Step inside the installation <span aria-hidden="true">↗</span></a>';
       }
     } else if (key === '8ppi' && state.view !== 'Film') {
       file = state.view === 'Installation' ? '8ppi-installation.webp' : '8ppi-panels.webp';
