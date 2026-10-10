@@ -1,111 +1,39 @@
 ---
-import Base from '../layouts/Base.astro';
-import { site } from '../data/site';
-
-/* The real pixel size of public/textures/entry.jpg. Keep them in step. */
-const SCAN = { id: '03', w: 1100, h: 1370 };
-
-/*
-  Entry.
-
-  A picture hanging in a dark room. A scan bar travels up and down the wall
-  and lights it as it passes; moving a cursor or a finger uncovers the rest,
-  which then sinks back as the trace decays.
-
-  There is no caption telling anyone to do this. The bar is already moving
-  when the page loads, and the light follows the pointer on first contact,
-  which is the whole instruction.
-*/
+import Meta from "../components/Meta.astro";
 ---
-
-<Base texture="/textures/entry.jpg" intensity={1}>
-  <div class="entry">
-    <div class="entry__id">
-      <h1 class="entry__name">{site.name}</h1>
-    </div>
-
-    <!--
-      The platen edge, with the scan's own readout set against it. This is
-      the machine stating what is on the glass, which is the only caption
-      the page needs.
-    -->
-    <div class="entry__line">
-      <span class="entry__gauge meta" aria-hidden="true">
-        Scan {SCAN.id}<span class="entry__gap"></span>{SCAN.w} &#215; {SCAN.h}
-      </span>
-    </div>
-  </div>
-</Base>
-
-<style>
-  /* One viewport. Nothing below it. */
-  .entry {
-    position: relative;
-    min-height: calc(100dvh - var(--edge) * 2 - var(--nav-h));
-  }
-
-  .entry__id {
-    padding-top: clamp(1rem, 8vh, 5rem);
-  }
-
-  .entry__name {
-    font-size: clamp(1rem, 0.9rem + 0.55vw, 1.25rem);
-    font-weight: 400;
-    letter-spacing: var(--track-title);
-    text-transform: uppercase;
-    color: var(--ink);
-  }
-
-  .entry__gap {
-    display: inline-block;
-    width: 1.25em;
-  }
-
-  /*
-    57% down the viewport. The number is a coincidence worth keeping: the
-    hanging line is 57 inches, and this sits at 57% of the field.
-
-    The line is pulled --edge beyond the page on both sides so it runs full
-    bleed, which means anything positioned inside it needs twice --edge to
-    sit on the page's text margin rather than on the glass.
-  */
-  .entry__line {
-    position: absolute;
-    left: calc(var(--edge) * -1);
-    right: calc(var(--edge) * -1);
-    top: 57%;
-    height: 1px;
-    background: var(--line);
-  }
-
-  .entry__line::before,
-  .entry__line::after {
-    content: '';
-    position: absolute;
-    top: -4px;
-    width: 1px;
-    height: 9px;
-    background: var(--line-strong);
-  }
-
-  .entry__line::before {
-    left: calc(var(--edge) * 2);
-  }
-
-  .entry__line::after {
-    right: calc(var(--edge) * 2);
-  }
-
-  .entry__gauge {
-    position: absolute;
-    right: calc(var(--edge) * 2);
-    bottom: 0.65rem;
-    color: var(--ink-faint);
-  }
-
-  @media (max-width: 30rem) {
-    .entry__gauge {
-      font-size: 0.625rem;
-    }
-  }
-</style>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080809"><Meta title="Images in translation" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/studio/room.css">
+  <script is:inline type="module" src="/studio/scanner.js"></script>
+  <link rel="stylesheet" href="/studio/shared.css">
+</head>
+<body>
+  <a class="skip" href="#entrances">Skip to work and archive</a>
+  <header class="site-header">
+    <a class="wordmark" href="/" aria-current="page">Helen Zhang</a>
+    <nav aria-label="Main navigation"><a href="/work">Work</a><a href="/archive">Archive</a><a href="/about">About</a><a href="/cv">CV</a><a href="/contact">Contact</a></nav>
+  </header>
+  <main>
+    <section class="scanner-room" aria-label="An automatic scanner, collecting images">
+      <div id="scanner-scene" role="img" aria-label="A physical scanning bar moves over colorful found images on a dark glass platen.">
+        <div class="scanner-fallback"><img src="/artwork/train-scan.webp" alt="Red exit and caution lettering, distorted by a handheld scan"><span></span></div>
+      </div>
+      <div class="room-title"><h1>Images,<br>in translation.</h1><p>Art, moving image<br>& material experiments.</p></div>
+      <div class="scan-caption"><span id="scan-caption">Found on the train</span><span id="scan-count">1 / 3</span></div>
+      <div class="room-actions"><button type="button" id="lift-scan">Lift a scan <span aria-hidden="true">↗</span></button><span class="lift-hint">Take an image out of the machine.</span></div>
+      <div class="motion-control"><button type="button" id="pause-motion" aria-pressed="false">Pause motion</button></div>
+      <div id="print-layer" aria-label="Your loose scans"></div>
+      <p id="print-status" class="sr-only" aria-live="polite"></p>
+    </section>
+    <section id="entrances" class="entrances" aria-label="Explore Helen’s work">
+      <a href="/work"><span>Selected work</span><small>Projects, films, installations</small><span aria-hidden="true">↗</span></a>
+      <a href="/archive"><span>The archive</span><small>Things collected along the way</small><span aria-hidden="true">↗</span></a>
+    </section>
+  </main>
+  <footer><span>Helen Zhang</span><a href="/about">About Helen</a><a href="/contact">Get in touch</a></footer>
+</body>
+</html>

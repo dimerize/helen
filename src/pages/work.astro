@@ -1,0 +1,70 @@
+---
+import Meta from "../components/Meta.astro";
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f4f0">
+  <Meta title="Selected work" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/studio/work.css">
+  <script is:inline src="/studio/work.js" defer></script>
+  <link rel="stylesheet" href="/studio/shared.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to selected work</a>
+  <header class="site-header">
+    <a class="wordmark" href="/">Helen Zhang</a>
+    <nav aria-label="Main navigation"><a href="/work" aria-current="page">Work</a><a href="/archive">Archive</a><a href="/about">About</a><a href="/cv">CV</a><a href="/contact">Contact</a></nav>
+  </header>
+  <main id="main">
+    <div class="work-intro">
+      <h1>Selected work</h1>
+      <p>Images become objects.<br>Objects become images again.</p>
+    </div>
+    <div class="view-bar">
+      <div class="view-options" role="group" aria-label="View selected work"><button id="strip-view" aria-pressed="true" aria-controls="strip">In motion</button><button id="index-view" aria-pressed="false" aria-controls="index">Index</button></div>
+      <button class="motion-button" id="motion-button" aria-pressed="false"><span class="motion-icon" aria-hidden="true">Ⅱ</span><span id="motion-label">Pause motion</span></button>
+    </div>
+    <section id="strip" aria-label="Selected projects in a moving strip" aria-describedby="motion-hint">
+      <div class="conveyor" id="conveyor">
+        <div class="track" id="track">
+          <div class="work-group" id="original-group">
+            <a class="work-sheet thesis" href="/project?work=thesis">
+              <div class="sheet-image"><img src="/artwork/thesis-painting.webp" alt="Gaps in Netted Mesh, a painting of dark loops across a pale surface" fetchpriority="high"><span class="open-mark" aria-hidden="true">Open</span></div>
+              <div class="sheet-caption"><h2>Beyond the<br>Humanized Machine</h2><span class="medium">Painting, projection &amp; installation</span><p class="sheet-description">A scan becomes a painting, then someone else’s image.</p></div>
+            </a>
+            <a class="work-sheet standing" href="/project?work=standing">
+              <div class="sheet-image"><img src="/artwork/train-installation.webp" alt="Train footage projected across the walls of an installation"><span class="open-mark" aria-hidden="true">Open</span></div>
+              <div class="sheet-caption"><h2>Standing Room Only</h2><span class="medium">Video &amp; interactive installation</span><p class="sheet-description">The commute moves into the room.</p></div>
+            </a>
+            <a class="work-sheet ppi" href="/project?work=8ppi">
+              <div class="sheet-image"><img src="/artwork/8ppi-panels.webp" alt="Sixteen small painted and collaged panels for 8PPI"><span class="open-mark" aria-hidden="true">Open</span></div>
+              <div class="sheet-caption"><h2>8PPI</h2><span class="medium">Painting, collage &amp; moving image</span><p class="sheet-description">A small photograph, translated by hand and degraded again.</p></div>
+            </a>
+            <a class="work-sheet jack" href="/project?work=jack">
+              <div class="sheet-image"><img src="/artwork/script-revised.webp" alt="A Titanic screenplay page with text blacked out and rewritten"><span class="open-mark" aria-hidden="true">Open</span></div>
+              <div class="sheet-caption"><h2>Jack.exe &amp; Rose-liet</h2><span class="medium">Language-model experiments &amp; film</span><p class="sheet-description">A familiar script becomes unstable.</p></div>
+            </a>
+            <a class="work-sheet side-effects" href="/project?work=side-effects">
+              <div class="sheet-image film-placeholder"><span class="film-title">Side Effects<br>May Include</span><span class="film-note">Film documentation<br>forthcoming</span><span class="open-mark" aria-hidden="true">Open</span></div>
+              <div class="sheet-caption"><h2>Side Effects May Include</h2><span class="medium">Archival video &amp; supercuts</span><p class="sheet-description">Prescription advertising, cut around its repeated language.</p></div>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="strip-foot"><p id="motion-hint">Hold over a work to look closer.</p><div class="step-buttons" role="group" aria-label="Browse projects"><button id="previous" aria-label="Previous project">←</button><button id="next" aria-label="Next project">→</button></div></div>
+    </section>
+    <section id="index" class="work-index" aria-label="Project index" hidden>
+      <a href="/project?work=thesis"><span class="index-title">Beyond the Humanized Machine</span><span>Painting, projection &amp; installation</span><span class="index-open">View project</span></a>
+      <a href="/project?work=standing"><span class="index-title">Standing Room Only</span><span>Video &amp; interactive installation</span><span class="index-open">View project</span></a>
+      <a href="/project?work=8ppi"><span class="index-title">8PPI</span><span>Painting, collage &amp; moving image</span><span class="index-open">View project</span></a>
+      <a href="/project?work=jack"><span class="index-title">Jack.exe &amp; Rose-liet</span><span>Language-model experiments &amp; film</span><span class="index-open">View project</span></a>
+      <a href="/project?work=side-effects"><span class="index-title">Side Effects May Include</span><span>Archival video &amp; supercuts</span><span class="index-open">View project</span></a>
+    </section>
+  </main>
+  <footer class="work-footer"><p>Other pieces, unfinished thoughts,<br>things picked up along the way.</p><a href="/archive">Enter the archive <span aria-hidden="true">↗</span></a></footer>
+</body>
+</html>

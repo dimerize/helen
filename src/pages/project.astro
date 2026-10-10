@@ -1,0 +1,84 @@
+---
+import Meta from "../components/Meta.astro";
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f7f3">
+  <Meta title="Projects" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/studio/project.css">
+  <script is:inline src="/studio/project.js" defer></script>
+  <link rel="stylesheet" href="/studio/shared.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to project</a>
+  <header class="site-header">
+    <a class="wordmark" href="/">Helen Zhang</a>
+    <nav aria-label="Main navigation">
+      <a href="/work" aria-current="page">Work</a>
+      <a href="/archive">Archive</a>
+      <a href="/about">About</a>
+      <a href="/cv">CV</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </header>
+
+  <noscript><p style="padding:24px">For the interactive image views, enable JavaScript. You can also <a href="/work">browse selected work</a> or <a href="/contact">get in touch</a>.</p></noscript>
+  <main id="main">
+    <section class="project-intro" aria-labelledby="project-title">
+      <a class="back-link" href="/work"><span aria-hidden="true">←</span> All work</a>
+      <h1 id="project-title">Beyond the<br>Humanized Machine</h1>
+      <div class="intro-bottom">
+        <p id="project-type" class="project-type">Fine art installation</p>
+        <p id="project-summary" class="project-summary">A scan becomes a painting. A painting becomes someone else’s image. An installation about what changes each time we translate what we see.</p>
+      </div>
+    </section>
+
+    <section class="project-media" aria-label="Explore the project">
+      <div class="media-toolbar">
+        <div id="view-tabs" class="view-tabs" role="tablist" aria-label="Project views"></div>
+        <button id="reset-view" class="text-button" type="button">Reset view <span aria-hidden="true">↺</span></button>
+      </div>
+      <div id="media-panel" role="tabpanel" tabindex="0">
+        <div id="sub-controls" class="sub-controls"></div>
+        <figure class="project-figure">
+          <div id="art-stage" class="art-stage">
+            <div id="art-content" class="art-content"></div>
+            <button id="enlarge" class="enlarge-button" type="button" aria-label="Enlarge current image"><span aria-hidden="true">↗</span> Enlarge</button>
+          </div>
+          <figcaption id="figure-caption" class="figure-caption" aria-live="polite"></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="project-context" aria-labelledby="context-title">
+      <h2 id="context-title">The image keeps changing.</h2>
+      <div class="context-body">
+        <p id="context-copy">A handheld scan holds the movement of a hand as much as the image it records. Painting translates that imperfect record into a surface. Viewers then draw what they see within it, introducing another reading. Each transfer produces something that the previous image could not contain.</p>
+        <dl id="project-details" class="project-details"></dl>
+        <details class="process-disclosure">
+          <summary>Read the process <span aria-hidden="true">+</span></summary>
+          <div id="process-copy" class="process-copy"></div>
+        </details>
+      </div>
+    </section>
+
+    <nav class="more-work" aria-label="More projects">
+      <p>Continue exploring</p>
+      <a id="next-project" href="/project?work=standing"><span>Standing Room Only</span><span aria-hidden="true">↗</span></a>
+      <a class="all-work-link" href="/work">All work</a>
+    </nav>
+  </main>
+
+  <footer><a href="/">Helen Zhang</a><span>Images, in translation.</span><a href="#main">Back to top ↑</a></footer>
+
+  <dialog id="image-dialog" aria-labelledby="dialog-caption">
+    <div class="dialog-header"><p>Look closer</p><button id="close-dialog" type="button">Close <span aria-hidden="true">×</span></button></div>
+    <div id="dialog-content" class="dialog-content"></div>
+    <p id="dialog-caption" class="dialog-caption"></p>
+  </dialog>
+</body>
+</html>

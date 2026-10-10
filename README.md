@@ -1,110 +1,37 @@
-# Helen Zhang — portfolio
+# Helen Zhang portfolio
 
-A site for Helen Zhang, artist (Parsons BFA Fine Arts, minor Creative Coding), working across installation, moving image and creative technology.
+Helen’s portfolio combines an autonomous 3D scanner, a moving selected-work strip, a spatial archive, and project pages with media-specific controls. About, CV, and Contact retain the existing content and reading layouts.
 
-Built with [Astro](https://astro.build) as a fully static site. No client-side framework, no UI library, no animation library, no Three.js. Every page works without any JavaScript at all.
+Built as static Astro pages. Three.js 0.180.0 is vendored under `public/studio/vendor` with its MIT license. The work strip and archive use ordinary DOM elements, CSS transforms, and small JavaScript modules.
 
-**Why it is built this way → [DECISIONS.md](DECISIONS.md). How to put it live → [DEPLOY.md](DEPLOY.md).**
+## Develop and verify
 
----
-
-## Quick start
-
-```bash
-npm install
-npm run dev          # http://localhost:4321
+```sh
+npm ci
+npm run dev
+npm run verify
 ```
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Development server with hot reload |
-| `npm run build` | Production build into `dist/` |
-| `npm run preview` | Serve the built site locally |
-| `npm run check` | TypeScript and Astro diagnostics |
-| `npm run links` | Verify every internal link resolves |
-| `npm run verify` | `check` + `build` + `links` — run before pushing |
-| `npm run og` | Regenerate the social preview image and icons |
+`verify` checks Astro and TypeScript, builds `dist`, and checks internal links. `npm run preview` serves the production build locally.
 
-Node 20.3+ is required. `.nvmrc` pins 22, which is what the deployment uses.
+## Structure
 
----
+- `src/pages/index.astro`: scanner homepage.
+- `src/pages/work.astro`: selected projects, moving strip and stationary index.
+- `src/pages/archive.astro`: draggable image surfaces, index, detail viewer.
+- `src/pages/project.astro`: shared project structure. `public/studio/project.js` supplies each project's content and media.
+- `public/studio`: page styles and interactions, with shared navigation styles.
+- `public/artwork`: optimized WebP derivatives of Helen's artwork and documentation.
+- `src/content/site/about.md`, `src/data/cv.ts`, `src/data/site.ts`: existing biography, CV, contact details and navigation.
 
-## Project structure
+The scanner runs without input. Visitors may lift a scan into a movable image, pause motion, or go directly to Work and Archive. Reduced motion uses a static scanner. WebGL failure retains a still image. The Work and Archive indexes provide a stationary route through the content. Interactive archive and project views require JavaScript.
 
-```
-src/
-├─ content/site/about.md     The About text
-├─ content.config.ts         Schema for the prose pages
-├─ data/
-│  ├─ site.ts                Name, email, Instagram, navigation
-│  └─ cv.ts                  CV entries
-├─ styles/
-│  ├─ tokens.css             Every colour, size, duration — single source of truth
-│  ├─ fonts.css              @font-face
-│  └─ base.css               Reset, typography, focus, reduced motion
-├─ components/               Field, EdgeNav, Meta
-├─ layouts/Base.astro        Page shell
-├─ lib/
-│  ├─ field/                 The WebGL light field (shader + loader)
-│  ├─ clock.ts               Local time on the contact card
-│  └─ motion.ts              Preference and capability checks
-└─ pages/                    / · /about · /cv · /contact · 404
+Project URLs use `/project?work=thesis`, `standing`, `8ppi`, `jack`, and `side-effects`. Some film documentation is forthcoming and is labeled accordingly. Artwork captions distinguish photographed work from source installation mockups.
 
-public/textures/             The scans the light reveals
-public/fonts/                Self-hosted Geist variable fonts (OFL)
-```
+## Publish
 
-**Routes:** `/` `/about` `/cv` `/contact` and a 404 page.
+The existing Cloudflare Worker builds and deploys `main` automatically. `wrangler.jsonc` serves `dist` as static assets at https://helenzhang.studio. Run `npm run verify` before pushing, then verify the custom domain after the Cloudflare build completes. See `DEPLOY.md` for the original hosting setup.
 
----
+The approved scanner-room design was integrated as a separate release before gallery development. Git history can restore that release independently.
 
-## The entry
-
-The homepage is a picture in a dark room. Three things light it:
-
-- **A scan bar** travelling down and back up the full width, on a slow eased triangle wave.
-- **A drifting lamp**, so something is always surfacing somewhere.
-- **The pointer**, which writes into a decaying trace buffer — wherever a hand has passed opens up almost completely, then sinks back.
-
-The picture is never displayed; you see only as much as has been lit. Every other page carries a still version of the same idea: the scan behind a mask shaped like the lamp's falloff, which is also the no-JS and no-WebGL state.
-
-To change which image a page uses, pass a different `texture` to `<Base>`. Files live in `public/textures/`.
-
----
-
-## Changing the design
-
-Everything visual is a token in [`src/styles/tokens.css`](src/styles/tokens.css). Nothing else hardcodes a colour or a duration.
-
-**To change the typefaces:** drop new `.woff2` files into `public/fonts/`, update the `@font-face` blocks in `src/styles/fonts.css`, and change `--font-sans` / `--font-mono` in `tokens.css`. Update the two `<link rel="preload">` tags in `src/layouts/Base.astro` to match.
-
-**The accent colour** (`--signal`) appears in exactly two places sitewide: the current item in the navigation, and the focus ring. Please keep it that way — its whole job is to be rare.
-
----
-
-## Editing content
-
-| To change… | Edit this file |
-| --- | --- |
-| The About text | `src/content/site/about.md` |
-| Email, Instagram, her name | `src/data/site.ts` |
-| The CV | `src/data/cv.ts` |
-| Colours, type sizes, timings | `src/styles/tokens.css` |
-
-Then `npm run verify`, commit, and push. Cloudflare rebuilds and deploys in about a minute — **pushing to GitHub is the deploy**.
-
----
-
-## Two things to confirm with Helen
-
-**The About text.** Adapted from her LinkedIn, which still described her as a junior. Since she graduated in May 2026 that was changed to graduate wording; her own sentences are otherwise kept as written.
-
-**The CV.** Every entry in `src/data/cv.ts` is transcribed from the LinkedIn profile. Nothing was added or invented, and nothing on this site claims an exhibition, award, commission or collaboration that was not in the material provided.
-
----
-
-## Licence
-
-Site code: free for Helen to use and modify.
-Fonts: Geist and Geist Mono under the SIL Open Font License 1.1 (`public/fonts/LICENSE.txt`).
-Artwork remains © Helen Zhang.
+Artwork remains © Helen Zhang. Vendored library and font licenses are included beside their files.

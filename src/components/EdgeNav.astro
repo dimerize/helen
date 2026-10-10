@@ -23,6 +23,7 @@ const isHome = path === '/';
             <a
               class:list={['nav__link', 'meta', { 'is-current': current }]}
               href={item.href}
+              data-astro-reload
               aria-current={current ? 'page' : undefined}
             >
               {item.label}
@@ -36,6 +37,7 @@ const isHome = path === '/';
   <a
     class:list={['nav__link', 'nav__home', 'meta', { 'is-current': isHome }]}
     href="/"
+    data-astro-reload
     aria-current={isHome ? 'page' : undefined}
   >
     <span aria-hidden="true">HZ</span>
