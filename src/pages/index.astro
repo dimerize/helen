@@ -1,5 +1,6 @@
 ---
 import Meta from "../components/Meta.astro";
+import ArchiveSurface from "../components/ArchiveSurface.astro";
 import StudioPortal from "../components/StudioPortal.astro";
 ---
 <!doctype html>
@@ -19,6 +20,8 @@ import StudioPortal from "../components/StudioPortal.astro";
   <script is:inline type="module" src="/studio/scan-world/app.js"></script>
   <script is:inline type="module" src="/studio/doorway.js"></script>
   <script is:inline type="module" src="/studio/spatial-navigation.js"></script>
+<link rel="stylesheet" href="/studio/integrated-studio.css">
+<script is:inline type="module" src="/studio/studio-shell.js"></script>
 </head>
 <body data-mode="loading">
   <a class="skip" href="#portfolio-nav">Skip to navigation</a>
@@ -88,6 +91,7 @@ import StudioPortal from "../components/StudioPortal.astro";
     <img id="print-image" src="/studio/scan-world/assets/train-scan.jpg" alt="A print of the original scan">
     <div class="print-bottom"><div><span id="print-title">Found on the train</span><small id="print-subtitle">Helen Zhang</small></div><a id="print-archive" class="print-link" href="/archive">View in archive <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a><button id="print-enter" class="print-link">Explore scan <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></button><a id="photo-download" class="print-link" download="beneath-the-glass.png" hidden>Download <span class="ui-icon icon-arrow-down" aria-hidden="true"></span></a></div>
   </dialog>
+<ArchiveSurface />
 <StudioPortal />
 </body>
 </html>

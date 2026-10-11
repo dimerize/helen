@@ -29,36 +29,24 @@ export function createArchiveLayout(items, {width, mode='spread', focusProject=n
     }
     bottom=y-45;
   }else{
-    // A wide scan opens the table; the remaining surfaces fall into loose lanes.
-    // No perspective-dependent hit areas or hidden back-facing images.
-    const lanes=mobile?2:3;
-    const lane=(width-padding*2)/lanes;
-    const levels=Array(lanes).fill(mobile?36:48);
+    // Hanging lanes reserve the entire rotated frame, not just its photograph.
+    const lanes=width<420?1:width<900?2:3, lane=(width-padding*2)/lanes;
+    const levels=Array(lanes).fill(58);
     items.forEach((item,index)=>{
-      const aspect=item.aspect||1;
-      if(index===0 && aspect>2){
-        const cardWidth=(width-padding*2)*(mobile?.86:.61);
-        const cardHeight=cardWidth/aspect;
-        const y=mobile?40:62;
-        placements.set(item.id,{x:padding+(mobile?4:14),y,width:cardWidth,height:cardHeight,angle:-7,depth:10});
-        levels[0]=y+cardHeight+(mobile?70:100);
-        if(!mobile)levels[1]=y+cardHeight+140;
-        else levels[1]=y+cardHeight+20;
-        bottom=y+cardHeight;
-        return;
-      }
+      const aspect=item.aspect||1, angle=[-2,1.5,-1,2,-1.5][index%5];
+      const a=Math.abs(angle)*Math.PI/180;
+      const fullWidth=lane-32;
+      const cardWidth=Math.min(fullWidth/(Math.cos(a)+Math.sin(a)/aspect),mobile?230:360);
+      const cardHeight=cardWidth/aspect;
+      const rotatedHeight=cardHeight*Math.cos(a)+cardWidth*Math.sin(a);
       const laneIndex=levels.indexOf(Math.min(...levels));
-      const angles=[-4,7,-6,3,-8,5,-3,6,-4,8,-5];
-      const cardWidth=lane*(mobile?.79:.8)+(aspect>1.7?lane*.08:0);
-      const cardHeight=Math.min(cardWidth/aspect,mobile?260:390);
-      const actualWidth=cardHeight*aspect;
-      const x=padding+laneIndex*lane+(lane-actualWidth)*.5;
-      const y=levels[laneIndex]+(index%3)*13;
-      placements.set(item.id,{x,y,width:actualWidth,height:cardHeight,angle:angles[index%angles.length],depth:(index%4)*3});
-      levels[laneIndex]=y+cardHeight+(mobile?58:105);
-      bottom=Math.max(bottom,y+cardHeight);
+      const x=padding+laneIndex*lane+(lane-cardWidth)/2;
+      const y=levels[laneIndex]+(rotatedHeight-cardHeight)/2;
+      placements.set(item.id,{x,y,width:cardWidth,height:cardHeight,angle,depth:0});
+      levels[laneIndex]+=rotatedHeight+86;
+      bottom=Math.max(bottom,levels[laneIndex]);
     });
-    bottom+=mobile?75:100;
+
   }
   return {placements,sections,height:Math.ceil(bottom)};
 }
@@ -74,7 +62,9 @@ export function archiveDragIntent({pointerType='mouse',elapsed=0,dx=0,dy=0,moveM
 }
 
 export function archiveSelection(href,items){
-  const id=new URL(href,'https://archive.invalid').searchParams.get('scan');
+  const url=new URL(href,'https://archive.invalid');
+  if(!/^\/archive(?:\/|\.html)?$/.test(url.pathname))return null;
+  const id=url.searchParams.get('scan');
   return items.some(item=>item.id===id)?id:null;
 }
 

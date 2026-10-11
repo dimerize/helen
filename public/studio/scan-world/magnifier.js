@@ -19,7 +19,7 @@
 
 export function createMagnifier(THREE, options = {}) {
   const group = new THREE.Group();
-  group.name = 'Nickel and glass magnifier';
+  group.name = 'Graphite inspection magnifier';
   group.userData.isMagnifier = true;
   const geometries = new Set(), materials = new Set(), textures = new Set(), instances = new Set();
   let disposed = false;
@@ -33,7 +33,7 @@ export function createMagnifier(THREE, options = {}) {
   for (let y = 0; y < envHeight; y++) for (let x = 0; x < envWidth; x++) {
     const u = x / envWidth, v = y / envHeight;
     const strip = (center, width, gain) => gain * Math.exp(-Math.pow((u - center) / width, 4)) * Math.exp(-Math.pow((v - .4) / .26, 6));
-    const illumination = clamp(48 + strip(.14, .073, 207) + strip(.57, .040, 180) + strip(.82, .14, 82), 0, 255);
+    const illumination = clamp(24 + strip(.14, .12, 118) + strip(.57, .045, 58) + strip(.82, .16, 32), 0, 255);
     const offset = (y * envWidth + x) * 4;
     envPixels[offset] = Math.round(illumination);
     envPixels[offset + 1] = Math.round(illumination * .987);
@@ -62,10 +62,10 @@ export function createMagnifier(THREE, options = {}) {
     return result;
   }
   const nickel = material(THREE.MeshStandardMaterial, {
-    color: '#d0d5d4', metalness: .86, roughness: .205, envMap: reflections, envMapIntensity: 1.25,
+    color: '#353a37', metalness: .72, roughness: .38, envMap: reflections, envMapIntensity: .68,
   });
   const darkNickel = material(THREE.MeshStandardMaterial, {
-    color: '#78827f', metalness: .86, roughness: .265, envMap: reflections, envMapIntensity: 1.05,
+    color: '#555b55', metalness: .8, roughness: .32, envMap: reflections, envMapIntensity: .6,
   });
   const grip = material(THREE.MeshStandardMaterial, {
     color: '#171d1b', metalness: .12, roughness: .73, envMap: reflections, envMapIntensity: .34,
@@ -104,7 +104,7 @@ export function createMagnifier(THREE, options = {}) {
     flutePose.position.set(Math.sin(angle) * .931, -.003, Math.cos(angle) * .931);
     flutePose.rotation.y = angle; flutePose.updateMatrix();
     collarFlutes.setMatrixAt(i, flutePose.matrix);
-    collarFlutes.setColorAt(i, new THREE.Color(i % 6 === 0 ? '#ffffff' : '#c5cfcb'));
+    collarFlutes.setColorAt(i, new THREE.Color(i % 6 === 0 ? '#767d70' : '#40483e'));
   }
   collarFlutes.instanceMatrix.needsUpdate = true;
   const lowerShoulder = mesh(new THREE.TorusGeometry(.887, .012, 8, 112), nickel, 'Lower polished collar');
@@ -136,6 +136,8 @@ export function createMagnifier(THREE, options = {}) {
   });
   const glass = mesh(new THREE.LatheGeometry(lensProfile, 112), opticalGlass, 'Biconvex optical glass');
   glass.castShadow = false;
+  // A single optical shader avoids stacking two separate refractions.
+  glass.visible = true;
 
   // Magnified artwork is sampled on a curved inner surface inside the glass.
   // Source UVs remain independent of texture.repeat/offset, so choosing a crop
@@ -144,6 +146,7 @@ export function createMagnifier(THREE, options = {}) {
     artwork: { value: null }, centerUV: { value: new THREE.Vector2(.5, .5) },
     sourceSpan: { value: new THREE.Vector2(.28, .28) }, magnification: { value: 2.6 },
     reflectionPhase: { value: 0 }, reflectionStrength: { value: 1 },
+    scanProgress:{value:0}, platenCenterV:{value:.21153846}, platenSpanV:{value:.186},
   };
   const sourceMaterial = material(THREE.ShaderMaterial, {
     uniforms: sourceUniforms, side: THREE.DoubleSide,
@@ -166,6 +169,9 @@ export function createMagnifier(THREE, options = {}) {
       uniform float magnification;
       uniform float reflectionPhase;
       uniform float reflectionStrength;
+      uniform float scanProgress;
+      uniform float platenCenterV;
+      uniform float platenSpanV;
       varying vec2 aperture;
       varying vec3 opticalNormal;
       varying vec3 opticalView;
@@ -179,21 +185,25 @@ export function createMagnifier(THREE, options = {}) {
         // Strong central magnification relaxes toward the perimeter, where
         // thick glass bends the source sharply. The change is spatial, not an
         // animated image zoom, so the same printed detail stays under the tool.
-        float refractiveGain = .76 + .38 * radius2 + .82 * pow(radius, 6.0);
+        float refractiveGain = .96 + .12 * radius2 + .36 * pow(radius, 6.0);
         vec2 warped = aperture * refractiveGain;
         vec2 imageUV = centerUV + warped * sourceSpan / magnification;
         // Dispersion is confined to the outer glass. There is no colored
         // outline pasted over the image, and the reading area stays crisp.
-        vec2 dispersion = aperture * sourceSpan / magnification * .038 * pow(radius, 7.0);
+        vec2 dispersion = aperture * sourceSpan / magnification * .009 * pow(radius, 7.0);
         vec3 color;
         color.r = readArtwork(imageUV + dispersion).r;
         color.g = readArtwork(imageUV).g;
         color.b = readArtwork(imageUV - dispersion).b;
 
+        float scanV=platenCenterV-warped.y*platenSpanV/magnification;
+        float pass=smoothstep(scanProgress-.025,scanProgress+.009,scanV);
+        color*=mix(.10,.88,pass);
+        color+=exp(-abs(scanV-scanProgress)*160.)*vec3(.28,.30,.32);
         vec3 normal = normalize(opticalNormal);
         vec3 view = normalize(opticalView);
         float facing = clamp(abs(dot(normal, view)), 0.0, 1.0);
-        float fresnel = .025 + .36 * pow(1.0 - facing, 3.0);
+        float fresnel = .018 + .14 * pow(1.0 - facing, 3.0);
         float edge = smoothstep(.72, 1.0, radius);
         // Barely cool transmission and a denser green-grey cut edge give the
         // volume a legible glass body without bleaching the source artwork.
@@ -209,10 +219,10 @@ export function createMagnifier(THREE, options = {}) {
         float softbox = exp(-pow((ribbon + .37) / .13, 2.0));
         softbox *= 1.0 - smoothstep(.80, 1.02, abs(dot(pane, vec2(-.76, .65))));
         float companion = exp(-pow((ribbon - .58) / .045, 2.0)) * .34;
-        float reflection = (softbox * .27 + companion * .13) * reflectionStrength;
+        float reflection = (softbox * .065 + companion * .028) * reflectionStrength;
         color = mix(color, vec3(.93, .98, 1.0), reflection);
         float cutEdge = exp(-pow((radius - .972) / .016, 2.0));
-        color += vec3(.19, .25, .26) * cutEdge * (.28 + .32 * smoothstep(-.7, .65, pane.x - pane.y));
+        color += vec3(.075, .105, .095) * cutEdge * (.28 + .32 * smoothstep(-.7, .65, pane.x - pane.y));
         gl_FragColor = vec4(color, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -273,7 +283,11 @@ export function createMagnifier(THREE, options = {}) {
   function setSource(texture, settings = {}) {
     if (disposed) return;
     sourceUniforms.artwork.value = texture || null;
+    sourceUniforms.scanProgress.value=number(settings.scanProgress,0);
+    sourceUniforms.platenCenterV.value=number(settings.platenCenterV,.5);
+    sourceUniforms.platenSpanV.value=number(settings.platenSpanV,.186);
     source.visible = Boolean(texture?.isTexture);
+    glass.visible = !source.visible;
     const center = settings.centerUV || [.5, .5];
     const span = settings.sourceSpan || [.28, .28];
     sourceUniforms.centerUV.value.set(clamp(number(center[0], .5), 0, 1), clamp(number(center[1], .5), 0, 1));
@@ -285,9 +299,9 @@ export function createMagnifier(THREE, options = {}) {
     // A full reflection oscillation takes about two minutes. Reduced motion
     // holds the current reflection instead of snapping to a different pose.
     if (!reduced && Number.isFinite(time)) sourceUniforms.reflectionPhase.value = time * .048;
-    sourceUniforms.reflectionStrength.value = hover ? 1.13 : 1;
-    nickel.envMapIntensity = hover ? 1.43 : 1.25;
-    opticalGlass.envMapIntensity = hover ? 1.36 : 1.18;
+    sourceUniforms.reflectionStrength.value = hover ? 1.1 : 1;
+    nickel.envMapIntensity = hover ? .78 : .68;
+    opticalGlass.envMapIntensity = hover ? .65 : .6;
   }
   function dispose() {
     if (disposed) return;

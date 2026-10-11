@@ -45,4 +45,6 @@ document.querySelectorAll('[data-open-gallery]').forEach(link => {
     event.preventDefault();warmGallery();runSpatialTravel('gallery', () => portal.open(link));
   });
 });
+window.studioPortal = portal;
+document.dispatchEvent(new CustomEvent('studio:portal-ready'));
 dialog.querySelector('.hz-brand').addEventListener('click', event => {event.preventDefault();portal.requestClose();});

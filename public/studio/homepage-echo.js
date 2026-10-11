@@ -30,7 +30,8 @@ export async function createHomepageEcho() {
   // Measure synchronously before the caller locks the body for its modal.
   const layout = homepageCaptureLayout({
     viewportWidth: innerWidth, viewportHeight: innerHeight,
-    scrollX, scrollY, sceneRect: mount.getBoundingClientRect(),
+    scrollX:document.querySelector('#experience')?.classList.contains('is-away')?0:scrollX,
+    scrollY:document.querySelector('#experience')?.classList.contains('is-away')?0:scrollY, sceneRect: mount.getBoundingClientRect(),
   });
   const [{default: html2canvas}] = await Promise.all([
     import('./vendor/html2canvas.js'),
@@ -85,7 +86,7 @@ export async function createHomepageEcho() {
         windowWidth: layout.width, windowHeight: layout.height,
         scrollX: 0, scrollY: 0, scale: layout.scale,
         backgroundColor: null, logging: false, imageTimeout: 5000,
-        ignoreElements: element => element.id === 'studio-portal'
+        ignoreElements: element => ['studio-portal','archive-surface','studio-journey'].includes(element.id)
           || (captureHasScanner && element.id === 'scanner-scene')
           || (element.tagName === 'CANVAS' && element.closest('#scanner-scene')),
         onclone: clonedDocument => {
@@ -94,6 +95,10 @@ export async function createHomepageEcho() {
           clonedDocument.documentElement.style.background = 'transparent';
           const body = clonedDocument.body;
           body.classList.remove('studio-open');
+          body.dataset.mode='home';delete body.dataset.studioTravel;
+          clonedDocument.documentElement.removeAttribute('data-camera-travel');
+          const home=clonedDocument.querySelector('#experience');home?.classList.remove('is-away');if(home)home.inert=false;
+          clonedDocument.querySelector('#archive-surface')?.remove();clonedDocument.querySelector('#studio-journey')?.remove();
           Object.assign(body.style, {background: 'transparent', position: 'static', top: '0', overflow: 'visible'});
           clonedDocument.querySelector('#studio-portal')?.remove();
           if (!captureHasScanner) clonedDocument.querySelector('#scanner-scene')?.classList.remove('is-webgl');

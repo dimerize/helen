@@ -19,7 +19,7 @@ export function archiveCameraPose(frame,phase,direction,progress) {
   const amount=phase==='arrive'?1-ease:ease;
   return {x:direction*frame.shift*amount*(phase==='arrive'?-1:1),y:0,z:frame.distance+frame.retreat*amount};
 }
-function measureImage(image,index) {
+export function measureArchiveImage(image,index) {
   const rect=image.getBoundingClientRect(),parent=image.closest('.fragment');
   const style=getComputedStyle(image),matrix=new DOMMatrix(getComputedStyle(parent).transform);
   const angle=Math.atan2(matrix.b,matrix.a),scale=Math.hypot(matrix.a,matrix.b)||1;
@@ -60,7 +60,7 @@ export function installArchiveCameraTravel({document:doc=document,window:win=win
     renderer.domElement.className='spatial-archive-camera';renderer.domElement.setAttribute('aria-hidden','true');
     const camera=new THREE.PerspectiveCamera(frame.fov,frame.width/frame.height,frame.near,frame.far);
     for(const [index,image] of loaded.entries()) {
-      const measured=measureImage(image,index),layout=archiveCardGeometry(measured,frame);
+      const measured=measureArchiveImage(image,index),layout=archiveCardGeometry(measured,frame);
       const texture=new THREE.Texture(image);texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;resources.add(texture);
       const face=new THREE.MeshBasicMaterial({map:texture,transparent:true,toneMapped:false});face.color.setRGB(measured.brightness,measured.brightness,measured.brightness,THREE.SRGBColorSpace);resources.add(face);
       const group=new THREE.Group();group.position.set(layout.x,layout.y,layout.z);group.rotation.z=layout.rotation;scene.add(group);

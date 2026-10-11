@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three.module.min.js';
+import {addGallerySmallDetails} from './gallery-small-details.js';
 
 // Inferred from thesis-installation.webp, not a measured survey. The original
 // artwork faces, doorway and computer retain their world-space registration.
@@ -150,5 +151,6 @@ export function createGalleryArchitecture(scene, renderer) {
     const shadow = mesh(new THREE.PlaneGeometry(width + .16, height + .14), contactMaterial, [.012, -.016, -distanceToWall + .0015], parent);
     shadow.name = 'Soft artwork contact with plaster';shadow.raycast = () => {};
   }
-  return {root, addArtworkContact};
+  const details=addGallerySmallDetails(root,GALLERY_ARCHITECTURE);
+  return {root, addArtworkContact, details};
 }

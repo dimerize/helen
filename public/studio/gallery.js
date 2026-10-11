@@ -1,3 +1,4 @@
+import { registerStudioSurface } from './separated-journey.js';
 import * as THREE from './vendor/three.module.min.js';
 import CameraControls from './vendor/camera-controls.js';
 import { createGalleryScene } from './gallery-scene.js';
@@ -53,11 +54,11 @@ export async function createGalleryExperience(root, {echo, onExit, signal}) {
     room.update(elapsed); renderer.render(room.scene, camera);
     if(mode === 'screen') placeScreen();
   }
-  let camera;
+  let camera, unregisterSurface;
   function pause() {if (disposed) return;paused = true;timeline?.pause();if (controls) controls.enabled = false;renderer?.setAnimationLoop(null);hideHint();}
   function resume() {if (disposed) return;paused = false;previous = 0;if (moving()) timeline?.play();if (controls) controls.enabled = mode === 'inside';renderer?.setAnimationLoop(runFrame);}
   function dispose() {
-    if (disposed) return;disposed = true;events.abort();clearTimeout(hintTimer);timeline?.kill();observer?.disconnect();
+    if (disposed) return;disposed = true;unregisterSurface?.();events.abort();clearTimeout(hintTimer);timeline?.kill();observer?.disconnect();
     screenUI?.dispose();controls?.dispose();renderer?.setAnimationLoop(null);room?.dispose();renderer?.dispose();renderer?.domElement.remove();
   }
   function computerPose(kind) {
@@ -253,6 +254,16 @@ export async function createGalleryExperience(root, {echo, onExit, signal}) {
     renderer.setAnimationLoop(runFrame);
     document.dispatchEvent(new CustomEvent('studio:portal-travel',{detail:{phase:'arrive',from:'home',to:'gallery'}}));
     enter.focus({preventScroll:true});
+    unregisterSurface=registerStudioSurface('gallery',{
+      scene:room.scene,camera,exposure:1.06,
+      freeze:pause,release:resume,
+      async retreat(){
+        if(mode==='closed'||mode==='returning')return;
+        controls.enabled=false;closeMenu();hideHint();screenUI.hide();stepAway.hidden=true;useComputer.hidden=true;exit.hidden=true;caption.hidden=true;menuToggle.hidden=true;setMode('exiting');
+        await new Promise(resolve=>{timeline?.kill();timeline=createExitTimeline({camera,door:room.door,handle:room.handle,onComplete:resolve});timeline.to(camera,{fov:roomFov(),duration:.65,ease:'power2.inOut',onUpdate:()=>camera.updateProjectionMatrix()},0);if(reduced.matches)timeline.progress(1);else timeline.play();});
+        setMode('closed');
+      },
+    });
     notifySpatialReady('gallery');
     return {exit:leave,cancel:()=>{if(!dismissLocalView())leave();},pause,resume,dispose};
   } catch (error) {dispose();throw error;}

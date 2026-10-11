@@ -1,3 +1,7 @@
+import { mountCarrier } from '../carrier-preview.js';
+import {createFloorOutlet} from './floor-outlet.js';
+import {placeScannerMagnifier} from './magnifier-placement.js';
+import { registerStudioSurface } from '../separated-journey.js';
 import * as THREE from '../vendor/three.module.min.js';
 import { ScannerAudio } from './audio.js';
 import { createSurfaceNavigator } from './navigation.js';
@@ -55,6 +59,7 @@ Object.defineProperty(window, 'scannerExperience', { get: () => ({ ...debug, pla
 function setMode(value) {
   mode = value;
   debug.mode = value;
+  document.dispatchEvent(new CustomEvent('studio:scanner-mode',{detail:{mode:value}}));
   for (const item of document.querySelectorAll('.entrances,.site-footer')) item.inert = !['home', 'error', 'loading'].includes(value);
   $('print-layer').inert = value !== 'home';
   document.body.dataset.mode = value;
@@ -139,7 +144,7 @@ function resize() {
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   if (magnifier) {
-    magnifier.group.scale.setScalar(width < 600 ? 2.8 : 1.7);
+    magnifier.group.scale.setScalar(world.width / 9.45 * .73);
     updateMagnifierSource();
   }
   if (mode === 'home') {
@@ -456,6 +461,8 @@ function liftScan() {
     card.remove(); $('lift-print').focus({preventScroll: true});
   });
   layer.append(card);
+  const printImage=card.querySelector(':scope > img');
+  printImage.decode().then(()=>{if(card.isConnected)mountCarrier(card,printImage,art.title);}).catch(()=>{});
   if (!reduced && !manualStill) springAnimate(card, {opacity: [0, 1], y: [70, 0], rotate: [turn - 8, turn], scale: [.82, 1]}, {type: 'spring', visualDuration: .5, bounce: .12});
   const handle = card.querySelector('.print-handle'); handle.focus({preventScroll: true});
   let drag = null;
@@ -490,15 +497,16 @@ function openPrint(photo = false) {
 
 function magnifierSourceOptions() {
   const art = world.currentArtwork, position = magnifier.group.position;
-  const centerUV = art.worldToSource(position.x, position.z);
+  const centerUV = world.originalScanner.platenToImageUV(position.x/world.width+.5,position.z/world.depth+.5,art.index);
   const diameter = 1.59 * magnifier.group.scale.x;
-  return {centerUV, sourceSpan: [diameter / world.width * (art.crop.maximum[0]-art.crop.minimum[0]), diameter / world.depth * (art.crop.maximum[1]-art.crop.minimum[1])], magnification: 2.6};
+  return {centerUV, sourceSpan: [diameter / world.width * (art.crop.maximum[0]-art.crop.minimum[0]), diameter / world.depth * (art.crop.maximum[1]-art.crop.minimum[1])], magnification: 2, scanProgress: scanPhase, platenCenterV: .5-position.z/world.depth, platenSpanV: diameter/world.depth};
 }
 function updateMagnifierSource() {
   if (magnifier && world) magnifier.setSource(world.scanMesh.material.map, magnifierSourceOptions());
 }
 function updateEntryHandle() {
   if (!magnifier) return;
+  updateMagnifierSource();
   const {clientWidth: width, clientHeight: height} = $('scanner-scene');
   magnifier.group.updateMatrixWorld(true); camera.updateMatrixWorld(true);
   const bounds = new THREE.Box3().setFromObject(magnifier.group);
@@ -518,7 +526,7 @@ function animate(now) {
   frame = requestAnimationFrame(animate);
   const dt = previous ? Math.min((now - previous) / 1000, .05) : 0;
   previous = now;
-  if (document.hidden || !world || galleryOpen) return;
+  if (document.hidden || !world || galleryOpen || (document.body.dataset.studioRoute==='archive' && !navigationCamera)) return;
   time += dt;
   if (mode === 'home' && !manualStill && !reduced && !entryDrag && !isDialogOpen()) {
     scanElapsed += dt;
@@ -652,8 +660,9 @@ function bindGalleryCapture() {
   document.addEventListener('studio:gallery', event => {
     galleryOpen = Boolean(event.detail.open); previous = 0; clearMovementInput();
     if (!galleryOpen) {
-      navigationCamera = false;
-      const pose = heroPose(); camera.position.copy(pose.position); cameraTarget.copy(pose.target); camera.lookAt(cameraTarget);
+      // During a shared-scene arrival the camera is already the final camera.
+      // A second hero-pose reset here made the cable jump at the canvas handoff.
+      if(!navigationCamera){const pose=heroPose();camera.position.copy(pose.position);cameraTarget.copy(pose.target);camera.fov=pose.fov;camera.lookAt(cameraTarget);camera.updateProjectionMatrix();}
       notifySpatialReady('home');
     }
   });
@@ -715,10 +724,9 @@ async function init() {
     camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, .035, 250);
     const { createScannerWorld } = await import('./world.js');
     world = await createScannerWorld(THREE, renderer);
+    world.scene.add(createFloorOutlet(THREE,world.width/9.45));
     magnifier = createMagnifier(THREE);
-    magnifier.group.position.set(world.width*.23, 1.8, world.depth/2-2.2);
-    magnifier.group.rotation.set(.08, -.16, -.035);
-    magnifier.group.scale.setScalar($('scanner-scene').clientWidth < 600 ? 2.8 : 1.7);
+    placeScannerMagnifier(THREE,magnifier.group,world.width/9.45);
     world.scene.add(magnifier.group);
     navigator = createSurfaceNavigator({ bounds: world.bounds, heightAt: clearanceHeight, stepHeight: .29, cellSize: .22 });
     walkableMeshes = [world.scanMesh, ...world.root.getObjectByName('Physical typography, traced from the scan').children];
@@ -737,6 +745,23 @@ async function init() {
     $('loading').hidden = true;
     announce('Scanner ready. Lift the current scan, or use its magnifier to explore. Scans change automatically.');
     frame = requestAnimationFrame(animate);
+    registerStudioSurface('home', {
+      scene:world.scene, camera, exposure:1.3,shading:true,
+      prepare(){resize();const pose=heroPose();camera.position.copy(pose.position);cameraTarget.copy(pose.target);camera.fov=pose.fov;camera.lookAt(cameraTarget);camera.updateProjectionMatrix();renderer.render(world.scene,camera);},
+      deactivate(){$('print-layer').replaceChildren();lifted=0;pull=pullTarget=0;entryDrag=null;},
+      viewport:()=>$('scanner-scene').getBoundingClientRect(),
+      async retreat(){
+        if(mode==='home'||mode==='error')return;
+        const waitMode=value=>mode===value?Promise.resolve():new Promise(resolve=>{const onMode=e=>{if(e.detail.mode===value){document.removeEventListener('studio:scanner-mode',onMode);resolve();}};document.addEventListener('studio:scanner-mode',onMode);});
+        if(mode==='entering')await waitMode('world');
+        if(mode==='world')exitWorld();
+        await waitMode('home');
+      },
+      freeze(){navigationCamera=true;clearMovementInput();},
+      release(){navigationCamera=false;previous=0;renderer.render(world.scene,camera);},
+      enterScan(id){const index=scanIndexFromURL(new URL(`/?scan=${encodeURIComponent(id)}`,location.href).href);if(index!==null){selectArtwork(index,true);enterWorld();}},
+    });
+    document.dispatchEvent(new CustomEvent('studio:home-ready'));
     notifySpatialReady('home');
     const entryURL = new URL(location.href);
     if (entryURL.searchParams.get('explore') === '1' && scanIndexFromURL(location.href) !== null && !entryURL.searchParams.has('room')) {
@@ -745,7 +770,7 @@ async function init() {
     }
   } catch (error) {
     console.error('Scanner experience could not start:', error);
-    debug.errors.push(error.message); setMode('error'); $('loading').hidden = true; $('fallback').hidden = false;
+    debug.errors.push(error.message); setMode('error');document.dispatchEvent(new CustomEvent('studio:home-ready')); $('loading').hidden = true; $('fallback').hidden = false;
     $('retry-button').addEventListener('click', () => location.reload());
   }
 }

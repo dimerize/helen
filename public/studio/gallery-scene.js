@@ -2,6 +2,7 @@ import * as THREE from './vendor/three.module.min.js';
 import { RoundedBoxGeometry } from './vendor/rounded-box.js';
 import { createComputer } from './computer-model.js';
 import { createGalleryArchitecture } from './gallery-room.js';
+import {createGalleryDoor} from './gallery-door.js';
 
 /** The approved doorway and installation are one scene, with one camera. */
 export async function createGalleryScene(renderer, { homepageCanvas, computerCanvas } = {}) {
@@ -28,7 +29,7 @@ export async function createGalleryScene(renderer, { homepageCanvas, computerCan
   maps[1].offset.set(.181,.098); maps[1].repeat.set(.643,.808);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('#111311');
+  scene.background = new THREE.Color('#080809');
   const camera = new THREE.PerspectiveCamera(48,1,.03,55);
   camera.position.set(.2,1.6,8);
   camera.lookAt(0,1.58,-2);
@@ -81,27 +82,9 @@ export async function createGalleryScene(renderer, { homepageCanvas, computerCan
   box(1.85,.075,.25,jamb,0,2.85,3.76);
   box(1.78,.035,.3,jamb,0,.018,3.76);
 
-  const door = new THREE.Group();
+  const {door,handle,plaque} = createGalleryDoor();
   door.position.set(-.84,0,3.69);
   scene.add(door);
-  box(1.68,2.78,.085,material('#343832',.62),.84,1.40,0,door);
-  const metal = new THREE.MeshStandardMaterial({color:'#b9bdb1',metalness:.85,roughness:.24});
-  box(.058,.28,.028,metal,1.5,1.16,.057,door);
-  const handle = new THREE.Group();
-  handle.position.set(1.49,1.19,.11);
-  door.add(handle);
-  box(.19,.025,.03,metal,-.07,0,0,handle);
-  for (const y of [.23,2.55]) box(.032,.13,.05,metal,.025,y,.01,door);
-  const plaqueCanvas = document.createElement('canvas');
-  plaqueCanvas.width=512; plaqueCanvas.height=160;
-  const pc = plaqueCanvas.getContext('2d');
-  pc.fillStyle='#c6c9bd'; pc.fillRect(0,0,512,160);
-  pc.fillStyle='#31382e'; pc.font='24px Arial'; pc.fillText('Helen Zhang',28,60);
-  pc.font='18px Arial'; pc.fillText('Beyond the humanized machine',28,103);
-  const plaque = new THREE.CanvasTexture(plaqueCanvas);
-  plaque.colorSpace=THREE.SRGBColorSpace;
-  textures.add(plaque);
-  box(.63,.197,.012,new THREE.MeshStandardMaterial({map:plaque,roughness:.7}),.82,1.94,.052,door);
   const artworks=[];
   function art(id,title,w,h,x,y,z,rotation,map,pose) {
     const group=new THREE.Group();
@@ -175,7 +158,7 @@ export async function createGalleryScene(renderer, { homepageCanvas, computerCan
 
   let disposed=false;
   return {
-    scene,camera,door,handle,artworks,homepageTexture,computer,
+    scene,camera,door,handle,plaque,architecture,artworks,homepageTexture,computer,
     update() {
       const inside=camera.position.z < 3.7;
       exteriorFloor.visible=!inside;

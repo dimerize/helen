@@ -106,7 +106,7 @@ export function createSpatialNavigation({document:doc=document,window:win=window
   doc.addEventListener('click',event=>{
     const link=event.target?.closest?.('a[href]');if(!link)return;
     const intent=spatialIntent({href:link.getAttribute('href'),currentURL:currentURL(),button:event.button,metaKey:event.metaKey,ctrlKey:event.ctrlKey,altKey:event.altKey,shiftKey:event.shiftKey,defaultPrevented:event.defaultPrevented,target:link.getAttribute('target')||'',rel:link.getAttribute('rel')||'',download:link.hasAttribute('download'),galleryTrigger:link.hasAttribute('data-open-gallery'),printHandoff:Boolean(link.matches?.('.print-archive-link,[data-print-handoff]')),sceneMode:doc.body?.dataset.mode});
-    if(!intent)return;
+    if(!intent || win.studioShell)return;
     event.preventDefault();run(intent.href).catch(()=>{});
   },{signal:events.signal});
   win.addEventListener('pagehide',reset,{signal:events.signal});
@@ -117,13 +117,13 @@ export function createSpatialNavigation({document:doc=document,window:win=window
 
 let defaultController;
 function controller() {return defaultController ||= createSpatialNavigation();}
-export function runSpatialTravel(target,navigate,options) {return controller().run(target,navigate,options);}
+export function runSpatialTravel(target,navigate,options) {return globalThis.window?.studioShell ? window.studioShell.go(target) : controller().run(target,navigate,options);}
 export function arriveSpatialTravel(route) {return controller().ready(route);}
-export function notifySpatialReady(route) {return controller().ready(route);}
+export function notifySpatialReady(route) {return globalThis.window?.studioShell ? Promise.resolve() : controller().ready(route);}
 
 if(typeof window!=='undefined' && typeof document!=='undefined') {
   controller();
-  if(spatialRoute(location.href,location.href)==='archive') {
+  if(spatialRoute(location.href,location.href)==='archive' && !document.querySelector('#experience')) {
     import('./archive-camera-travel.js').then(({installArchiveCameraTravel})=>{
       installArchiveCameraTravel();notifySpatialReady('archive');
     }).catch(()=>{});

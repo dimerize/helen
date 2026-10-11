@@ -1,3 +1,4 @@
+import {addComputerSmallDetails} from './gallery-small-details.js';
 /**
  * Original CRT computer for Helen Zhang's gallery.
  * Units are metres. +Z is the front; y=0 is the floor.
@@ -348,6 +349,8 @@ export function createComputer(THREE, RoundedBoxGeometry, screenTexture) {
     [0.139, 0.917, -0.246], [0.168, 0.852, -0.242],
   ], 0.0040, 'Monitor signal cable');
 
+  const details=addComputerSmallDetails(group,materials);
+
   group.userData.dimensions = { width: 1.05, height: 1.456, depth: 0.60 };
   group.userData.monitor = {
     width: 0.646, height: 0.502, depth: 0.456,
@@ -356,6 +359,7 @@ export function createComputer(THREE, RoundedBoxGeometry, screenTexture) {
   };
   return {
     group,
+    details,
     screen,
     focus: {
       position: new THREE.Vector3(0, 1.248, 1.02),

@@ -1,3 +1,4 @@
+import {createArchiveSurfaceScene} from './archive-surface-scene.js';
 import { createDialogMotion } from './studio-motion.js';
 import { archiveItems as items, archiveProjects as projects } from './archive-data.js';
 import { createArchiveLayout, clampArchivePosition, archiveDragIntent } from './archive-layout.js';
@@ -23,10 +24,12 @@ let tableLayout, drag=null, moveMode=false, highIndex=20, suppressClickUntil=0, 
 let resizeFrame=0, settlingTimer=0, tableWidth=0, lensOn=false, lensPoint={x:.5,y:.5};
 let closingToFamily=null;
 let inspectionTrigger=null;
-let incomingPrint=consumePrintHandoff();
+let spatialRoom=null,projectCursor=-1;
+let incomingPrint=location.pathname.startsWith('/archive')?consumePrintHandoff():null;
 let heldPrint=null,closingToArtwork=null;
 const inspection=createArchiveInspection({dialog,motion:detailMotion,show:showItem,change:animateItemChange});
 const selectionHistory=createArchiveHistory({window,history,location,items,onSelect:id=>{
+  if(window.studioShell?.busy || (id && window.studioShell && window.studioShell.route!=='archive'))return;
   if(!id)activeId=null;
   else closingToFamily=null;
   if(id&&incomingPrint?.artId===id){
@@ -105,6 +108,7 @@ function render(){
     button.addEventListener('keydown',event=>{
       if(view!=='room'||!event.altKey||!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key))return;
       event.preventDefault();
+      if(spatialRoom){const step=event.shiftKey?.06:.24;spatialRoom.moveItem(item.id,(event.key==='ArrowRight'?step:event.key==='ArrowLeft'?-step:0),(event.key==='ArrowDown'?step:event.key==='ArrowUp'?-step:0));return;}
       const current=positions.get(item.id),step=event.shiftKey?6:24;
       const x=current.x+(event.key==='ArrowRight'?step:event.key==='ArrowLeft'?-step:0);
       const y=current.y+(event.key==='ArrowDown'?step:event.key==='ArrowUp'?-step:0);
@@ -120,6 +124,7 @@ function render(){
 }
 
 function arrange(animate=true){
+  if(spatialRoom){room.style.removeProperty('height');markers.replaceChildren();spatialRoom.project();return;}
   clearTimeout(settlingTimer);
   room.classList.remove('is-settling');
   if(view==='index'){room.style.removeProperty('height');markers.replaceChildren();return;}
@@ -157,11 +162,13 @@ function arrange(animate=true){
 
 function itemById(id){return items.find(item=>item.id===id);}
 function updateHint(){
+  if(spatialRoom){document.getElementById('room-hint').textContent='Drag an image to move it. Drag the empty room to look around. Pinch or scroll to look closer.';return;}
   document.getElementById('room-hint').textContent=coarse.matches
     ?moveMode?'Drag images. Turn Move images off to scroll.':'Hold to move. Tap to inspect.'
     :'Drag to move. Open to inspect.';
 }
 function gatherProject(project){
+  if(spatialRoom){if(view!=='room')setView('room');spatialRoom.focusProject(project);setStatus(`${projects[project].title} highlighted in the room.`);return;}
   arrangement='gather';focusProject=project;
   if(view!=='room')setView('room');else arrange();
   setStatus(`${projects[project].title} moved to the top.`);
@@ -169,7 +176,7 @@ function gatherProject(project){
 }
 
 function beginDrag(event,button){
-  if(view!=='room'||event.button!==0||drag)return;
+  if(spatialRoom||view!=='room'||event.button!==0||drag)return;
   const position=positions.get(button.dataset.id);
   drag={button,id:button.dataset.id,pointerId:event.pointerId,pointerType:event.pointerType,startX:event.clientX,startY:event.clientY,lastX:event.clientX,lastY:event.clientY,start:{...position},started:performance.now(),active:false,scroll:window.scrollY,timer:0};
   if(event.pointerType==='touch'&&!moveMode){
@@ -228,7 +235,7 @@ document.addEventListener('touchcancel',()=>{if(drag?.pointerType==='touch')rele
 window.addEventListener('blur',()=>releaseDrag(true));
 
 function setView(next){
-  view=next;
+  view=next;spatialRoom?.setView(next);
   document.querySelectorAll('[data-view]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.view===view)));
   render();
 }
@@ -239,14 +246,16 @@ document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListen
   render();
 }));
 document.getElementById('spread').addEventListener('click',()=>{
+  if(spatialRoom){spatialRoom.reset();spatialRoom.focusProject(null);projectCursor=-1;setStatus('Room restored.');return;}
   releaseDrag(true);arrangement='spread';focusProject=null;arrange();setStatus('Spread arrangement restored.');
 });
 document.getElementById('gather').addEventListener('click',()=>{
+  if(spatialRoom){const ids=Object.keys(projects);projectCursor=(projectCursor+1)%ids.length;spatialRoom.focusProject(ids[projectCursor]);setStatus(`${projects[ids[projectCursor]].title} highlighted. Choose By project again for the next group.`);return;}
   releaseDrag(true);arrangement='gather';focusProject=null;arrange();setStatus('Grouped by project.');
 });
 document.getElementById('move-images').addEventListener('click',event=>{
   releaseDrag(true);moveMode=!moveMode;room.classList.toggle('move-mode',moveMode);
-  event.currentTarget.setAttribute('aria-pressed',String(moveMode));updateHint();
+  spatialRoom?.setMoveMode(moveMode);event.currentTarget.setAttribute('aria-pressed',String(moveMode));updateHint();
 });
 
 function showItem(id){
@@ -326,6 +335,7 @@ dialog.addEventListener('close',()=>{
   if(closingToFamily){const project=closingToFamily;closingToFamily=null;gatherProject(project);}
   for(const button of buttons.values())button.classList.remove('is-inspected');
   if(closingToArtwork){
+    if(spatialRoom&&view!=='room')setView('room');
     const button=buttons.get(closingToArtwork);closingToArtwork=null;
     button?.scrollIntoView({block:'center',behavior:reduced.matches?'instant':'smooth'});
     button?.focus({preventScroll:true});
@@ -384,3 +394,16 @@ document.addEventListener('studio:navigation',event=>{if(event.detail?.phase==='
 window.addEventListener('pagehide',()=>{incomingPrint=null;clearHeldPrint();});
 render();
 requestAnimationFrame(()=>selectionHistory.start());
+
+document.addEventListener('studio:archive-open',event=>{
+  arrange(false);
+  const requested=event.detail?.scan;
+  const id=itemById(requested)?.id;
+  if(id&&!incomingPrint)incomingPrint=consumePrintHandoff({navigationType:event.detail?.inApp?'navigate':undefined});
+  if(id){if(incomingPrint?.artId===id){presentHeldPrint(incomingPrint);incomingPrint=null;}inspection.select(id,buttons.get(id));}
+});
+
+document.addEventListener('studio:archive-leave',()=>{activeId=null;clearHeldPrint();dialog.close();});
+
+export const roomReady=createArchiveSurfaceScene().then(surface=>{spatialRoom=surface;surface.setView(view);room.style.removeProperty('height');markers.replaceChildren();updateHint();surface.project();return surface;}).catch(error=>{console.warn('Archive room unavailable; image index remains available.',error);setView('index');return null;});
+document.addEventListener('studio:archive-inspect',event=>openItem(event.detail.id));

@@ -45,7 +45,7 @@ export function consumePrintHandoff(options={}){
     const win=options.window||globalThis.window;
     const storage=options.storage||win.sessionStorage;
     const raw=storage.getItem(KEY);storage.removeItem(KEY);
-    if(!raw||raw.length>500000)return null;
+    if(!raw||raw.length>2500000)return null;
     const record=JSON.parse(raw);
     const validation={url:options.url||win.location.href,now:options.now??Date.now(),width:options.width??win.innerWidth,height:options.height??win.innerHeight,navigationType:options.navigationType??win.performance?.getEntriesByType('navigation')[0]?.type??'navigate'};
     return validPrintHandoff(record,validation)?record:null;
@@ -77,6 +77,8 @@ export function savePrintHandoff(card,artId,options={}){
       paper:{background:style.backgroundColor,color:style.color,shadow:style.boxShadow,fontFamily:style.fontFamily,fontSize:style.fontSize},
       header:{...localBox(header,card,win),text:header?.textContent||''},close:localBox(close,card,win),
       footer:{...localBox(link,card,win),text:link.textContent.trim(),fontSize:win.getComputedStyle(link).fontSize},lens:null};
+    const carrier=card.querySelector('.carrier-render');
+    if(carrier)record.carrier={...localBox(carrier,card,win),src:carrier.toDataURL('image/png')};
     if(lens&&preview?.src&&preview.src.length<360000)record.lens={...localBox(lens,card,win),src:preview.src};
     if(!validPrintHandoff(record,{url:link.href,now:record.at,width:win.innerWidth,height:win.innerHeight}))return false;
     storage.setItem(KEY,JSON.stringify(record));
@@ -137,9 +139,12 @@ export function createHeldPrint(record,{document:doc=globalThis.document,onClose
   paper.style.backgroundColor=record.paper?.background||'#eae5d9';paper.style.color=record.paper?.color||'#232420';paper.style.boxShadow=record.paper?.shadow||'0 18px 60px #0009';
   if(record.paper?.fontFamily)paper.style.fontFamily=record.paper.fontFamily;
   const image=doc.createElement('img');image.className='held-print-image';image.src=record.image.src;image.alt=record.image.alt;image.draggable=false;setBox(image,record.image);paper.append(image);
+  if(record.carrier?.src?.startsWith('data:image/png;base64,') && record.carrier.src.length<2000000){
+    const carrier=doc.createElement('img');carrier.className='held-carrier';carrier.src=record.carrier.src;carrier.alt='';setBox(carrier,record.carrier);paper.append(carrier);image.style.opacity='0';paper.classList.add('has-carrier');
+  }
   const header=doc.createElement('span');header.className='held-print-header';header.textContent=record.header.text;setBox(header,record.header);paper.append(header);
   const close=doc.createElement('button');close.type='button';close.className='held-print-close';close.setAttribute('aria-label','Close image');close.append(icon(doc,'close'));setBox(close,record.close);close.addEventListener('click',onClose);paper.append(close);
-  const footer=doc.createElement('button');footer.type='button';footer.className='held-print-footer';footer.append(doc.createTextNode('View on table'),icon(doc,'arrow-up-right'));setBox(footer,record.footer);footer.style.fontSize=record.footer.fontSize||'12px';footer.addEventListener('click',onTable);paper.append(footer);
+  const footer=doc.createElement('button');footer.type='button';footer.className='held-print-footer';footer.append(doc.createTextNode('Find in room'),icon(doc,'arrow-up-right'));setBox(footer,record.footer);footer.style.fontSize=record.footer.fontSize||'12px';footer.addEventListener('click',onTable);paper.append(footer);
   const preview=record.lens;
   if(preview&&[preview.left,preview.top,preview.width,preview.height].every(finite)&&preview.width<200&&preview.height<200){
     try{
