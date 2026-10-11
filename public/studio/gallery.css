@@ -53,3 +53,6 @@
 #studio-portal[data-state="fallback"] .hz-enter,#studio-portal[data-state="fallback"] .hz-intro,#studio-portal[data-state="fallback"] .hz-exit,#studio-portal[data-state="fallback"] .hz-menu-toggle,#studio-portal[data-state="fallback"] .hz-menu{display:none!important}
 body.studio-open{overflow:hidden}
 @media(max-width:560px){#studio-portal .hz-top{top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right))}#studio-portal .hz-enter{bottom:max(30px,env(safe-area-inset-bottom))}}
+
+#studio-portal .hz-location,#studio-portal .hz-hint{display:none!important}
+#studio-portal .hz-controls-note{font-size:11px;line-height:1.5;color:#777b73;max-width:190px;margin:14px 0 4px}

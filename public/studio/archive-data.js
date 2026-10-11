@@ -221,8 +221,8 @@ export const archiveItems = [
 ];
 
 export const archiveProjects = {
- standing: { title: 'Standing Room Only', note: 'The train, carried into a room.' },
- thesis: { title: 'Gaps in Netted Mesh', note: 'A source, a painting, other ways of seeing.' },
- jack: { title: 'Jack.exe & Rose-liet', note: 'A script, rewritten.' },
- '8ppi': { title: '8PPI', note: 'An image, taken apart by hand.' }
+ standing: { title: 'Standing Room Only' },
+ thesis: { title: 'Gaps in Netted Mesh' },
+ jack: { title: 'Jack.exe & Rose-liet' },
+ '8ppi': { title: '8PPI' }
 };

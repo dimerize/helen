@@ -84,7 +84,7 @@ function render(){
   }
   arrange(false);
   updateHint();
-  if(view==='index')setStatus(`${selectedItems().length} fragments. Open an image to see its connections.`);
+  if(view==='index')setStatus(`${selectedItems().length} images.`);
 }
 
 function arrange(animate=true){
@@ -113,8 +113,7 @@ function arrange(animate=true){
     label.style.left=`${section.x}px`;label.style.top=`${section.y}px`;
     label.setAttribute('aria-label',`Bring ${project.title} to the front of the table`);
     const title=document.createElement('span');title.textContent=project.title;
-    const note=document.createElement('span');note.textContent=project.note;
-    label.append(title,note);label.addEventListener('click',()=>gatherProject(section.id));markers.append(label);
+    label.append(title);label.addEventListener('click',()=>gatherProject(section.id));markers.append(label);
   }
   document.getElementById('spread').setAttribute('aria-pressed',String(arrangement==='spread'));
   document.getElementById('gather').setAttribute('aria-pressed',String(arrangement==='gather'));
@@ -127,13 +126,13 @@ function arrange(animate=true){
 function itemById(id){return items.find(item=>item.id===id);}
 function updateHint(){
   document.getElementById('room-hint').textContent=coarse.matches
-    ?moveMode?'Move any image. Turn this off to scroll over the table.':'Hold a surface to move it. Tap to look closer.'
-    :'Drag a surface. Open it to follow its connections.';
+    ?moveMode?'Drag images. Turn Move images off to scroll.':'Hold to move. Tap to inspect.'
+    :'Drag to move. Open to inspect.';
 }
 function gatherProject(project){
   arrangement='gather';focusProject=project;
   if(view!=='room')setView('room');else arrange();
-  setStatus(`${projects[project].title} brought to the front. The original images remain in view.`);
+  setStatus(`${projects[project].title} moved to the top.`);
   room.scrollIntoView({behavior:reduced.matches?'instant':'smooth',block:'start'});
 }
 
@@ -208,10 +207,10 @@ document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListen
   render();
 }));
 document.getElementById('spread').addEventListener('click',()=>{
-  releaseDrag(true);arrangement='spread';focusProject=null;arrange();setStatus('The images spread out again. Pick up any surface.');
+  releaseDrag(true);arrangement='spread';focusProject=null;arrange();setStatus('Spread arrangement restored.');
 });
 document.getElementById('gather').addEventListener('click',()=>{
-  releaseDrag(true);arrangement='gather';focusProject=null;arrange();setStatus('Gathered by project. Sources, experiments, and finished work, together.');
+  releaseDrag(true);arrangement='gather';focusProject=null;arrange();setStatus('Grouped by project.');
 });
 document.getElementById('move-images').addEventListener('click',event=>{
   releaseDrag(true);moveMode=!moveMode;room.classList.toggle('move-mode',moveMode);

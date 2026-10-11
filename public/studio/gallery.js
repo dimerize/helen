@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.min.js';
 import CameraControls from './vendor/camera-controls.js';
 import { createGalleryScene } from './gallery-scene.js';
-import { createEntranceTimeline, createExitTimeline, createPortalArrivalTimeline, createHomepageReturnTimeline, GALLERY_OUTSIDE, GALLERY_OVERVIEW } from './gallery-travel.js';
+import { createEntranceTimeline, createExitTimeline, GALLERY_OUTSIDE, GALLERY_OVERVIEW } from './gallery-travel.js';
 import { nearestAngle } from './gallery-navigation.js';
 import { createComputerScreen } from './computer-screen.js';
 import { getComputerPose, createComputerTimeline } from './computer-travel.js';
@@ -20,7 +20,7 @@ export async function createGalleryExperience(root, {echo, onExit, signal}) {
   const ray = new THREE.Raycaster(), pointer = new THREE.Vector2(), direction = new THREE.Vector3(), spherical = new THREE.Spherical();
   function announce(text) {$('.hz-sr').textContent = text;}
   const atComputer = () => ['computer-approach','computer','screen-approach','screen','computer-return'].includes(mode);
-  const moving = () => ['arriving','returning','entering','exiting','computer-approach','screen-approach','computer-return'].includes(mode);
+  const moving = () => ['entering','exiting','computer-approach','screen-approach','computer-return'].includes(mode);
   const roomFov = () => stage.clientWidth/stage.clientHeight < .55 ? 67 : stage.clientWidth < 800 ? 57 : 48;
   function setMode(value) {
     mode = value; root.dataset.state = value;
@@ -45,9 +45,8 @@ export async function createGalleryExperience(root, {echo, onExit, signal}) {
     if (controls.enabled) controls.update(dt);
     camera.getWorldDirection(direction);
     // The live scanner costs nothing while it is behind the visitor.
-    if ((direction.z > .05 || room.portalSheet?.visible) && echo?.update(elapsed)) {
+    if (direction.z > .05 && echo?.update(elapsed)) {
       if(room.homepageTexture)room.homepageTexture.needsUpdate=true;
-      if(room.portalTexture)room.portalTexture.needsUpdate=true;
     }
     room.update(elapsed); renderer.render(room.scene, camera);
     if(mode === 'screen') placeScreen();
@@ -76,7 +75,7 @@ export async function createGalleryExperience(root, {echo, onExit, signal}) {
     renderer = new THREE.WebGLRenderer({antialias: true, alpha: false});
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
     screenUI = await createComputerScreen($('.hz-computer-ui'), {signal});
-    room = await createGalleryScene(renderer, {homepageCanvas: echo?.canvas,portalCanvas:echo?.viewportCanvas || echo?.canvas,computerCanvas:screenUI.canvas});
+    room = await createGalleryScene(renderer, {homepageCanvas: echo?.canvas,computerCanvas:screenUI.canvas});
     if (signal?.aborted) throw new DOMException('Studio closed', 'AbortError');
     camera = room.camera;
     CameraControls.install({THREE});controls = new CameraControls(camera, renderer.domElement);
@@ -101,7 +100,6 @@ export async function createGalleryExperience(root, {echo, onExit, signal}) {
           if(mode==='screen')placeScreen();
         } else focusComputer(kind,true);
       } else {camera.fov = roomFov();camera.updateProjectionMatrix();}
-      room.fitPortalSheet();
     }
     observer = new ResizeObserver(resize);observer.observe(stage);resize();
     setMode('closed');announce('The door is closed. Activate Enter the studio when you are ready.');root.style.setProperty('--hz-ink','#f0eee8');
@@ -120,24 +118,20 @@ export async function createGalleryExperience(root, {echo, onExit, signal}) {
       timeline = createEntranceTimeline({camera,door:room.door,handle:room.handle,onComplete:arrived});
       if (reduced.matches) timeline.progress(1); else timeline.play();
     }
-    function returnHome(preserveSheet = false) {
+    function returnHome() {
+      if (disposed) return;
       setMode('returning');
       document.dispatchEvent(new CustomEvent('studio:portal-travel',{detail:{phase:'return',from:'gallery',to:'home'}}));
-      if (echo?.update(elapsed)) {
-        if(room.homepageTexture)room.homepageTexture.needsUpdate=true;
-        if(room.portalTexture)room.portalTexture.needsUpdate=true;
-      }
-      room.fitPortalSheet();
-      timeline=createHomepageReturnTimeline({camera,sheet:room.portalSheet,preserveSheet,onComplete:()=>{if (!disposed) onExit();}});
-      if (reduced.matches || paused) timeline.progress(1);else timeline.play();
+      // The physical door has already completed its retreat. Restore the real
+      // homepage directly; a captured page never crosses the visitor's view.
+      onExit();
     }
     function leave() {
       if (disposed || mode === 'exiting' || mode === 'returning') return;
       if (mode === 'fallback') {onExit();return;}
-      if (mode === 'closed' || mode === 'arriving') {
-        const preserveSheet=mode==='arriving';
+      if (mode === 'closed') {
         timeline?.kill();controls.enabled=false;hideHint();closeMenu();
-        returnHome(preserveSheet);return;
+        returnHome();return;
       }
       timeline?.kill();screenUI.hide();stepAway.hidden=true;useComputer.hidden=true;exit.hidden=false;
       controls.enabled = false;hideHint();closeMenu();caption.hidden = true;menuToggle.hidden = true;setMode('exiting');
@@ -218,15 +212,12 @@ export async function createGalleryExperience(root, {echo, onExit, signal}) {
     });
     listen(renderer.domElement,'webglcontextlost',event=>{event.preventDefault();pause();screenUI.hide();stepAway.hidden=true;useComputer.hidden=true;closeMenu();caption.hidden=true;root.style.setProperty('--hz-ink','#f0eee8');setMode('fallback');$('.hz-fallback').hidden=false;$('.hz-brand').hidden=false;announce('The 3D view paused. Return to the scanner, view the installation photographs, or use the Instagram and email links.');});
     listen(reduced,'change',()=>{controls.draggingSmoothTime=reduced.matches?0:.16;if(reduced.matches && moving())timeline?.progress(1);});
-    setMode('arriving');
-    timeline=createPortalArrivalTimeline({camera,sheet:room.portalSheet,onComplete:()=>{
-      if(disposed)return;setMode('closed');
-      document.dispatchEvent(new CustomEvent('studio:portal-travel',{detail:{phase:'arrive',from:'home',to:'gallery'}}));
-      enter.focus({preventScroll:true});
-    }});
+    // Loading the gallery presents its existing closed doorway immediately.
+    // Only the explicit Enter action starts the original physical entrance.
     room.update(elapsed);renderer.render(room.scene,camera);
     renderer.setAnimationLoop(runFrame);
-    if(reduced.matches)timeline.progress(1);else timeline.play();
+    document.dispatchEvent(new CustomEvent('studio:portal-travel',{detail:{phase:'arrive',from:'home',to:'gallery'}}));
+    enter.focus({preventScroll:true});
     return {exit:leave,cancel:()=>{if(!dismissLocalView())leave();},pause,resume,dispose};
   } catch (error) {dispose();throw error;}
 }

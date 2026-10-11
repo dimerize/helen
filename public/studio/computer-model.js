@@ -265,7 +265,12 @@ export function createComputer(THREE, RoundedBoxGeometry, screenTexture) {
       ctx.textBaseline = 'middle';
       legends.forEach((legend, i) => {
         ctx.font = legend.length > 3 ? '500 15px Arial, sans-serif' : legend.length > 1 ? '500 20px Arial, sans-serif' : '500 25px Arial, sans-serif';
-        ctx.fillText(legend, (i % atlasColumns) * 64 + 32, Math.floor(i / atlasColumns) * 64 + 32);
+        const x=(i % atlasColumns)*64+32, y=Math.floor(i / atlasColumns)*64+32;
+        const angle={'↑':0,'→':Math.PI/2,'↓':Math.PI,'←':-Math.PI/2}[legend];
+        if(angle!==undefined){
+          ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.strokeStyle='#52594e';ctx.lineWidth=2;
+          ctx.beginPath();ctx.moveTo(0,9);ctx.lineTo(0,-9);ctx.moveTo(-6,-3);ctx.lineTo(0,-9);ctx.lineTo(6,-3);ctx.stroke();ctx.restore();
+        }else ctx.fillText(legend,x,y);
       });
       const atlas = new THREE.CanvasTexture(canvas);
       atlas.colorSpace = THREE.SRGBColorSpace;

@@ -3,6 +3,7 @@ import { ScannerAudio } from './audio.js';
 import { createSurfaceNavigator } from './navigation.js';
 import { scanCycle, elapsedForScan } from './scan-cycle.js';
 import { scanArchiveURL, scanIndexFromURL } from './scan-links.js';
+import { createMagnifier, renderMagnifierPreview } from './magnifier.js';
 import { animate as springAnimate } from '../vendor/motion.js';
 
 const $ = (id) => document.getElementById(id);
@@ -21,7 +22,9 @@ const joystick = { x: 0, y: 0, active: false };
 const player = { x: 0, z: 8, vx: 0, vz: 0, yaw: 0, jump: 0, jumpVelocity: 0 };
 const visited = new Set();
 const status = $('status');
-let renderer, camera, world;
+let renderer, camera, world, magnifier;
+let magnifierHover = false;
+const magnifierPreviews = new Map();
 let galleryOpen = false;
 let navigator, walkPath = [], waypoint, waypointLife = 0;
 let walkableMeshes = [];
@@ -61,6 +64,7 @@ function setMode(value) {
   document.querySelector('.home-caption').inert = !home;
   document.querySelector('.home-caption').setAttribute('aria-hidden', String(!home));
   document.querySelector('.world-caption').setAttribute('aria-hidden', String(value !== 'world'));
+  if (magnifier) magnifier.group.visible = value === 'home';
 }
 
 function announce(text) { status.textContent = text; }
@@ -104,6 +108,7 @@ function selectArtwork(index, manual = false) {
   const memory = memories.get(index);
   memoryImage = memory?.image || null; memoryExport = memory?.export || null; memoryLocation = memory?.location || '';
   $('scan-caption').textContent = art.title;
+  updateMagnifierSource();
   $('scanner-scene').setAttribute('aria-label', `${art.alt}. Look closer to explore this scan in three dimensions.`);
   document.body.dataset.scan = art.id;
   $('map-source').src = new URL(`./assets/${art.image}`, import.meta.url).href; $('map-source').alt = art.alt;
@@ -129,6 +134,10 @@ function resize() {
   renderer.setSize(width, height, false);
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
+  if (magnifier) {
+    magnifier.group.scale.setScalar(width < 600 ? 1.9 : 1.25);
+    updateMagnifierSource();
+  }
   if (mode === 'home') {
     const p = heroPose(); camera.position.copy(p.position); cameraTarget.copy(p.target); camera.fov = p.fov; camera.lookAt(cameraTarget); camera.updateProjectionMatrix();
   }
@@ -151,7 +160,7 @@ function walkToPointer(clientX, clientY) {
   if (!hit) return;
   const destination = groundSafe(hit.point.x, hit.point.z);
   const path = navigator.findPath({ x: player.x, z: player.z }, destination);
-  if (!path.length) { toast('Try the open paper nearby, or choose a place on the image.', 1900); return; }
+  if (!path.length) { toast('Select open ground.', 1900); return; }
   walkPath = path;
   const end = path[path.length - 1];
   waypoint.position.set(end.x, world.heightAt(end.x, end.z) + .025, end.z);
@@ -244,15 +253,12 @@ function tickTransition() {
   world.setMacro(macro);
   scanPhase = tr.direction === 'enter' ? lerp(entryScanProgress, 1, smooth(clamp(visualProgress / .34))) : lerp(1, entryScanProgress, smooth(clamp((visualProgress - .7) / .3)));
   world.visitor.visible = macro > .82;
-  $('journey-caption').classList.toggle('visible', !reduced && tr.direction === 'enter' && progress > .22 && progress < .59);
-  $('journey-caption').firstElementChild.textContent = tr.direction === 'enter' ? 'A little closer.' : '';
   // Soft exposure lift accompanies crossing the scan light; never a hard cut.
   const crossing = Math.sin(Math.PI * clamp((progress - .4) / .4));
   $('transition-wash').style.background = tr.still ? '#09090b' : '#eee7d5';
   $('transition-wash').style.opacity = tr.still ? Math.sin(Math.PI * progress) : Math.max(0, crossing) * .045;
   if (progress < 1) return macro;
   transition = null;
-  $('journey-caption').classList.remove('visible');
   $('transition-wash').style.opacity = 0;
   if (tr.direction === 'enter') {
     setMode('world'); world.setMacro(1); scanPhase = 1; world.visitor.visible = true; movedTime = 0;
@@ -262,7 +268,6 @@ function tickTransition() {
   } else {
     setMode('home'); pull = pullTarget = 0; world.setMacro(0); world.visitor.visible = false;
     $('entry-handle').focus({ preventScroll: true });
-    toast('A little world, kept.');
   }
   return tr.direction === 'enter' ? 1 : 0;
 }
@@ -307,7 +312,6 @@ function tickMovement(dt) {
   if (speed > .08) {
     player.yaw = angleLerp(player.yaw, Math.atan2(-player.vx, -player.vz), 1 - Math.exp(-12 * dt));
     movedTime += dt;
-    $('movement-hint').style.opacity = movedTime > 12 ? '.32' : '1';
   }
   if (player.jump > 0 || player.jumpVelocity > 0) {
     player.jumpVelocity -= 8 * dt;
@@ -393,7 +397,7 @@ function buildMap() {
     pin.style.left = `${uv[0] * 100}%`; pin.style.top = `${uv[1] * 100}%`;
     pin.addEventListener('click', () => visitStation(station.id)); $('map-pins').append(pin);
     const button = document.createElement('button'); button.className = 'station-button';
-    const name = document.createElement('span'); name.textContent = station.title; const arrow = document.createElement('span'); arrow.textContent = '↗'; arrow.setAttribute('aria-hidden', 'true'); button.append(name, arrow);
+    const name = document.createElement('span'); name.textContent = station.title; const arrow = document.createElement('span'); arrow.className = 'ui-icon icon-arrow-up-right'; arrow.setAttribute('aria-hidden', 'true'); button.append(name, arrow);
     button.addEventListener('click', () => visitStation(station.id)); $('station-list').append(button);
   }
 }
@@ -433,10 +437,15 @@ function liftScan() {
   card.style.width = `${width}px`; card.style.setProperty('--turn', `${turn}deg`);
   card.style.left = `${clamp(innerWidth * .52 + n % 3 * 22, 24, innerWidth - width - 46)}px`;
   card.style.top = `${Math.max(120, innerHeight * .24 + n % 3 * 22)}px`;
-  card.innerHTML = '<div class="print-handle" tabindex="0" role="group" aria-label="Move print with arrow keys"><span>Fresh from the scanner</span><button class="print-close" aria-label="Put scan away">×</button></div><img><a class="print-archive-link"><span>Find it in the archive</span><span aria-hidden="true">↗</span></a><button class="paper-lens" aria-label="Explore this scan in three dimensions"><span class="lens-glass" aria-hidden="true"></span><span class="sr-only">Look closer</span></button>';
+  card.innerHTML = '<div class="print-handle" tabindex="0" role="group" aria-label="Move print with arrow keys"><span></span><button class="print-close" aria-label="Put scan away"><span class="ui-icon icon-close" aria-hidden="true"></span></button></div><img><a class="print-archive-link"><span>View in archive</span><span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a><button class="paper-lens" aria-label="Explore this scan in three dimensions"><img class="magnifier-preview" alt=""><span class="sr-only">Explore scan</span></button>';
   card.querySelector('img').src = new URL(`./assets/${art.image}`, import.meta.url).href;
   card.querySelector('img').alt = art.alt;
   card.querySelector('.print-archive-link').href = scanArchiveURL(art.index);
+  const preview = card.querySelector('.magnifier-preview');
+  try {
+    if (!magnifierPreviews.has(art.index)) magnifierPreviews.set(art.index, renderMagnifierPreview(THREE, {texture: world.scanMesh.material.map, sourceOptions: magnifierSourceOptions(), size:256}).toDataURL());
+    preview.src = magnifierPreviews.get(art.index);
+  } catch { preview.hidden = true; card.querySelector('.paper-lens .sr-only').className = 'lens-fallback-label'; }
   card.querySelector('.paper-lens').addEventListener('click', () => { selectArtwork(art.index, true); enterWorld(); });
   card.querySelector('.print-close').addEventListener('click', async () => {
     if (!reduced && !manualStill) await springAnimate(card, {opacity: 0, y: 22, rotate: turn - 3}, {duration: .22});
@@ -465,9 +474,9 @@ function openPrint(photo = false) {
   const hasPhoto = photo && memoryImage;
   $('print-image').src = hasPhoto ? memoryImage : new URL(`./assets/${world.currentArtwork.image}`, import.meta.url).href;
   $('print-image').alt = hasPhoto ? 'Your view from inside the scan, printed on a cream sheet' : world.currentArtwork.alt;
-  $('print-heading').textContent = hasPhoto ? 'A little world, kept.' : 'Fresh from the scanner';
+  $('print-heading').textContent = hasPhoto ? 'Photo' : 'Scan';
   $('print-title').textContent = hasPhoto ? memoryLocation : world.currentArtwork.title;
-  $('print-subtitle').textContent = hasPhoto ? 'Your encounter / Helen Zhang' : 'Helen Zhang';
+  $('print-subtitle').textContent = 'Helen Zhang';
   $('print-archive').href = scanArchiveURL(world.currentArtwork.index);
   $('print-enter').hidden = Boolean(hasPhoto) || mode !== 'home';
   $('photo-download').hidden = !hasPhoto;
@@ -475,14 +484,30 @@ function openPrint(photo = false) {
   clearMovementInput(); $('print-dialog').showModal();
 }
 
+function magnifierSourceOptions() {
+  const art = world.currentArtwork, position = magnifier.group.position;
+  const centerUV = art.worldToSource(position.x, position.z);
+  const diameter = 1.59 * magnifier.group.scale.x;
+  return {centerUV, sourceSpan: [diameter / world.width * (art.crop.maximum[0]-art.crop.minimum[0]), diameter / world.depth * (art.crop.maximum[1]-art.crop.minimum[1])], magnification: 2.6};
+}
+function updateMagnifierSource() {
+  if (magnifier && world) magnifier.setSource(world.scanMesh.material.map, magnifierSourceOptions());
+}
 function updateEntryHandle() {
-  const front = new THREE.Vector3(world.width * .36, .15, world.depth / 2 - .4).project(camera);
+  if (!magnifier) return;
   const {clientWidth: width, clientHeight: height} = $('scanner-scene');
-  const narrow = width < 600;
-  const x = (front.x * .5 + .5) * width;
-  const y = (-front.y * .5 + .5) * height;
-  $('entry-handle').style.left = `${clamp(x, narrow ? 80 : width * .55, width - 68)}px`;
-  $('entry-handle').style.top = `${clamp(y - 5, narrow ? height * .53 : height * .50, height - 185)}px`;
+  magnifier.group.updateMatrixWorld(true); camera.updateMatrixWorld(true);
+  const bounds = new THREE.Box3().setFromObject(magnifier.group);
+  let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+  for (const x of [bounds.min.x,bounds.max.x]) for (const y of [bounds.min.y,bounds.max.y]) for (const z of [bounds.min.z,bounds.max.z]) {
+    const point=new THREE.Vector3(x,y,z).project(camera);
+    const px=(point.x*.5+.5)*width, py=(-point.y*.5+.5)*height;
+    minX=Math.min(minX,px); maxX=Math.max(maxX,px); minY=Math.min(minY,py); maxY=Math.max(maxY,py);
+  }
+  const handle=$('entry-handle');
+  handle.style.left=`${(minX+maxX)/2}px`; handle.style.top=`${(minY+maxY)/2}px`;
+  handle.style.width=`${Math.max(48,maxX-minX+12)}px`; handle.style.height=`${Math.max(48,maxY-minY+12)}px`;
+  magnifier.update({hover:magnifierHover,reduced:reduced||manualStill});
 }
 
 function animate(now) {
@@ -505,14 +530,13 @@ function animate(now) {
     const approach = pull * .16;
     const close = new THREE.Vector3(2, 12, world.depth / 2 + 10);
     pose.position.lerp(close, approach);
-    if (!reduced && !manualStill && !coarse.matches) { pose.position.x += pointer.x * .65; pose.position.y += pointer.y * .35; }
     camera.position.lerp(pose.position, 1 - Math.exp(-4 * dt)); cameraTarget.lerp(pose.target, 1 - Math.exp(-4 * dt));
     camera.fov = damp(camera.fov, pose.fov, 4, dt); camera.updateProjectionMatrix();
     world.setMacro(0); world.visitor.visible = false;
-    updateEntryHandle();
     $('pull-fill').style.width = `${pull * 100}%`;
   } else if (mode === 'world') tickMovement(dt);
   camera.lookAt(cameraTarget);
+  if (mode === 'home') updateEntryHandle();
   world.setVisitor({ x: player.x, z: player.z, yaw: player.yaw, moving: Math.hypot(player.vx, player.vz) > .08 ? Math.hypot(player.vx, player.vz) : 0, time, jump: player.jump });
   world.update(time, dt, { macro, scanProgress: scanPhase, paused: manualStill || reduced });
   world.setScan(scanPhase);
@@ -530,26 +554,25 @@ function animate(now) {
 
 function bindInput() {
   const handle = $('entry-handle');
+  for (const event of ['pointerenter','focus']) handle.addEventListener(event, () => { magnifierHover=true; });
+  for (const event of ['pointerleave','blur']) handle.addEventListener(event, () => { magnifierHover=false; });
   handle.addEventListener('pointerdown', e => {
     if (mode !== 'home') return;
     e.preventDefault(); handle.setPointerCapture(e.pointerId);
     entryDrag = { y: e.clientY, x: e.clientX, max: 0, pointerId: e.pointerId };
     $('pull-fill').parentElement.style.opacity = 1;
-    handle.querySelector('.handle-note').textContent = 'Keep going…';
   });
   handle.addEventListener('pointermove', e => {
     if (!entryDrag) return;
     const distance = entryDrag.y - e.clientY;
     entryDrag.max = Math.max(entryDrag.max, Math.abs(distance));
     pullTarget = clamp(distance / Math.min(190, innerHeight * .24));
-    handle.querySelector('.handle-label').textContent = pullTarget > .5 ? 'Let go.' : 'Look closer';
   });
   handle.addEventListener('pointerup', () => {
     if (!entryDrag) return;
     const activate = pullTarget > .48 || entryDrag.max < 7;
     entryDrag = null;
     if (activate) enterWorld(); else { pullTarget = 0; $('pull-fill').parentElement.style.opacity = 0; }
-    handle.querySelector('.handle-label').textContent = 'Look closer'; handle.querySelector('.handle-note').textContent = 'A little closer.';
   });
   handle.addEventListener('pointercancel', () => { entryDrag = null; pullTarget = 0; $('pull-fill').parentElement.style.opacity = 0; });
   handle.addEventListener('click', e => { if (e.detail === 0) enterWorld(); });
@@ -608,19 +631,18 @@ function bindInput() {
   $('help-button').addEventListener('click', () => { clearMovementInput(); $('help-dialog').showModal(); });
   for (const id of ['help-close','help-done']) $(id).addEventListener('click', () => $('help-dialog').close());
   $('motion-button').addEventListener('click', () => {
-    manualStill = !manualStill; $('motion-button').textContent = manualStill ? 'Motion reduced' : reduced ? 'Motion reduced' : 'Motion on'; $('motion-button').setAttribute('aria-pressed', String(manualStill || reduced));
-    toast(manualStill || reduced ? 'Gentler transitions. The world is still yours to explore.' : 'Motion restored.');
+    manualStill = !manualStill; $('motion-button').textContent = manualStill || reduced ? 'Reduced motion enabled' : 'Reduce motion'; $('motion-button').setAttribute('aria-pressed', String(manualStill || reduced));
   });
   $('sound-button').addEventListener('click', async () => {
     if (soundEnabled) { sound.disable(); soundEnabled = false; }
     else soundEnabled = await sound.enable();
-    $('sound-button').setAttribute('aria-pressed', String(soundEnabled)); $('sound-label').textContent = soundEnabled ? 'Sound on' : 'Sound off';
+    $('sound-button').setAttribute('aria-pressed', String(soundEnabled)); $('sound-label').textContent = soundEnabled ? 'Disable sound' : 'Enable sound';
     if (soundEnabled) sound.cue('landmark');
   });
-  prefersReduced.addEventListener('change', e => { reduced = e.matches; $('motion-button').textContent = reduced || manualStill ? 'Motion reduced' : 'Motion on'; $('motion-button').setAttribute('aria-pressed', String(reduced || manualStill)); });
-  if (reduced) { $('motion-button').textContent = 'Motion reduced'; $('motion-button').setAttribute('aria-pressed', 'true'); }
+  prefersReduced.addEventListener('change', e => { reduced = e.matches; $('motion-button').textContent = reduced || manualStill ? 'Reduced motion enabled' : 'Reduce motion'; $('motion-button').setAttribute('aria-pressed', String(reduced || manualStill)); });
+  if (reduced) { $('motion-button').textContent = 'Reduced motion enabled'; $('motion-button').setAttribute('aria-pressed', 'true'); }
   document.addEventListener('visibilitychange', () => { previous = 0; keys.clear(); if (document.hidden) sound.disable(); else if (soundEnabled) sound.enable(); });
-  renderer.domElement.addEventListener('webglcontextlost', e => { e.preventDefault(); toast('The image paused. Reload to return beneath the glass.', 15000); cancelAnimationFrame(frame); });
+  renderer.domElement.addEventListener('webglcontextlost', e => { e.preventDefault(); toast('3D view paused. Reload to resume.', 15000); cancelAnimationFrame(frame); });
 }
 
 function bindGalleryCapture() {
@@ -663,6 +685,11 @@ async function init() {
     camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, .035, 250);
     const { createScannerWorld } = await import('./world.js');
     world = await createScannerWorld(THREE, renderer);
+    magnifier = createMagnifier(THREE);
+    magnifier.group.position.set(world.width*.29, 1.55, world.depth/2-1.1);
+    magnifier.group.rotation.set(.13, -.12, -.035);
+    magnifier.group.scale.setScalar($('scanner-scene').clientWidth < 600 ? 1.9 : 1.25);
+    world.scene.add(magnifier.group);
     navigator = createSurfaceNavigator({ bounds: world.bounds, heightAt: clearanceHeight, stepHeight: .29, cellSize: .22 });
     walkableMeshes = [world.scanMesh, ...world.root.getObjectByName('Physical typography, traced from the scan').children];
     waypoint = new THREE.Mesh(new THREE.RingGeometry(.12, .145, 36), new THREE.MeshBasicMaterial({ color: '#ffe2ae', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }));
@@ -690,5 +717,5 @@ async function init() {
     $('retry-button').addEventListener('click', () => location.reload());
   }
 }
-addEventListener('pagehide', e => { if (e.persisted) return; cancelAnimationFrame(frame); sound.dispose(); world?.dispose?.(); renderer?.dispose(); });
+addEventListener('pagehide', e => { if (e.persisted) return; cancelAnimationFrame(frame); sound.dispose(); magnifier?.dispose(); world?.dispose?.(); renderer?.dispose(); });
 init();

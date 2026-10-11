@@ -131,7 +131,9 @@ function drawPreview(cx, images, profile) {
   cx.fillRect(783, 156, 186, 46);
   cx.fillStyle = '#191d1a';
   cx.font = '20px Arial';
-  cx.fillText('Open profile ↗', 801, 186);
+  cx.fillText('Open profile', 801, 186);
+  cx.save(); cx.strokeStyle='#191d1a'; cx.lineWidth=1.8; cx.beginPath();
+  cx.moveTo(940,185); cx.lineTo(951,174); cx.moveTo(940,174); cx.lineTo(951,174); cx.lineTo(951,185); cx.stroke(); cx.restore();
   cx.save();
   cx.beginPath();
   cx.arc(112, 286, 52, 0, Math.PI * 2);

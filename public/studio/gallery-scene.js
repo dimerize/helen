@@ -4,7 +4,7 @@ import { createComputer } from './computer-model.js';
 import { createGalleryArchitecture } from './gallery-room.js';
 
 /** The approved doorway and installation are one scene, with one camera. */
-export async function createGalleryScene(renderer, { homepageCanvas, portalCanvas = homepageCanvas, computerCanvas } = {}) {
+export async function createGalleryScene(renderer, { homepageCanvas, computerCanvas } = {}) {
   const textures = new Set();
   const loader = new THREE.TextureLoader();
   const loaded = await Promise.allSettled([
@@ -137,7 +137,7 @@ export async function createGalleryScene(renderer, { homepageCanvas, portalCanva
   projection.position.z=.011;
   gaps.add(projection);
 
-  let homepageTexture=null, portalTexture=null, portalSheet=null;
+  let homepageTexture=null;
   if (homepageCanvas) {
     homepageTexture=new THREE.CanvasTexture(homepageCanvas);
     homepageTexture.colorSpace=THREE.SRGBColorSpace;
@@ -156,17 +156,7 @@ export async function createGalleryScene(renderer, { homepageCanvas, portalCanva
     homepage.position.set(0,1.62,portrait ? 5.5 : 7.3);
     homepage.name='homepage-outside';
     scene.add(homepage);
-    // The front is visible only during the perspective hand-off. The original
-    // BackSide plane above still shows the real reversed homepage from inside.
-    portalTexture = portalCanvas === homepageCanvas ? homepageTexture : new THREE.CanvasTexture(portalCanvas);
-    portalTexture.colorSpace=THREE.SRGBColorSpace;
-    portalTexture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),8);textures.add(portalTexture);
-    portalSheet = new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({
-      map:portalTexture,toneMapped:false,depthTest:false,depthWrite:false,transparent:true,
-    }));
-    portalSheet.name='Homepage front — portal handoff';
-    portalSheet.position.z=-1;portalSheet.renderOrder=1000;portalSheet.frustumCulled=false;
-    portalSheet.visible=false;camera.add(portalSheet);scene.add(camera);
+
   }
 
   let computer=null;
@@ -185,12 +175,7 @@ export async function createGalleryScene(renderer, { homepageCanvas, portalCanva
 
   let disposed=false;
   return {
-    scene,camera,door,handle,artworks,homepageTexture,portalTexture,portalSheet,computer,
-    fitPortalSheet() {
-      if (!portalSheet) return;
-      const height=2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
-      portalSheet.scale.set(height*camera.aspect,height,1);
-    },
+    scene,camera,door,handle,artworks,homepageTexture,computer,
     update() {
       const inside=camera.position.z < 3.7;
       exteriorFloor.visible=!inside;
