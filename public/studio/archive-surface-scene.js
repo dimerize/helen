@@ -1,6 +1,7 @@
 import * as T from './vendor/three.module.min.js';
 import {archiveItems as items} from './archive-data.js';
 import {archiveRoomLayout,archiveRoomCamera,constrainArchiveMove} from './archive-room-layout.js';
+import {createMeshSample,createStudioPencil} from './studio-keepsakes.js';
 import {registerStudioSurface} from './separated-journey.js';
 
 let instance;
@@ -51,6 +52,16 @@ async function buildRoom(){
    box(.6,.025,.065,x,.16+row*.2,1.725,rail);
   }
  }
+ // Small process objects occupy the unused left end of the bench. Same models
+ // and positions on touch and desktop; the artworks retain their own pick layer.
+ const sample=createMeshSample();sample.scale.setScalar(6);sample.position.set(-7.15,.861,.35);sample.rotation.y=.16;room.add(sample);
+ const pencil=createStudioPencil();pencil.scale.setScalar(6);pencil.position.set(-7.16,.861,1.05);pencil.rotation.y=.15;room.add(pencil);
+ for(const object of [sample,pencil])object.traverse(part=>{
+  if(part.geometry)own(part.geometry);
+  for(const material of [part.material].flat().filter(Boolean)) {
+   own(material);for(const value of Object.values(material))if(value?.isTexture)own(value);
+  }
+ });
  const hemisphere=new T.HemisphereLight('#b1bab6','#171911',1.2);scene.add(hemisphere);
  const key=new T.DirectionalLight('#d9d5c4',2.4);key.position.set(-5,11,9);key.castShadow=true;
  key.shadow.mapSize.set(1536,1536);Object.assign(key.shadow.camera,{left:-13,right:13,top:12,bottom:-12,near:.5,far:38});key.shadow.bias=-.0003;key.shadow.normalBias=.04;scene.add(key);

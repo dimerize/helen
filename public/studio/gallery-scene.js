@@ -2,7 +2,8 @@ import * as THREE from './vendor/three.module.min.js';
 import { RoundedBoxGeometry } from './vendor/rounded-box.js';
 import { createComputer } from './computer-model.js';
 import { createGalleryArchitecture } from './gallery-room.js';
-import {createGalleryDoor} from './gallery-door.js';
+import {createGalleryDoor,createGalleryDoorframe} from './gallery-door.js';
+import {addStudioKeepsakes,createDoorstop} from './studio-keepsakes.js';
 
 /** The approved doorway and installation are one scene, with one camera. */
 export async function createGalleryScene(renderer, { homepageCanvas, computerCanvas } = {}) {
@@ -12,8 +13,17 @@ export async function createGalleryScene(renderer, { homepageCanvas, computerCan
     '/artwork/thesis-elongated.webp',
     '/artwork/thesis-painting.webp',
     '/artwork/thesis-dark-grid.webp',
-  ].map(async url => {
+    ...(computerCanvas ? ['/artwork/train-scan.webp','/artwork/train-scan-wide.webp','/artwork/train-scan-notice.webp'] : []),
+  ].map(async (url,index) => {
     const texture = await loader.loadAsync(url);
+    // These tiny paper objects need sharp small textures, not three additional
+    // full-size GPU images on a phone. Keep the source's aspect ratio.
+    if(index>=3) {
+      const image=texture.image,canvas=document.createElement('canvas');
+      const factor=Math.min(1,384/Math.max(image.width,image.height));
+      canvas.width=Math.max(1,Math.round(image.width*factor));canvas.height=Math.max(1,Math.round(image.height*factor));
+      canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);texture.image=canvas;texture.needsUpdate=true;
+    }
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(),8);
     textures.add(texture);
@@ -74,17 +84,14 @@ export async function createGalleryScene(renderer, { homepageCanvas, computerCan
   const outsideFaces = [outside,outside,outside,outside,outside,homepageBlack];
   box(8,7,.3,outsideFaces,-4.86,3.5,3.7);
   box(8,7,.3,outsideFaces,4.86,3.5,3.7);
-  box(1.74,4.25,.3,outsideFaces,0,4.88,3.7);
+  box(1.74,4.196,.3,outsideFaces,0,4.902,3.7);
   const exteriorFloor=box(16,.12,7,material('#1d211b'),0,-.1,7.1);
-  const jamb = material('#777c6e',.6);
-  box(.075,2.85,.25,jamb,-.89,1.425,3.76);
-  box(.075,2.85,.25,jamb,.89,1.425,3.76);
-  box(1.85,.075,.25,jamb,0,2.85,3.76);
-  box(1.78,.035,.3,jamb,0,.018,3.76);
+  const doorframe=createGalleryDoorframe();scene.add(doorframe);
 
   const {door,handle,plaque} = createGalleryDoor();
   door.position.set(-.84,0,3.69);
   scene.add(door);
+  const doorstop=createDoorstop();doorstop.position.set(-1.045,0,2.005);doorstop.rotation.y=.14;scene.add(doorstop);
   const artworks=[];
   function art(id,title,w,h,x,y,z,rotation,map,pose) {
     const group=new THREE.Group();
@@ -149,6 +156,7 @@ export async function createGalleryScene(renderer, { homepageCanvas, computerCan
     screenTexture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),8);
     textures.add(screenTexture);
     computer=createComputer(THREE,RoundedBoxGeometry,screenTexture);
+    computer.keepsakes=addStudioKeepsakes(computer.group,maps.slice(3));
     computer.group.position.set(1.40,0,3.02);
     computer.group.rotation.y=Math.PI;
     computer.group.scale.setScalar(.9);
@@ -158,7 +166,7 @@ export async function createGalleryScene(renderer, { homepageCanvas, computerCan
 
   let disposed=false;
   return {
-    scene,camera,door,handle,plaque,architecture,artworks,homepageTexture,computer,
+    scene,camera,door,handle,plaque,doorframe,doorstop,architecture,artworks,homepageTexture,computer,
     update() {
       const inside=camera.position.z < 3.7;
       exteriorFloor.visible=!inside;

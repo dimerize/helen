@@ -61,3 +61,16 @@ export function createGalleryDoor() {
   batchStaticDetails(door,[handle,plaque,door.getObjectByName('Painted steel leaf')]);
   return {door,handle,plaque};
 }
+
+/** A narrow painted reveal, close to the leaf rather than a metal portal. */
+export function createGalleryDoorframe() {
+  const {box,paint,dark}=detailKit();
+  const frame=new THREE.Group();frame.name='Fine painted doorway reveal';
+  for(const x of [-.871,.871]) box(frame,[.026,2.83,.106],[x,1.415,3.803],paint,'Narrow painted jamb',.0015);
+  box(frame,[1.768,.026,.106],[0,2.817,3.803],paint,'Fine lintel',.0015);
+  box(frame,[1.73,.009,.16],[0,.0045,3.735],dark,'Low flush threshold',.001);
+  // A fine compression seal sits inside the reveal, almost invisible when shut.
+  for(const x of [-.849,.849]) box(frame,[.007,2.795,.009],[x,1.4,3.724],dark,'Door seal',.001);
+  batchStaticDetails(frame);
+  return frame;
+}
