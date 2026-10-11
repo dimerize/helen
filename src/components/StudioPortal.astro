@@ -1,10 +1,15 @@
+---
+import StudioComputer from './StudioComputer.astro';
+import { site } from '../data/site';
+---
 <dialog id="studio-portal" data-state="closed" aria-label="Helen Zhang’s studio">
   <div class="hz-stage">
     <div class="hz-scene" tabindex="0" role="group" aria-label="A closed studio door. Activate Enter the studio to open it and move through into Helen’s installation."></div>
-    <div class="hz-fallback" hidden><img src="/artwork/thesis-installation.webp" alt="Installation view of Beyond the Humanized Machine"><a href="/project?work=thesis">View the installation photographs</a></div>
+    <div class="hz-fallback" hidden><img src="/artwork/thesis-installation.webp" alt="Installation view of Beyond the Humanized Machine"><div class="hz-fallback-links"><a href="/project?work=thesis">View the installation photographs</a><a href={site.instagramUrl} target="_blank" rel="noopener">Instagram</a><a href={`mailto:${site.email}`}>Email Helen</a></div></div>
     <div class="hz-top">
       <a class="hz-brand" href="/" aria-label="Back to the scanner">Helen Zhang</a>
       <button class="hz-exit cursor-interaction" type="button" hidden><span class="ui-icon icon-arrow-left" aria-hidden="true"></span> Exit</button>
+      <button class="hz-computer-step-away cursor-interaction" type="button" hidden><span class="ui-icon icon-arrow-left" aria-hidden="true"></span> Step away</button>
       <span class="hz-location">Studio</span>
       <button class="hz-menu-toggle cursor-interaction" type="button" aria-label="Gallery options" aria-expanded="false" hidden><span class="ui-icon icon-more" aria-hidden="true"></span></button>
     </div>
@@ -16,10 +21,13 @@
       <button type="button" class="cursor-interaction" data-work="1">Gaps</button>
       <button type="button" class="cursor-interaction" data-work="2">Bent Mesh</button>
       <button type="button" class="hz-look-back cursor-interaction">Look back outside</button>
+      <button type="button" class="hz-visit-computer cursor-interaction">Computer · Instagram & Mail</button>
       <button type="button" class="hz-overview cursor-interaction">Back to the room</button>
     </div>
     <div class="hz-caption" hidden><span></span><button class="hz-dismiss cursor-interaction" type="button" aria-label="Dismiss artwork title"><span class="ui-icon icon-close" aria-hidden="true"></span></button></div>
-    <div class="hz-hint" hidden>Drag to look. Tap a work to approach.</div>
+    <div class="hz-hint" hidden>Drag to look. Tap a work or the computer to approach.</div>
+    <button class="hz-computer-use cursor-interaction" type="button" hidden>Use the computer <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></button>
+    <StudioComputer />
     <div class="hz-sr" role="status" aria-live="polite">The door stays closed until you enter.</div>
   </div>
 </dialog>

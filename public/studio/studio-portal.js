@@ -49,7 +49,11 @@ export function createStudioPortal({dialog, createExperience, captureHomepage, p
     }
   }
   function requestClose() {if (experience) experience.exit(); else finishClose();}
-  listen(dialog, 'cancel', event => {event.preventDefault(); requestClose();});
+  listen(dialog, 'cancel', event => {
+    event.preventDefault();
+    if (typeof experience?.cancel === 'function') experience.cancel();
+    else requestClose();
+  });
   listen(win, 'popstate', () => {if (roomURL()) open(null, true); else finishClose(true);});
   listen(win, 'pagehide', event => {if (event.persisted) experience?.pause(); else finishClose(true);});
   listen(win, 'pageshow', event => {if (event.persisted && dialog.open) experience?.resume();});

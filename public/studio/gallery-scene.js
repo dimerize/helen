@@ -1,7 +1,9 @@
 import * as THREE from './vendor/three.module.min.js';
+import { RoundedBoxGeometry } from './vendor/rounded-box.js';
+import { createComputer } from './computer-model.js';
 
 /** The approved doorway and installation are one scene, with one camera. */
-export async function createGalleryScene(renderer, { homepageCanvas } = {}) {
+export async function createGalleryScene(renderer, { homepageCanvas, computerCanvas } = {}) {
   const textures = new Set();
   const loader = new THREE.TextureLoader();
   const loaded = await Promise.allSettled([
@@ -161,9 +163,23 @@ export async function createGalleryScene(renderer, { homepageCanvas } = {}) {
     scene.add(homepage);
   }
 
+  let computer=null;
+  if(computerCanvas) {
+    const screenTexture=new THREE.CanvasTexture(computerCanvas);
+    screenTexture.colorSpace=THREE.SRGBColorSpace;
+    screenTexture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),8);
+    textures.add(screenTexture);
+    computer=createComputer(THREE,RoundedBoxGeometry,screenTexture);
+    computer.group.position.set(1.40,0,3.02);
+    computer.group.rotation.y=Math.PI;
+    computer.group.scale.setScalar(.9);
+    scene.add(computer.group);
+    scene.updateMatrixWorld(true);
+  }
+
   let disposed=false;
   return {
-    scene,camera,door,handle,artworks,homepageTexture,
+    scene,camera,door,handle,artworks,homepageTexture,computer,
     update() {
       const inside=camera.position.z < 3.7;
       exteriorFloor.visible=!inside;
@@ -175,7 +191,10 @@ export async function createGalleryScene(renderer, { homepageCanvas } = {}) {
       const geometries=new Set(),materials=new Set();
       scene.traverse(object=>{
         if(object.geometry) geometries.add(object.geometry);
-        if(object.material) for(const mat of [object.material].flat()) materials.add(mat);
+        if(object.material) for(const mat of [object.material].flat()) {
+          materials.add(mat);
+          for(const value of Object.values(mat)) if(value?.isTexture) textures.add(value);
+        }
         object.shadow?.dispose();
       });
       geometries.forEach(geometry=>geometry.dispose());

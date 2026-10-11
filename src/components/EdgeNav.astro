@@ -5,8 +5,8 @@ import { nav, site } from '../data/site';
   Navigation lives on the bottom edge. There is no top bar.
 
   It is small and quiet, but it is always on screen, always in the tab
-  order, and marked with aria-current — a curator should never have to hunt
-  for the CV, and nothing here depends on hover to be discoverable.
+  order, and marked with aria-current. Every destination is discoverable
+  without hover.
 */
 
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';

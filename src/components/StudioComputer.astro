@@ -1,0 +1,46 @@
+---
+import { site } from '../data/site';
+
+// These public photos and the profile line are the snapshots in the approved design.
+const posts = ['DbdKdHllRjS', 'DSusDmKlbBo', 'DOoktXHkjiZ', 'DNHnFqLO7Oj', 'C9fAEnvubom', 'CxQ6qg9On9V'];
+const profileLine = '@parsonsschoolofdesign';
+const profileLocation = new URL(site.instagramUrl).host + new URL(site.instagramUrl).pathname;
+---
+
+<div class="hz-computer-ui" hidden inert role="group" aria-label="Helen’s computer"
+  data-profile-name={site.name} data-instagram={site.instagram} data-profile-line={profileLine}
+  data-profile-location={profileLocation}>
+  <div class="hz-computer-os-top"><span>Helen’s computer</span><span>Instagram &nbsp; / &nbsp; Mail</span></div>
+  <div class="hz-computer-window">
+    <div class="hz-computer-title"><span data-computer-title>Instagram — {site.name}</span><span aria-hidden="true">− &nbsp; □</span></div>
+    <div class="hz-computer-tools" aria-label="Computer apps">
+      <button type="button" data-computer-app="instagram" aria-controls="hz-computer-instagram" aria-pressed="true">Instagram</button>
+      <button type="button" data-computer-app="mail" aria-controls="hz-computer-mail" aria-pressed="false">Mail</button>
+      <span data-computer-location>{profileLocation}</span>
+    </div>
+    <div id="hz-computer-instagram" class="hz-computer-instagram" data-computer-pane="instagram">
+      <div class="hz-computer-ig-brand">Instagram <a data-computer-profile href={site.instagramUrl} target="_blank" rel="noopener noreferrer">Open profile <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a></div>
+      <div class="hz-computer-ig-profile">
+        <img data-computer-avatar src="/studio/computer/avatar.webp" alt="Helen’s Instagram profile photo" width="100" height="100" loading="eager" decoding="async">
+        <div><strong>{site.instagram}</strong><span>{site.name}</span><small>{profileLine}</small></div>
+      </div>
+      <div class="hz-computer-ig-grid" aria-label="Preview of Helen’s public Instagram photos">
+        {posts.map((post, index) => <a href={new URL(`/p/${post}/`, site.instagramUrl).href} target="_blank" rel="noopener noreferrer" aria-label={`View Helen’s Instagram photo ${index + 1}`}>
+          <img data-computer-photo src={`/studio/computer/photo-${index + 1}.webp`} alt="Public Instagram photo by Helen Zhang" width="240" height="278" loading="eager" decoding="async">
+        </a>)}
+      </div>
+    </div>
+    <div id="hz-computer-mail" class="hz-computer-mail" data-computer-pane="mail" hidden>
+      <span class="hz-computer-mail-subject">A note to Helen</span>
+      <span class="hz-computer-mail-to">To: {site.email}</span>
+      <div class="hz-computer-mail-paper"><p>Say hello.</p><a href={`mailto:${site.email}`}>Write an email <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a></div>
+    </div>
+    <div class="hz-computer-status"><span data-computer-status>Public profile preview</span><span data-computer-hint>Open Instagram to explore</span></div>
+  </div>
+  <div class="hz-computer-taskbar">
+    <span>HZ</span>
+    <button type="button" data-computer-app="instagram" aria-controls="hz-computer-instagram" aria-pressed="true">Instagram</button>
+    <button type="button" data-computer-app="mail" aria-controls="hz-computer-mail" aria-pressed="false">Mail</button>
+    <span class="hz-computer-connected"><b aria-hidden="true"></b> Online</span>
+  </div>
+</div>

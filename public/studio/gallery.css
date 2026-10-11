@@ -11,6 +11,9 @@
 #studio-portal .hz-top button{pointer-events:auto;min-height:44px;display:flex;gap:8px;align-items:center;padding:0 8px}
 #studio-portal .hz-top .ui-icon{width:17px;height:17px;stroke-width:1.5}
 #studio-portal .hz-exit{background:#f4f3ef;color:#252b22;border-radius:24px;padding:0 12px!important}
+#studio-portal .hz-computer-step-away{background:#f4f3ef;color:#252b22;border-radius:24px;padding:0 12px!important}
+#studio-portal .hz-computer-use{position:absolute;right:max(24px,env(safe-area-inset-right));bottom:max(26px,env(safe-area-inset-bottom));min-height:44px;padding:12px 18px;background:#f4f3ef;color:#252b22;border-radius:28px;display:flex;align-items:center;gap:14px;font-size:14px;box-shadow:0 3px 20px #0002}
+#studio-portal .hz-top{z-index:5}
 #studio-portal .hz-location{opacity:.65}
 #studio-portal .hz-menu-toggle{min-width:44px;justify-content:center;border-radius:50%;background:#f4f3ef}
 #studio-portal .hz-intro{position:absolute;bottom:34px;left:32px;pointer-events:none}
@@ -40,7 +43,8 @@
 #studio-portal[data-state="loading"] .hz-enter{display:block!important}
 #studio-portal .hz-fallback{position:absolute;inset:0;background:#111311;display:grid;place-items:center}
 #studio-portal .hz-fallback img{width:100%;height:100%;object-fit:contain;opacity:.7}
-#studio-portal .hz-fallback a{position:absolute;bottom:42px;padding:14px 18px;background:#f4f3ef;color:#252b22;font-size:14px}
+#studio-portal .hz-fallback-links{position:absolute;bottom:42px;left:16px;right:16px;display:flex;justify-content:center;flex-wrap:wrap;gap:8px}
+#studio-portal .hz-fallback a{padding:14px 18px;background:#f4f3ef;color:#252b22;font-size:14px}
 #studio-portal[data-state="fallback"] .hz-enter,#studio-portal[data-state="fallback"] .hz-intro,#studio-portal[data-state="fallback"] .hz-exit,#studio-portal[data-state="fallback"] .hz-menu-toggle,#studio-portal[data-state="fallback"] .hz-menu{display:none!important}
 body.studio-open{overflow:hidden}
 @media(max-width:560px){#studio-portal .hz-top{top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right))}#studio-portal .hz-enter{bottom:max(30px,env(safe-area-inset-bottom))}}

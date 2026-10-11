@@ -1,0 +1,58 @@
+#studio-portal .hz-computer-ui{--hz-computer-target:44px;position:absolute;z-index:4;box-sizing:border-box;background:#424448;overflow:hidden;transform-origin:top left;border-radius:8px;color:#111;font:normal 14px/1.3 Arial,Helvetica,sans-serif;letter-spacing:normal;text-align:left;box-shadow:inset 0 0 12px #0009;color-scheme:light;pointer-events:auto;touch-action:pan-y}
+#studio-portal .hz-computer-ui *,#studio-portal .hz-computer-ui *::before,#studio-portal .hz-computer-ui *::after{box-sizing:border-box}
+#studio-portal .hz-computer-ui[hidden],#studio-portal .hz-computer-ui [hidden]{display:none!important}
+#studio-portal .hz-computer-ui button,#studio-portal .hz-computer-ui a{font:inherit;color:inherit;text-decoration:none;cursor:pointer;letter-spacing:normal}
+#studio-portal .hz-computer-ui button{background:none;border:0;border-radius:0}
+#studio-portal .hz-computer-ui button:focus-visible,#studio-portal .hz-computer-ui a:focus-visible{outline:2px solid #91b6f2;outline-offset:2px}
+#studio-portal .hz-computer-ui .hz-computer-os-top{height:28px;padding:6px 11px;display:flex;justify-content:space-between;font:11px monospace;color:#efefdd;background:#34373d}
+#studio-portal .hz-computer-ui .hz-computer-window{position:absolute;top:35px;left:10px;right:10px;bottom:35px;background:#bdbfbd;padding:3px;border-top:2px solid #ededdf;border-left:2px solid #ededdf;border-right:2px solid #343530;border-bottom:2px solid #343530;display:flex;flex-direction:column}
+#studio-portal .hz-computer-ui .hz-computer-title{height:26px;flex-shrink:0;background:#292d59;color:#ffffef;display:flex;justify-content:space-between;padding:5px 8px;font:12px monospace}
+#studio-portal .hz-computer-ui .hz-computer-tools{height:30px;flex-shrink:0;display:flex;align-items:center;gap:12px;padding:0 7px;color:#212321;font:11px monospace}
+#studio-portal .hz-computer-ui .hz-computer-tools button{padding:4px 0}
+#studio-portal .hz-computer-ui .hz-computer-tools span{margin-left:auto;color:#444;font-size:10px}
+#studio-portal .hz-computer-ui .hz-computer-instagram{background:#0c1013;min-height:0;flex:1;padding:0 17px;overflow:auto;overscroll-behavior:contain;color:#f3f4f5;scrollbar-width:thin;scrollbar-color:#747a78 #0c1013}
+#studio-portal .hz-computer-ui .hz-computer-ig-brand{display:flex;align-items:center;justify-content:space-between;min-height:52px;gap:8px;font-size:22px;letter-spacing:-.8px;border-bottom:1px solid #33383b}
+#studio-portal .hz-computer-ui .hz-computer-ig-brand a{font-size:12px;letter-spacing:0;background:#eef0ef;color:#171c1c;padding:7px 9px;display:flex;gap:5px;align-items:center;justify-content:center;border-radius:3px;min-height:var(--hz-computer-target);white-space:nowrap}
+#studio-portal .hz-computer-ui .hz-computer-ig-profile{display:flex;align-items:center;gap:20px;padding:20px 10px 22px}
+#studio-portal .hz-computer-ui .hz-computer-ig-profile img{width:70px;height:70px;border-radius:50%;object-fit:cover;background:#262c2e}
+#studio-portal .hz-computer-ui .hz-computer-ig-profile div{display:flex;flex-direction:column;gap:5px;min-width:0}
+#studio-portal .hz-computer-ui .hz-computer-ig-profile strong{font-size:17px;font-weight:400;margin-bottom:4px}
+#studio-portal .hz-computer-ui .hz-computer-ig-profile span{font-size:12px}
+#studio-portal .hz-computer-ui .hz-computer-ig-profile small{font-size:11px;color:#b6bac0}
+#studio-portal .hz-computer-ui .hz-computer-ig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+#studio-portal .hz-computer-ui .hz-computer-ig-grid a{display:block;aspect-ratio:1/1.16;overflow:hidden;background:#262c2e}
+#studio-portal .hz-computer-ui .hz-computer-ig-grid img{width:100%;height:100%;object-fit:cover;display:block;color:#f3f4f5;font-size:11px}
+#studio-portal .hz-computer-ui .hz-computer-status{display:flex;justify-content:space-between;gap:10px;flex-shrink:0;font:10px monospace;padding:5px 5px 2px;color:#393c39}
+#studio-portal .hz-computer-ui .hz-computer-taskbar{position:absolute;bottom:0;height:28px;left:0;right:0;background:#bfc1bd;display:flex;gap:9px;align-items:center;padding:3px 7px;border-top:2px solid #f0f0e8;font:11px monospace;color:#252825}
+#studio-portal .hz-computer-ui .hz-computer-taskbar>span:first-child{font-weight:bold;border:1px outset #eee;padding:2px 6px}
+#studio-portal .hz-computer-ui .hz-computer-taskbar button{border:1px outset #ddd;min-width:75px;padding:2px 7px;text-align:left}
+#studio-portal .hz-computer-ui .hz-computer-taskbar button[aria-pressed=true]{border-style:inset}
+#studio-portal .hz-computer-ui .hz-computer-connected{margin-left:auto;display:flex;gap:5px;align-items:center}
+#studio-portal .hz-computer-ui .hz-computer-connected b{width:5px;height:5px;background:#506d50;display:inline-block;border-radius:50%}
+#studio-portal .hz-computer-ui .hz-computer-mail{flex:1;background:#e6e5df;display:flex;flex-direction:column;min-height:0;padding:14px;font-size:12px;overflow:auto;overscroll-behavior:contain}
+#studio-portal .hz-computer-ui .hz-computer-mail-subject{font-size:19px;margin-bottom:12px}
+#studio-portal .hz-computer-ui .hz-computer-mail-to{font:11px monospace;padding:10px 0;border-top:1px solid #afb1ac;border-bottom:1px solid #afb1ac;overflow-wrap:anywhere}
+#studio-portal .hz-computer-ui .hz-computer-mail-paper{background:#f9f8f3;flex:1;padding:22px 16px;margin-top:14px}
+#studio-portal .hz-computer-ui .hz-computer-mail-paper p{font-size:27px;letter-spacing:-1px;margin:0 0 30px}
+#studio-portal .hz-computer-ui .hz-computer-mail-paper a{display:inline-flex;align-items:center;gap:12px;background:#292d59;color:white;padding:11px 13px;min-height:var(--hz-computer-target)}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-os-top,#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-taskbar{display:none}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-window{top:5px;left:5px;right:5px;bottom:5px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-title{height:28px;font-size:13px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-tools{height:var(--hz-computer-target);font-size:15px;gap:25px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-tools button{min-height:var(--hz-computer-target);min-width:55px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-tools span{display:none}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-ig-brand{min-height:calc(var(--hz-computer-target) + 6px);font-size:24px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-ig-brand a{font-size:14px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-ig-profile{padding:15px 0;gap:15px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-ig-profile img{width:52px;height:52px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-ig-profile strong{font-size:18px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-ig-profile span{font-size:14px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-ig-profile small{font-size:12px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-status{font-size:11px;height:23px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-status [data-computer-hint]{display:none}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-mail-subject{display:none}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-mail-to{font-size:13px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-mail-paper{padding:12px;margin-top:9px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-mail-paper p{margin-bottom:12px}
+#studio-portal .hz-computer-ui[data-compact=true] .hz-computer-mail-paper a{font-size:16px}
+@media(prefers-reduced-motion:reduce){#studio-portal .hz-computer-ui *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

@@ -6,10 +6,7 @@
 export const site = {
   name: 'Helen Zhang',
 
-  /*
-    Where she is. Surfaced as the running local clock on the contact plate
-    rather than as a line of copy.
-  */
+  /** Canonical location and time zone for studio information. */
   location: 'New York',
   timeZone: 'America/New_York',
 
@@ -32,9 +29,7 @@ export const site = {
  * `match` decides which item is marked as current.
  */
 export const nav = [
-  { label: 'Work', href: '/work', match: /^\/(work|project)/ },
+  { label: 'Home', href: '/', match: /^\/$/ },
   { label: 'Archive', href: '/archive', match: /^\/archive/ },
-  { label: 'About', href: '/about', match: /^\/about/ },
-  { label: 'CV', href: '/cv', match: /^\/cv/ },
-  { label: 'Contact', href: '/contact', match: /^\/contact/ },
+  { label: 'Gallery', href: '/gallery', match: /^\/gallery/ },
 ] as const;

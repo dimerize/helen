@@ -1,0 +1,7 @@
+# Retired pages. Cloudflare serves these before looking up static assets.
+/about / 301
+/about/ / 301
+/cv / 301
+/cv/ / 301
+/contact /?room=gallery 301
+/contact/ /?room=gallery 301

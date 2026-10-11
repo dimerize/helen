@@ -23,3 +23,20 @@ test('normal exit restores scanner, original scroll, focus and history entry',as
 test('Back then Forward while capture is pending ignores the obsolete mount',async()=>{const f=fixture();f.controller.open(f.trigger);f.back();f.forward();const stale=await f.resolveCapture();assert.equal(stale.disposed,true);await f.resolveCapture();assert.equal(f.dialog.open,true);assert.equal(f.experiences.length,1);assert.equal(f.stack.length,2);});
 test('direct room URL closes without leaving homepage',async()=>{const f=fixture('https://helen.test/?room=gallery');await f.resolveCapture();f.controller.requestClose();assert.equal(f.location.href,'https://helen.test/');assert.equal(f.stack.length,1);});
 test('BFCache suspends and resumes existing room without recreating its entrance',async()=>{const f=fixture();f.controller.open(f.trigger);await f.resolveCapture();f.win.dispatchEvent(Object.assign(new Event('pagehide'),{persisted:true}));assert.equal(f.experiences[0].paused,true);f.win.dispatchEvent(Object.assign(new Event('pageshow'),{persisted:true}));assert.equal(f.experiences[0].paused,false);assert.equal(f.experiences.length,1);});
+test('native cancel delegates to the room context without closing the studio',async()=>{
+ const f=fixture();f.controller.open(f.trigger);const echo=await f.resolveCapture();
+ let cancelled=0,exited=0;
+ f.experiences[0].cancel=()=>{cancelled++;};
+ f.experiences[0].exit=()=>{exited++;};
+ const event=new Event('cancel',{cancelable:true});f.dialog.dispatchEvent(event);
+ assert.equal(event.defaultPrevented,true);assert.equal(cancelled,1);assert.equal(exited,0);
+ assert.equal(f.dialog.open,true);assert.equal(echo.disposed,false);assert.equal(f.experiences[0].disposed,false);
+ assert.equal(f.location.href,'https://helen.test/?room=gallery');
+ f.controller.dispose();
+});
+test('native cancel still exits when an experience has no contextual handler',async()=>{
+ const f=fixture();f.controller.open(f.trigger);const echo=await f.resolveCapture();
+ const event=new Event('cancel',{cancelable:true});f.dialog.dispatchEvent(event);f.flushHistory();
+ assert.equal(event.defaultPrevented,true);assert.equal(f.dialog.open,false);
+ assert.equal(echo.disposed,true);assert.equal(f.experiences[0].disposed,true);assert.equal(f.location.href,'https://helen.test/');
+});
