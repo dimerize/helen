@@ -153,11 +153,10 @@ function contactShadow(root,width,depth,opacity) {
 
 export function addStudioKeepsakes(computer,maps=[]) {
   const root=new THREE.Group();root.name='Small studio keepsakes';computer.add(root);
-  const beetle=createWireBeetle();beetle.position.set(-.186,1.4466,.055);beetle.rotation.y=-.27;root.add(beetle);contactShadow(beetle,.058,.065,.3);
   const proof=createContactProof(maps);proof.position.set(.471,.791,-.205);proof.rotation.y=.06;proof.scale.setScalar(.43);root.add(proof);contactShadow(proof,.235,.097,.22);
   const pencil=createStudioPencil();pencil.position.set(.491,.791,.038);pencil.rotation.y=1.30;root.add(pencil);
   const fragment=createTapeFragment(maps[0]);fragment.position.set(.273,1.273,.2173);fragment.rotation.set(Math.PI/2,.08,0);root.add(fragment);
-  return {root,beetle,proof,pencil,fragment};
+  return {root,proof,pencil,fragment};
 }
 
 export function createDoorstop() {

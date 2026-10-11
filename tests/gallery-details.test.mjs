@@ -71,9 +71,6 @@ test('small studio objects rest on supporting surfaces and leave the screen and 
   const fragment=bounds(props.fragment),screen=bounds(computer.screen);
   assert.ok(fragment.min.x>screen.max.x,'taped fragment does not occlude the CRT glass');
   assert.ok(fragment.min.z>.217,'taped fragment is on the bezel front, not embedded in it');
-  const bug=bounds(props.beetle);
-  assert.ok(bug.min.y>=1.4464&&bug.min.y<1.448,'feet rest on the actual CRT roof');
-  assert.ok(bug.max.x<-.10,'beetle leaves the ventilation slots open');
   let drawCalls=0;
   props.root.traverse(o=>{if(o.geometry){drawCalls++;for(const v of o.geometry.attributes.position.array)assert.ok(Number.isFinite(v));}});
   assert.ok(drawCalls<=22,'stationary miniature components are batched rather than hundreds of separate meshes');
