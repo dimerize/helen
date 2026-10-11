@@ -21,7 +21,7 @@ export function createMagnifier(THREE, options = {}) {
   const group = new THREE.Group();
   group.name = 'Nickel and glass magnifier';
   group.userData.isMagnifier = true;
-  const geometries = new Set(), materials = new Set(), textures = new Set();
+  const geometries = new Set(), materials = new Set(), textures = new Set(), instances = new Set();
   let disposed = false;
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
   const number = (value, fallback) => Number.isFinite(value) ? value : fallback;
@@ -33,7 +33,7 @@ export function createMagnifier(THREE, options = {}) {
   for (let y = 0; y < envHeight; y++) for (let x = 0; x < envWidth; x++) {
     const u = x / envWidth, v = y / envHeight;
     const strip = (center, width, gain) => gain * Math.exp(-Math.pow((u - center) / width, 4)) * Math.exp(-Math.pow((v - .4) / .26, 6));
-    const illumination = clamp(26 + strip(.14, .052, 209) + strip(.57, .028, 165) + strip(.82, .12, 60), 0, 255);
+    const illumination = clamp(48 + strip(.14, .073, 207) + strip(.57, .040, 180) + strip(.82, .14, 82), 0, 255);
     const offset = (y * envWidth + x) * 4;
     envPixels[offset] = Math.round(illumination);
     envPixels[offset + 1] = Math.round(illumination * .987);
@@ -62,10 +62,10 @@ export function createMagnifier(THREE, options = {}) {
     return result;
   }
   const nickel = material(THREE.MeshStandardMaterial, {
-    color: '#b9c0c1', metalness: .94, roughness: .19, envMap: reflections, envMapIntensity: .95,
+    color: '#d0d5d4', metalness: .86, roughness: .205, envMap: reflections, envMapIntensity: 1.25,
   });
   const darkNickel = material(THREE.MeshStandardMaterial, {
-    color: '#56615f', metalness: .88, roughness: .27, envMap: reflections, envMapIntensity: .8,
+    color: '#78827f', metalness: .86, roughness: .265, envMap: reflections, envMapIntensity: 1.05,
   });
   const grip = material(THREE.MeshStandardMaterial, {
     color: '#171d1b', metalness: .12, roughness: .73, envMap: reflections, envMapIntensity: .34,
@@ -88,6 +88,35 @@ export function createMagnifier(THREE, options = {}) {
   const rim = mesh(new THREE.TorusGeometry(.895, .008, 6, 112), nickel, 'Fine polished shoulder');
   rim.rotation.x = Math.PI / 2;
   rim.position.y = .071;
+  // The retaining collar has individual machined flutes, not a painted
+  // texture: they catch the room's light differently around its circumference.
+  const knurlGeometry = new THREE.BoxGeometry(.012, .032, .008);
+  geometries.add(knurlGeometry);
+  const collarFlutes = new THREE.InstancedMesh(knurlGeometry, darkNickel, 72);
+  instances.add(collarFlutes);
+  collarFlutes.name = '72 machined retaining-collar flutes';
+  collarFlutes.castShadow = collarFlutes.receiveShadow = true;
+  collarFlutes.userData.isMagnifier = true;
+  group.add(collarFlutes);
+  const flutePose = new THREE.Object3D();
+  for (let i = 0; i < 72; i++) {
+    const angle = i / 72 * Math.PI * 2;
+    flutePose.position.set(Math.sin(angle) * .931, -.003, Math.cos(angle) * .931);
+    flutePose.rotation.y = angle; flutePose.updateMatrix();
+    collarFlutes.setMatrixAt(i, flutePose.matrix);
+    collarFlutes.setColorAt(i, new THREE.Color(i % 6 === 0 ? '#ffffff' : '#c5cfcb'));
+  }
+  collarFlutes.instanceMatrix.needsUpdate = true;
+  const lowerShoulder = mesh(new THREE.TorusGeometry(.887, .012, 8, 112), nickel, 'Lower polished collar');
+  lowerShoulder.rotation.x = Math.PI / 2;
+  lowerShoulder.position.y = -.069;
+  for (const angle of [-.72, .72]) {
+    const fastener = mesh(new THREE.CylinderGeometry(.023, .023, .010, 14), darkNickel, 'Slotted retaining fastener');
+    fastener.position.set(Math.sin(angle) * .869, .079, Math.cos(angle) * .869);
+    const slot = mesh(new THREE.BoxGeometry(.027, .003, .005), grip, 'Retaining screw slot');
+    slot.position.copy(fastener.position); slot.position.y += .007;
+    slot.rotation.y = angle + .25;
+  }
 
   // Biconvex lens: both sides have measurable curvature and join at the rim.
   const lensProfile = [];
@@ -101,9 +130,9 @@ export function createMagnifier(THREE, options = {}) {
     lensProfile.push(new THREE.Vector2(r, -.022 - .070 * (1 - (r / lensRadius) ** 2)));
   }
   const opticalGlass = material(THREE.MeshPhysicalMaterial, {
-    color: '#f1faf7', roughness: .035, metalness: 0, transmission: .97,
-    thickness: .19, ior: 1.48, attenuationColor: '#b8d4c8', attenuationDistance: 4.5,
-    envMap: reflections, envMapIntensity: .78, clearcoat: 1, clearcoatRoughness: .035,
+    color: '#e6f3f1', roughness: .028, metalness: 0, transmission: .92,
+    thickness: .23, ior: 1.52, attenuationColor: '#9ebfbc', attenuationDistance: 3.2,
+    envMap: reflections, envMapIntensity: 1.18, clearcoat: 1, clearcoatRoughness: .028,
   });
   const glass = mesh(new THREE.LatheGeometry(lensProfile, 112), opticalGlass, 'Biconvex optical glass');
   glass.castShadow = false;
@@ -114,14 +143,20 @@ export function createMagnifier(THREE, options = {}) {
   const sourceUniforms = {
     artwork: { value: null }, centerUV: { value: new THREE.Vector2(.5, .5) },
     sourceSpan: { value: new THREE.Vector2(.28, .28) }, magnification: { value: 2.6 },
+    reflectionPhase: { value: 0 }, reflectionStrength: { value: 1 },
   };
   const sourceMaterial = material(THREE.ShaderMaterial, {
     uniforms: sourceUniforms, side: THREE.DoubleSide,
     vertexShader: `
       varying vec2 aperture;
+      varying vec3 opticalNormal;
+      varying vec3 opticalView;
       void main() {
         aperture = position.xz / 1.59;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+        opticalNormal = normalize(normalMatrix * normal);
+        opticalView = -viewPosition.xyz;
+        gl_Position = projectionMatrix * viewPosition;
       }
     `,
     fragmentShader: `
@@ -129,27 +164,79 @@ export function createMagnifier(THREE, options = {}) {
       uniform vec2 centerUV;
       uniform vec2 sourceSpan;
       uniform float magnification;
+      uniform float reflectionPhase;
+      uniform float reflectionStrength;
       varying vec2 aperture;
+      varying vec3 opticalNormal;
+      varying vec3 opticalView;
+      vec3 readArtwork(vec2 uv) {
+        uv = clamp(uv, vec2(.0001), vec2(.9999));
+        return texture2D(artwork, vec2(uv.x, 1.0 - uv.y)).rgb;
+      }
       void main() {
-        float radius = length(aperture) * 2.0;
-        vec2 warped = aperture * (1.0 + .08 * radius * radius);
+        float radius = clamp(length(aperture) * 2.0, 0.0, 1.0);
+        float radius2 = radius * radius;
+        // Strong central magnification relaxes toward the perimeter, where
+        // thick glass bends the source sharply. The change is spatial, not an
+        // animated image zoom, so the same printed detail stays under the tool.
+        float refractiveGain = .76 + .38 * radius2 + .82 * pow(radius, 6.0);
+        vec2 warped = aperture * refractiveGain;
         vec2 imageUV = centerUV + warped * sourceSpan / magnification;
-        imageUV = clamp(imageUV, vec2(.0001), vec2(.9999));
-        vec3 color = texture2D(artwork, vec2(imageUV.x, 1.0 - imageUV.y)).rgb;
-        color *= 1.0 - .045 * pow(radius, 5.0);
+        // Dispersion is confined to the outer glass. There is no colored
+        // outline pasted over the image, and the reading area stays crisp.
+        vec2 dispersion = aperture * sourceSpan / magnification * .038 * pow(radius, 7.0);
+        vec3 color;
+        color.r = readArtwork(imageUV + dispersion).r;
+        color.g = readArtwork(imageUV).g;
+        color.b = readArtwork(imageUV - dispersion).b;
+
+        vec3 normal = normalize(opticalNormal);
+        vec3 view = normalize(opticalView);
+        float facing = clamp(abs(dot(normal, view)), 0.0, 1.0);
+        float fresnel = .025 + .36 * pow(1.0 - facing, 3.0);
+        float edge = smoothstep(.72, 1.0, radius);
+        // Barely cool transmission and a denser green-grey cut edge give the
+        // volume a legible glass body without bleaching the source artwork.
+        color *= mix(vec3(.99, 1.0, 1.0), vec3(.81, .91, .91), edge * .56);
+        color = mix(color, vec3(.64, .77, .78), fresnel + edge * .055);
+
+        // Broad softboxes bend across the actual curved normal field. Only
+        // their reflected position drifts; the lens and image do not move.
+        vec2 pane = aperture * 2.0;
+        float normalBend = dot(normal.xy, vec2(.52, -.29));
+        float drift = sin(reflectionPhase) * .105;
+        float ribbon = dot(pane, vec2(.65, .76)) + .24 * (1.0 - radius2) + normalBend * .22 + drift;
+        float softbox = exp(-pow((ribbon + .37) / .13, 2.0));
+        softbox *= 1.0 - smoothstep(.80, 1.02, abs(dot(pane, vec2(-.76, .65))));
+        float companion = exp(-pow((ribbon - .58) / .045, 2.0)) * .34;
+        float reflection = (softbox * .27 + companion * .13) * reflectionStrength;
+        color = mix(color, vec3(.93, .98, 1.0), reflection);
+        float cutEdge = exp(-pow((radius - .972) / .016, 2.0));
+        color += vec3(.19, .25, .26) * cutEdge * (.28 + .32 * smoothstep(-.7, .65, pane.x - pane.y));
         gl_FragColor = vec4(color, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }
     `,
   });
-  const insetGeometry = new THREE.CircleGeometry(.792, 112);
-  insetGeometry.rotateX(-Math.PI / 2);
-  const points = insetGeometry.attributes.position;
-  for (let i = 0; i < points.count; i++) {
-    const radial = Math.hypot(points.getX(i), points.getZ(i)) / .792;
-    points.setY(i, -.017 + .012 * (1 - radial * radial));
+  const insetGeometry = new THREE.BufferGeometry();
+  const points = [0, .100, 0], indices = [], rings = 24, segments = 112;
+  for (let ring = 1; ring <= rings; ring++) {
+    const radial = ring / rings, radius = .792 * radial;
+    for (let segment = 0; segment < segments; segment++) {
+      const angle = segment / segments * Math.PI * 2;
+      points.push(Math.sin(angle) * radius, -.010 + .110 * (1 - radial * radial), Math.cos(angle) * radius);
+    }
   }
+  for (let segment = 0; segment < segments; segment++) indices.push(0, 1 + segment, 1 + (segment + 1) % segments);
+  for (let ring = 1; ring < rings; ring++) for (let segment = 0; segment < segments; segment++) {
+    const next = (segment + 1) % segments;
+    const a = 1 + (ring - 1) * segments + segment, b = 1 + ring * segments + segment;
+    const c = 1 + ring * segments + next, d = 1 + (ring - 1) * segments + next;
+    indices.push(a, b, c, a, c, d);
+  }
+  insetGeometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+  insetGeometry.setIndex(indices);
   insetGeometry.computeVertexNormals();
   const source = mesh(insetGeometry, sourceMaterial, 'Magnified original artwork');
   source.visible = false;
@@ -193,19 +280,21 @@ export function createMagnifier(THREE, options = {}) {
     sourceUniforms.sourceSpan.value.set(clamp(number(span[0], .28), .001, 1), clamp(number(span[1], .28), .001, 1));
     sourceUniforms.magnification.value = clamp(number(settings.magnification, 2.6), 1, 8);
   }
-  function update({ hover = false } = {}) {
+  function update({ hover = false, time, reduced = false } = {}) {
     if (disposed) return;
-    // No transform changes or clock-driven movement: a quiet optical response
-    // is equally safe for motion-sensitive visitors and reduced-motion mode.
-    nickel.envMapIntensity = hover ? 1.13 : .95;
-    opticalGlass.envMapIntensity = hover ? .95 : .78;
+    // A full reflection oscillation takes about two minutes. Reduced motion
+    // holds the current reflection instead of snapping to a different pose.
+    if (!reduced && Number.isFinite(time)) sourceUniforms.reflectionPhase.value = time * .048;
+    sourceUniforms.reflectionStrength.value = hover ? 1.13 : 1;
+    nickel.envMapIntensity = hover ? 1.43 : 1.25;
+    opticalGlass.envMapIntensity = hover ? 1.36 : 1.18;
   }
   function dispose() {
     if (disposed) return;
     disposed = true;
     group.removeFromParent();
     sourceUniforms.artwork.value = null;
-    for (const resource of [...geometries, ...materials, ...textures]) resource.dispose();
+    for (const resource of [...instances, ...geometries, ...materials, ...textures]) resource.dispose();
   }
   if (options.texture) setSource(options.texture, options.sourceOptions);
   return { group, setSource, update, dispose };

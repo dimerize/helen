@@ -69,17 +69,57 @@ test('source artwork stays borrowed and unchanged when the magnifier is replaced
   assert.equal(secondDisposed, 0);
 });
 
-// Hover feedback must never move this tool independently of the artwork.
-test('hover updates never create an autonomous bob or spin and reduced motion remains still', () => {
+// Reflections may move inside the lens, but the tool stays anchored to the
+// artwork. Reduced motion must freeze the actual uniforms used by the shader.
+test('the optical reflection moves gently without autonomous transforms and freezes with reduced motion', () => {
   const model = make();
   model.group.position.set(3, 1, 5);
   model.group.rotation.set(.1, .2, .3);
   const before = { position: model.group.position.toArray(), rotation: model.group.rotation.toArray(), scale: model.group.scale.toArray() };
+  const phases = [];
+  model.group.traverse(node => {
+    const uniform = node.material?.uniforms?.reflectionPhase;
+    if (uniform) phases.push(uniform);
+  });
+  assert.ok(phases.length > 0, 'The curved glass shader needs a controllable reflection phase.');
+  model.update({ time: 0 });
+  const initial = phases.map(uniform => uniform.value);
+  model.update({ time: 8 });
+  const changed = phases.map(uniform => uniform.value);
+  assert.ok(changed.some((value, index) => value !== initial[index]));
+  assert.ok(changed.every((value, index) => Math.abs(value - initial[index]) < 1), 'Reflection travel stays slow.');
+  model.update({ hover: true });
+  assert.deepEqual(phases.map(uniform => uniform.value), changed, 'Hover without a frame time must not reset the reflection.');
+  model.update({ time: 700, reduced: true });
+  assert.deepEqual(phases.map(uniform => uniform.value), changed);
+  model.update({ time: 900, reduced: true });
+  assert.deepEqual(phases.map(uniform => uniform.value), changed);
   for (const time of [0, .1, 3, 47, 800]) {
     model.update({ hover: true, time, reduced: true });
     model.update({ hover: false, time, reduced: false });
   }
   assert.deepEqual({ position: model.group.position.toArray(), rotation: model.group.rotation.toArray(), scale: model.group.scale.toArray() }, before);
+  model.dispose();
+});
+
+// A single triangle fan has a flat/conical normal field and loses the changing
+// reflection that makes a lens look convex. Sample the actual source surface.
+test('the magnified artwork sits on a smoothly curved radial surface', () => {
+  const model = make();
+  model.setSource(new THREE.Texture({ width: 64, height: 64 }));
+  const source = [];
+  model.group.traverse(node => {
+    if (node.material?.uniforms?.artwork) source.push(node);
+  });
+  assert.equal(source.length, 1);
+  const points = source[0].geometry.attributes.position;
+  const radialBands = new Set(), elevations = new Set();
+  for (let i = 0; i < points.count; i++) {
+    radialBands.add(Math.round(Math.hypot(points.getX(i), points.getZ(i)) * 100));
+    elevations.add(Math.round(points.getY(i) * 10000));
+  }
+  assert.ok(radialBands.size >= 12, 'Curvature must include intermediate rings across the glass.');
+  assert.ok(elevations.size >= 12);
   model.dispose();
 });
 
@@ -92,6 +132,7 @@ test('disposal releases each owned geometry and material once without touching a
     model.group.traverse(node => {
       if (!node.isMesh) return;
       values.add(node.geometry);
+      if (node.isInstancedMesh) values.add(node);
       for (const material of Array.isArray(node.material) ? node.material : [node.material]) values.add(material);
     });
     return values;

@@ -1,3 +1,24 @@
-/* Navigation is immediate and native. Do not introduce a second animation
-   through the browser while whole-page choreography is disabled. */
+/* Only artwork meshes and real scene cameras travel. The document stays flat;
+   native snapshot transitions would add a second, unrelated movement. */
 @view-transition { navigation: none; }
+.spatial-archive-camera{position:fixed;inset:0;width:100%;height:100%;z-index:80;pointer-events:none}
+html[data-camera-travel] .site-header,
+html[data-camera-travel] .home-copy,
+html[data-camera-travel] .scanner-lift,
+html[data-camera-travel] .hz-top,
+html[data-camera-travel] .hz-intro,
+html[data-camera-travel] .hz-enter,
+html[data-camera-travel] .home-caption,
+html[data-camera-travel] .entry-handle,
+html[data-camera-travel] .archive-intro,
+html[data-camera-travel] .room-toolbar,
+html[data-camera-travel] .index-toolbar,
+html[data-camera-travel] .project-markers,
+html[data-camera-travel] .archive-footer,
+html[data-camera-travel] .fragment-caption{opacity:0;pointer-events:none;transition:opacity 160ms ease}
+html[data-camera-travel=arrive] .fragment,body[data-archive-camera] .fragment{visibility:hidden!important;pointer-events:none}
+@media(prefers-reduced-motion:reduce){html[data-camera-travel] .site-header,html[data-camera-travel] .home-copy,
+html[data-camera-travel] .scanner-lift,
+html[data-camera-travel] .hz-top,
+html[data-camera-travel] .hz-intro,
+html[data-camera-travel] .hz-enter,html[data-camera-travel] .home-caption,html[data-camera-travel] .archive-intro,html[data-camera-travel] .room-toolbar{transition:none}}

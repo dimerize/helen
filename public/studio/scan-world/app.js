@@ -5,6 +5,9 @@ import { scanCycle, elapsedForScan } from './scan-cycle.js';
 import { scanArchiveURL, scanIndexFromURL } from './scan-links.js';
 import { createMagnifier, renderMagnifierPreview } from './magnifier.js';
 import { animate as springAnimate } from '../vendor/motion.js';
+import { animateCameraJourney } from '../camera-journey.js';
+import { notifySpatialReady } from '../spatial-navigation.js';
+import { installPrintHandoffSource } from '../print-handoff.js';
 
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
@@ -26,6 +29,7 @@ let renderer, camera, world, magnifier;
 let magnifierHover = false;
 const magnifierPreviews = new Map();
 let galleryOpen = false;
+let navigationCamera = false;
 let navigator, walkPath = [], waypoint, waypointLife = 0;
 let walkableMeshes = [];
 const raycaster = new THREE.Raycaster();
@@ -61,8 +65,8 @@ function setMode(value) {
   document.querySelector('.world-controls').inert = value !== 'world';
   document.querySelector('.world-top').inert = value !== 'world';
   document.querySelector('.touch-controls').inert = value !== 'world';
-  document.querySelector('.home-caption').inert = !home;
-  document.querySelector('.home-caption').setAttribute('aria-hidden', String(!home));
+  $('lift-print').inert = !home;
+  $('lift-print').setAttribute('aria-hidden', String(!home));
   document.querySelector('.world-caption').setAttribute('aria-hidden', String(value !== 'world'));
   if (magnifier) magnifier.group.visible = value === 'home';
 }
@@ -135,7 +139,7 @@ function resize() {
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   if (magnifier) {
-    magnifier.group.scale.setScalar(width < 600 ? 1.9 : 1.25);
+    magnifier.group.scale.setScalar(width < 600 ? 2.8 : 1.7);
     updateMagnifierSource();
   }
   if (mode === 'home') {
@@ -203,7 +207,7 @@ function buildEntryPath(fromPose, toPose) {
 }
 
 function enterWorld() {
-  if (mode !== 'home' || !world || transition) return;
+  if (mode !== 'home' || !world || transition || navigationCamera) return;
   closeMap();
   window.scrollTo({top: 0, behavior: 'instant'});
   $('print-layer').replaceChildren();
@@ -427,7 +431,7 @@ function captureMemory(open = true) {
 
 let lifted = 0;
 function liftScan() {
-  if (!world || mode !== 'home') return;
+  if (!world || mode !== 'home' || navigationCamera) return;
   const art = world.currentArtwork;
   const layer = $('print-layer');
   if (layer.children.length >= 4) layer.firstElementChild.remove();
@@ -507,7 +511,7 @@ function updateEntryHandle() {
   const handle=$('entry-handle');
   handle.style.left=`${(minX+maxX)/2}px`; handle.style.top=`${(minY+maxY)/2}px`;
   handle.style.width=`${Math.max(48,maxX-minX+12)}px`; handle.style.height=`${Math.max(48,maxY-minY+12)}px`;
-  magnifier.update({hover:magnifierHover,reduced:reduced||manualStill});
+  magnifier.update({hover:magnifierHover,time,reduced:reduced||manualStill});
 }
 
 function animate(now) {
@@ -524,7 +528,7 @@ function animate(now) {
   }
   let macro = mode === 'world' ? 1 : 0;
   if (transition) macro = tickTransition();
-  else if (mode === 'home') {
+  else if (mode === 'home' && !navigationCamera) {
     pull = damp(pull, pullTarget, 10, dt);
     const pose = heroPose();
     const approach = pull * .16;
@@ -617,8 +621,6 @@ function bindInput() {
   });
   addEventListener('keyup', e => keys.delete(e.code));
   addEventListener('blur', () => { keys.clear(); resetStick(); sceneDrag = null; if (mode === 'home') { entryDrag = null; pullTarget = 0; } });
-  $('previous-scan').addEventListener('click', () => selectArtwork(world.currentArtwork.index - 1, true));
-  $('next-scan').addEventListener('click', () => selectArtwork(world.currentArtwork.index + 1, true));
   $('return-home').addEventListener('click', exitWorld);
   $('brand-home').addEventListener('click', e => { e.preventDefault(); if (mode === 'world') exitWorld(); });
   $('home-link').addEventListener('click', e => e.preventDefault());
@@ -632,6 +634,7 @@ function bindInput() {
   for (const id of ['help-close','help-done']) $(id).addEventListener('click', () => $('help-dialog').close());
   $('motion-button').addEventListener('click', () => {
     manualStill = !manualStill; $('motion-button').textContent = manualStill || reduced ? 'Reduced motion enabled' : 'Reduce motion'; $('motion-button').setAttribute('aria-pressed', String(manualStill || reduced));
+    document.body.dataset.motion = manualStill || reduced ? 'reduced' : 'full';
   });
   $('sound-button').addEventListener('click', async () => {
     if (soundEnabled) { sound.disable(); soundEnabled = false; }
@@ -639,14 +642,21 @@ function bindInput() {
     $('sound-button').setAttribute('aria-pressed', String(soundEnabled)); $('sound-label').textContent = soundEnabled ? 'Disable sound' : 'Enable sound';
     if (soundEnabled) sound.cue('landmark');
   });
-  prefersReduced.addEventListener('change', e => { reduced = e.matches; $('motion-button').textContent = reduced || manualStill ? 'Reduced motion enabled' : 'Reduce motion'; $('motion-button').setAttribute('aria-pressed', String(reduced || manualStill)); });
+  prefersReduced.addEventListener('change', e => { reduced = e.matches; document.body.dataset.motion = manualStill || reduced ? 'reduced' : 'full'; $('motion-button').textContent = reduced || manualStill ? 'Reduced motion enabled' : 'Reduce motion'; $('motion-button').setAttribute('aria-pressed', String(reduced || manualStill)); });
   if (reduced) { $('motion-button').textContent = 'Reduced motion enabled'; $('motion-button').setAttribute('aria-pressed', 'true'); }
   document.addEventListener('visibilitychange', () => { previous = 0; keys.clear(); if (document.hidden) sound.disable(); else if (soundEnabled) sound.enable(); });
   renderer.domElement.addEventListener('webglcontextlost', e => { e.preventDefault(); toast('3D view paused. Reload to resume.', 15000); cancelAnimationFrame(frame); });
 }
 
 function bindGalleryCapture() {
-  document.addEventListener('studio:gallery', event => { galleryOpen = Boolean(event.detail.open); previous = 0; clearMovementInput(); });
+  document.addEventListener('studio:gallery', event => {
+    galleryOpen = Boolean(event.detail.open); previous = 0; clearMovementInput();
+    if (!galleryOpen) {
+      navigationCamera = false;
+      const pose = heroPose(); camera.position.copy(pose.position); cameraTarget.copy(pose.target); camera.lookAt(cameraTarget);
+      notifySpatialReady('home');
+    }
+  });
   galleryOpen = document.body.classList.contains('studio-open');
   document.addEventListener('studio:scanner-capture', event => {
     const request = event.detail;
@@ -672,6 +682,26 @@ function bindGalleryCapture() {
   });
 }
 
+function bindCameraNavigation() {
+  document.addEventListener('studio:camera-travel-cancel', () => { navigationCamera = false; });
+  document.addEventListener('studio:camera-travel', event => {
+    const detail = event.detail;
+    if (detail.route !== 'home' || galleryOpen || mode !== 'home' || detail.promise) return;
+    if (manualStill || reduced) { detail.promise = Promise.resolve(); return; }
+    const pose = heroPose();
+    camera.position.copy(pose.position); cameraTarget.copy(pose.target); camera.lookAt(cameraTarget);
+    navigationCamera = true; clearMovementInput();
+    detail.promise = animateCameraJourney(THREE, camera, cameraTarget, detail).finally(() => {
+      // Keep the departing camera where it stopped until the destination opens.
+      // Arrival returns exactly to the existing production camera pose.
+      if (detail.phase === 'arrive' || detail.signal?.aborted) navigationCamera = false;
+    });
+  });
+  addEventListener('pageshow', event => {
+    if (event.persisted) { navigationCamera = false; previous = 0; }
+  });
+}
+
 async function init() {
   try {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: false });
@@ -686,9 +716,9 @@ async function init() {
     const { createScannerWorld } = await import('./world.js');
     world = await createScannerWorld(THREE, renderer);
     magnifier = createMagnifier(THREE);
-    magnifier.group.position.set(world.width*.29, 1.55, world.depth/2-1.1);
-    magnifier.group.rotation.set(.13, -.12, -.035);
-    magnifier.group.scale.setScalar($('scanner-scene').clientWidth < 600 ? 1.9 : 1.25);
+    magnifier.group.position.set(world.width*.23, 1.8, world.depth/2-2.2);
+    magnifier.group.rotation.set(.08, -.16, -.035);
+    magnifier.group.scale.setScalar($('scanner-scene').clientWidth < 600 ? 2.8 : 1.7);
     world.scene.add(magnifier.group);
     navigator = createSurfaceNavigator({ bounds: world.bounds, heightAt: clearanceHeight, stepHeight: .29, cellSize: .22 });
     walkableMeshes = [world.scanMesh, ...world.root.getObjectByName('Physical typography, traced from the scan').children];
@@ -699,13 +729,15 @@ async function init() {
     new ResizeObserver(resize).observe($('scanner-scene')); resize();
     selectArtwork(scanIndexFromURL(location.href) ?? 0, true); bindInput();
     bindGalleryCapture();
+    bindCameraNavigation(); installPrintHandoffSource();
     setMode('home'); $('entry-handle').disabled = false;
     debug.ready = true;
     renderer.render(world.scene, camera);
     $('scanner-scene').classList.add('is-webgl');
     $('loading').hidden = true;
-    announce('Scanner ready. Lift a print, or use its magnifier to look closer. The arrows choose another scan.');
+    announce('Scanner ready. Lift the current scan, or use its magnifier to explore. Scans change automatically.');
     frame = requestAnimationFrame(animate);
+    notifySpatialReady('home');
     const entryURL = new URL(location.href);
     if (entryURL.searchParams.get('explore') === '1' && scanIndexFromURL(location.href) !== null && !entryURL.searchParams.has('room')) {
       entryURL.searchParams.delete('explore'); history.replaceState(history.state, '', entryURL);

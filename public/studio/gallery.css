@@ -56,3 +56,4 @@ body.studio-open{overflow:hidden}
 
 #studio-portal .hz-location,#studio-portal .hz-hint{display:none!important}
 #studio-portal .hz-controls-note{font-size:11px;line-height:1.5;color:#777b73;max-width:190px;margin:14px 0 4px}
+#studio-portal .hz-archive-link{display:block;color:inherit;font-size:13px;padding:13px 0;border-top:1px solid #7776;margin-top:10px}

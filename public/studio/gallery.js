@@ -5,6 +5,8 @@ import { createEntranceTimeline, createExitTimeline, GALLERY_OUTSIDE, GALLERY_OV
 import { nearestAngle } from './gallery-navigation.js';
 import { createComputerScreen } from './computer-screen.js';
 import { getComputerPose, createComputerTimeline } from './computer-travel.js';
+import { animateCameraJourney } from './camera-journey.js';
+import { runSpatialTravel, notifySpatialReady } from './spatial-navigation.js';
 
 // This is the approved motion study, mounted directly into the scanner page.
 export async function createGalleryExperience(root, {echo, onExit, signal}) {
@@ -16,7 +18,7 @@ export async function createGalleryExperience(root, {echo, onExit, signal}) {
   const events = new AbortController();
   const listen = (target, event, handler, options = {}) => target.addEventListener(event, handler, {...options, signal: events.signal});
   let renderer, room, screenUI, controls, observer, timeline, mode = 'closed', disposed = false, paused = false, hintTimer, gesture;
-  let previous = 0, elapsed = 0;
+  let previous = 0, elapsed = 0, navigationCamera = false;
   const ray = new THREE.Raycaster(), pointer = new THREE.Vector2(), direction = new THREE.Vector3(), spherical = new THREE.Spherical();
   function announce(text) {$('.hz-sr').textContent = text;}
   const atComputer = () => ['computer-approach','computer','screen-approach','screen','computer-return'].includes(mode);
@@ -112,26 +114,26 @@ export async function createGalleryExperience(root, {echo, onExit, signal}) {
       announce('Inside the installation. Drag to look. Tap a work or the computer to approach.');
     }
     function enterRoom() {
-      if (mode !== 'closed' || disposed || paused) return;
+      if (mode !== 'closed' || disposed || paused || navigationCamera) return;
       setMode('entering');enter.hidden = true;$('.hz-intro').hidden = true;$('.hz-brand').hidden = true;exit.hidden = false;
       announce('Opening the door and entering the studio.');
       timeline = createEntranceTimeline({camera,door:room.door,handle:room.handle,onComplete:arrived});
       if (reduced.matches) timeline.progress(1); else timeline.play();
     }
-    function returnHome() {
+    function returnHome(skipDeparture = true) {
       if (disposed) return;
       setMode('returning');
       document.dispatchEvent(new CustomEvent('studio:portal-travel',{detail:{phase:'return',from:'gallery',to:'home'}}));
       // The physical door has already completed its retreat. Restore the real
       // homepage directly; a captured page never crosses the visitor's view.
-      onExit();
+      runSpatialTravel('home', onExit, {skipDeparture});
     }
     function leave() {
-      if (disposed || mode === 'exiting' || mode === 'returning') return;
+      if (disposed || navigationCamera || mode === 'exiting' || mode === 'returning') return;
       if (mode === 'fallback') {onExit();return;}
       if (mode === 'closed') {
         timeline?.kill();controls.enabled=false;hideHint();closeMenu();
-        returnHome();return;
+        returnHome(false);return;
       }
       timeline?.kill();screenUI.hide();stepAway.hidden=true;useComputer.hidden=true;exit.hidden=false;
       controls.enabled = false;hideHint();closeMenu();caption.hidden = true;menuToggle.hidden = true;setMode('exiting');
@@ -212,12 +214,46 @@ export async function createGalleryExperience(root, {echo, onExit, signal}) {
     });
     listen(renderer.domElement,'webglcontextlost',event=>{event.preventDefault();pause();screenUI.hide();stepAway.hidden=true;useComputer.hidden=true;closeMenu();caption.hidden=true;root.style.setProperty('--hz-ink','#f0eee8');setMode('fallback');$('.hz-fallback').hidden=false;$('.hz-brand').hidden=false;announce('The 3D view paused. Return to the scanner, view the installation photographs, or use the Instagram and email links.');});
     listen(reduced,'change',()=>{controls.draggingSmoothTime=reduced.matches?0:.16;if(reduced.matches && moving())timeline?.progress(1);});
+    listen(document, 'studio:camera-travel', event => {
+      const detail = event.detail;
+      if (detail.route !== 'gallery' || disposed || detail.promise) return;
+      if (detail.phase === 'depart' && ['inside','computer','screen','computer-approach','screen-approach'].includes(mode)) {
+        const startPosition = camera.position.clone(), startTarget = new THREE.Vector3();
+        camera.getWorldDirection(startTarget); startTarget.add(startPosition);
+        const startDoor = room.door.rotation.y;
+        controls.enabled = false; closeMenu(); hideHint(); screenUI.hide();
+        setMode('exiting'); detail.duration = 2450;
+        detail.promise = new Promise(resolve => {
+          timeline?.kill();
+          timeline = createExitTimeline({camera,door:room.door,handle:room.handle,onComplete:resolve});
+          detail.signal?.addEventListener('abort', () => {
+            timeline?.kill();
+            if (!disposed) {
+              room.door.rotation.y = startDoor; room.handle.rotation.z = 0;
+              setMode('inside'); aim(startPosition.toArray(),startTarget.toArray(),false);
+              controls.enabled = !paused; exit.hidden = false; menuToggle.hidden = false;
+              stepAway.hidden = true; useComputer.hidden = true;
+            }
+            resolve();
+          }, {once:true});
+          if (reduced.matches) timeline.progress(1); else timeline.play();
+        });
+        return;
+      }
+      const target = new THREE.Vector3(...GALLERY_OUTSIDE.t);
+      camera.position.fromArray(GALLERY_OUTSIDE.p); camera.lookAt(target);
+      controls.enabled = false; navigationCamera = true;
+      detail.promise = animateCameraJourney(THREE, camera, target, {...detail, render: () => {
+        if (!disposed) renderer.render(room.scene, camera);
+      }}).finally(() => { navigationCamera = false; });
+    });
     // Loading the gallery presents its existing closed doorway immediately.
     // Only the explicit Enter action starts the original physical entrance.
     room.update(elapsed);renderer.render(room.scene,camera);
     renderer.setAnimationLoop(runFrame);
     document.dispatchEvent(new CustomEvent('studio:portal-travel',{detail:{phase:'arrive',from:'home',to:'gallery'}}));
     enter.focus({preventScroll:true});
+    notifySpatialReady('gallery');
     return {exit:leave,cancel:()=>{if(!dismissLocalView())leave();},pause,resume,dispose};
   } catch (error) {dispose();throw error;}
 }

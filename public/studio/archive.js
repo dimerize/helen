@@ -3,6 +3,7 @@ import { archiveItems as items, archiveProjects as projects } from './archive-da
 import { createArchiveLayout, clampArchivePosition, archiveDragIntent } from './archive-layout.js';
 import { createArchiveHistory } from './archive-history.js';
 import { createArchiveInspection } from './archive-inspection.js';
+import { consumePrintHandoff, createHeldPrint, printScreenBounds, placeHandoffPanel } from './print-handoff.js';
 
 const assets='/artwork/';
 const room=document.getElementById('room');
@@ -22,16 +23,47 @@ let tableLayout, drag=null, moveMode=false, highIndex=20, suppressClickUntil=0, 
 let resizeFrame=0, settlingTimer=0, tableWidth=0, lensOn=false, lensPoint={x:.5,y:.5};
 let closingToFamily=null;
 let inspectionTrigger=null;
+let incomingPrint=consumePrintHandoff();
+let heldPrint=null,closingToArtwork=null;
 const inspection=createArchiveInspection({dialog,motion:detailMotion,show:showItem,change:animateItemChange});
 const selectionHistory=createArchiveHistory({window,history,location,items,onSelect:id=>{
   if(!id)activeId=null;
   else closingToFamily=null;
+  if(id&&incomingPrint?.artId===id){
+    presentHeldPrint(incomingPrint);incomingPrint=null;
+  }else if(id&&heldPrint&&heldPrint.record.artId!==id)clearHeldPrint();
   inspection.select(id,inspectionTrigger||buttons.get(id));
+  if(id&&heldPrint)heldPrint.closeButton.focus({preventScroll:true});
   inspectionTrigger=null;
 }});
 
 const selectedItems=()=>items.filter(item=>view==='room'||filter==='all'||item.category===filter);
 const setStatus=text=>{status.textContent=text;};
+
+function positionHeldControls(){
+  if(!heldPrint)return;
+  const bounds=printScreenBounds(heldPrint.record.frame);
+  // Leave the small lens projecting from the paper clear of the controls.
+  if(heldPrint.record.lens)bounds.width+=28;
+  const panel=placeHandoffPanel(bounds,{width:innerWidth,height:innerHeight});
+  for(const[key,value]of Object.entries(panel))dialog.style.setProperty(`--held-panel-${key.replace(/[A-Z]/g,letter=>`-${letter.toLowerCase()}`)}`,`${value}px`);
+}
+function presentHeldPrint(record){
+  clearHeldPrint();
+  const paper=createHeldPrint(record,{onClose:requestClose,onTable:()=>{closingToArtwork=record.artId;requestClose();}});
+  heldPrint={...paper,record};
+  dialog.classList.add('is-print-handoff');dialog.dataset.printHandoff=record.artId;
+  dialog.append(paper.element);document.body.classList.add('has-held-print');
+  positionHeldControls();
+}
+function clearHeldPrint(){
+  const restoreFocus=dialog.open&&heldPrint?.element.contains(document.activeElement);
+  heldPrint?.element.remove();heldPrint=null;
+  dialog.classList.remove('is-print-handoff');delete dialog.dataset.printHandoff;
+  for(const key of ['left','top','width','max-height'])dialog.style.removeProperty(`--held-panel-${key}`);
+  document.body.classList.remove('has-held-print');
+  if(restoreFocus)document.querySelector('.close-dialog').focus({preventScroll:true});
+}
 
 function paintPosition(id){
   const button=buttons.get(id),position=positions.get(id);
@@ -283,14 +315,21 @@ dialog.addEventListener('keydown',event=>{
 dialog.addEventListener('cancel',requestClose);
 dialog.addEventListener('click',event=>{
   if(event.target!==dialog)return;
+  if(heldPrint){requestClose();return;}
   const rect=dialog.getBoundingClientRect();
   if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)requestClose();
 });
 dialog.addEventListener('close',()=>{
   if(dialog.open)return;
+  clearHeldPrint();
   setLens(false);
   if(closingToFamily){const project=closingToFamily;closingToFamily=null;gatherProject(project);}
   for(const button of buttons.values())button.classList.remove('is-inspected');
+  if(closingToArtwork){
+    const button=buttons.get(closingToArtwork);closingToArtwork=null;
+    button?.scrollIntoView({block:'center',behavior:reduced.matches?'instant':'smooth'});
+    button?.focus({preventScroll:true});
+  }
 });
 document.getElementById('gather-family').addEventListener('click',event=>{
   closingToFamily=event.currentTarget.dataset.project;requestClose();
@@ -333,10 +372,15 @@ window.addEventListener('resize',()=>{
     // Mobile browser chrome changes the viewport height during scrolling; it
     // must never reset the visitor's arrangement or cancel their active drag.
     if(view==='room'&&Math.abs(space.clientWidth-tableWidth)>.5){releaseDrag(true);arrange(false);}
+    if(heldPrint){
+      if(Math.abs(innerWidth-heldPrint.record.viewport.width)>40)clearHeldPrint();
+      else positionHeldControls();
+    }
     placeLens();
   });
 });
 coarse.addEventListener('change',updateHint);
 document.addEventListener('studio:navigation',event=>{if(event.detail?.phase==='depart')releaseDrag(true);});
+window.addEventListener('pagehide',()=>{incomingPrint=null;clearHeldPrint();});
 render();
 requestAnimationFrame(()=>selectionHistory.start());

@@ -1,5 +1,6 @@
 import { createStudioPortal } from './studio-portal.js';
 import { createHomepageEcho } from './homepage-echo.js';
+import { runSpatialTravel } from './spatial-navigation.js';
 const dialog = document.querySelector('#studio-portal');
 let galleryModule;
 const loadGallery = () => galleryModule ||= import('./gallery.js').catch(error => {galleryModule=null;throw error;});
@@ -41,7 +42,7 @@ document.querySelectorAll('[data-open-gallery]').forEach(link => {
   link.addEventListener('focus',warmGallery,{once:true});
   link.addEventListener('click', event => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    event.preventDefault();warmGallery();portal.open(link);
+    event.preventDefault();warmGallery();runSpatialTravel('gallery', () => portal.open(link));
   });
 });
 dialog.querySelector('.hz-brand').addEventListener('click', event => {event.preventDefault();portal.requestClose();});

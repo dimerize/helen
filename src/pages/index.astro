@@ -35,10 +35,9 @@ import StudioPortal from "../components/StudioPortal.astro";
 
     <section class="home-copy room-title" aria-label="Introduction">
       <h1>Images,<br>in translation.</h1>
-      <button id="lift-print" class="print-button">Lift a scan <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></button>
     </section>
-
-    <div class="home-caption"><span id="scan-caption" class="sr-only">Found on the train</span><div class="scan-selection" aria-label="Choose a scan"><button id="previous-scan" aria-label="Previous scan"><span class="ui-icon icon-arrow-left" aria-hidden="true"></span></button><button id="next-scan" aria-label="Next scan"><span class="ui-icon icon-arrow-right" aria-hidden="true"></span></button></div></div>
+    <button id="lift-print" class="print-button scanner-lift">Lift a scan</button>
+    <span id="scan-caption" class="sr-only">Found on the train</span>
 
     <button id="entry-handle" class="entry-handle" aria-label="Explore this scan in three dimensions" disabled><span class="sr-only">Explore scan</span></button>
     <div class="pull-progress" aria-hidden="true"><span id="pull-fill"></span></div>

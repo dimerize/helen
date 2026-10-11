@@ -14,3 +14,32 @@ dialog{padding:0;width:min(1320px,95vw);max-height:92dvh;border:1px solid #45444
 @media(max-width:700px){main{padding:0 22px}.archive-intro{display:block;padding:40px 0 25px}h1{font-size:clamp(57px,12.5vw,86px)}.intro-right{margin-top:21px;justify-content:space-between;align-items:flex-end;font-size:12px}.view-switch{gap:18px}.room-toolbar{font-size:11px;display:block;padding-top:12px}.room-toolbar p{padding-top:0;margin-bottom:5px}.arrange-tools{gap:24px;justify-content:flex-start;flex-wrap:wrap}.arrange-tools #move-images{display:block;margin-left:auto}.arrange-tools button{font-size:11px;min-height:44px}.room{margin:10px -16px 0;scroll-margin-top:20px}.fragment-caption{font-size:10px}.room[data-arrangement=gather] .fragment-caption{font-size:10px}.project-marker{display:block;max-width:85%;top:auto;line-height:1.2}.project-marker>span{font-size:14px}.filters{gap:5px 19px;font-size:11px}.room.is-index{margin:22px 0 35px}.is-index .image-space{grid-template-columns:repeat(2,minmax(0,1fr));gap:35px 18px}.is-index .fragment img{height:200px}.is-index .fragment-caption{font-size:11px}.archive-footer{padding:27px 0 35px;font-size:12px}.detail-layout{display:flex;flex-direction:column;min-height:0}.detail-picture{padding:52px 18px 64px;min-height:240px;flex-shrink:0}.detail-picture img{max-height:47dvh;max-width:100%}.detail-panel{padding:18px 22px;gap:20px}.close-dialog{position:absolute;right:20px;top:7px;font-size:12px;z-index:5}.detail-copy h2{font-size:29px;margin:9px 0 15px}.detail-copy p{font-size:12px;max-width:52ch}.detail-copy #detail-type{font-size:11px}.detail-copy a{margin-top:8px}.detail-copy .explore-scan{margin-top:14px;margin-bottom:0;padding:11px 0 13px}.detail-connections{padding-top:0}.related-images button{width:62px;height:62px;flex-basis:62px}.detail-pagination{padding-top:8px}dialog{width:94vw;max-height:94dvh}#magnify-image{left:17px;bottom:12px;font-size:10px}}
 @media(max-height:650px) and (min-width:701px){.detail-layout{min-height:0}.detail-panel{gap:14px}.detail-picture img{max-height:70dvh}.detail-copy h2{font-size:25px}.detail-copy p{font-size:12px}.detail-connections{padding-top:0}.related-images button{width:44px;height:44px;flex-basis:44px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{scroll-behavior:auto!important}.fragment,.fragment img,.fragment-caption,.fragment-corner,.related-images button{transition:none!important}.project-marker{animation:none}.is-settling .fragment{pointer-events:auto}}
+
+/* A print arriving from the scanner keeps its measured screen geometry. The
+   inspector supplies controls around it; neither the paper nor document flies. */
+dialog.is-print-handoff{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;overflow:hidden;opacity:1!important;transform:none!important}
+dialog.is-print-handoff::backdrop{background:#08080938;backdrop-filter:none}
+.is-print-handoff .detail-layout{display:block;min-height:0;height:0}
+.is-print-handoff .detail-picture{display:none}
+.is-print-handoff .detail-panel{position:fixed;left:var(--held-panel-left);top:var(--held-panel-top);width:var(--held-panel-width);max-height:var(--held-panel-max-height);overflow:auto;overscroll-behavior:contain;padding:20px;gap:22px;background:#101012f5;border:1px solid #353436;box-shadow:0 12px 34px #0005;z-index:3;animation:held-controls-in 200ms ease-out 100ms both}
+.is-print-handoff .detail-panel .close-dialog{display:none}
+.is-print-handoff .detail-copy{margin:0}
+.is-print-handoff .detail-copy h2{font-size:25px}
+.is-print-handoff .detail-copy p{font-size:12px}
+.is-print-handoff .detail-copy #detail-type{margin-top:0}
+.is-print-handoff .detail-pagination{flex-shrink:0}
+.held-print{position:fixed;box-sizing:border-box;padding:0;transform-origin:center;z-index:2;overflow:visible;border:0;line-height:1.4;transition:none;animation:none}
+.held-print-image,.held-print-header,.held-print-close,.held-print-footer,.held-print-lens{position:absolute;box-sizing:border-box;margin:0}
+.held-print-image{display:block;object-fit:contain;background:#d9d5cc;pointer-events:none;user-select:none}
+.held-print-header{display:flex;align-items:center;font-size:12px;pointer-events:none}
+.held-print-close{padding:0;background:transparent;display:grid;place-items:center;font-size:24px;border:0;color:inherit;min-height:0;min-width:0}
+.held-print-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 3px 3px;background:transparent;border:0;font-size:12px;line-height:1.4;color:inherit;white-space:nowrap}
+.held-print-footer .ui-icon{font-size:20px}
+.held-print-close:focus-visible,.held-print-footer:focus-visible,.held-print-lens:focus-visible{outline:1px solid #45443c;outline-offset:3px}
+.held-print-lens{display:grid;place-items:center;padding:0;background:transparent;border:0}
+.held-print-lens img{display:block;width:100%;height:100%;max-width:none;object-fit:contain;filter:drop-shadow(0 3px 3px #0005);pointer-events:none}
+.has-held-print .fragment{animation:archive-around-print 340ms ease-out both}
+@keyframes held-controls-in{from{opacity:0}to{opacity:1}}
+@keyframes archive-around-print{from{opacity:.35}to{opacity:1}}
+@media(max-width:700px){.is-print-handoff .detail-panel{padding:14px 16px;gap:14px}.is-print-handoff .detail-copy h2{font-size:22px;margin:7px 0 12px}.is-print-handoff .detail-copy p{font-size:11px}.is-print-handoff .detail-copy .explore-scan{font-size:12px}.is-print-handoff .related-images button{width:46px;height:46px;flex-basis:46px}}
+@media(prefers-reduced-motion:reduce){.is-print-handoff .detail-panel,.has-held-print .fragment{animation:none}}
