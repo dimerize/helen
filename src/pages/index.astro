@@ -5,40 +5,99 @@ import StudioPortal from "../components/StudioPortal.astro";
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#080809"><Meta title="Images in translation" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#09090b">
+  <Meta title="Images in translation" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/studio/room.css">
-  <script is:inline type="module" src="/studio/scanner.js"></script>
+  <link rel="stylesheet" href="/studio/scan-world/style.css">
   <link rel="stylesheet" href="/studio/shared.css">
   <link rel="stylesheet" href="/studio/gallery.css">
   <link rel="stylesheet" href="/studio/computer.css">
+  <link rel="stylesheet" href="/studio/spatial-navigation.css">
+  <link rel="preload" href="/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <script is:inline type="module" src="/studio/scan-world/app.js"></script>
   <script is:inline type="module" src="/studio/doorway.js"></script>
+  <script is:inline type="module" src="/studio/spatial-navigation.js"></script>
 </head>
-<body>
+<body data-mode="loading">
   <a class="skip" href="#entrances">Skip to archive and gallery</a>
-  <header class="site-header">
-    <a class="wordmark" href="/" aria-current="page">Helen Zhang</a>
-    <nav aria-label="Main navigation"><a href="/" aria-current="page">Home</a><a href="/archive">Archive</a><a href="/gallery" data-open-gallery>Gallery</a></nav>
-  </header>
-  <main>
-    <section class="scanner-room" aria-label="An automatic scanner, collecting images">
-      <div id="scanner-scene" role="img" aria-label="A physical scanning bar moves over colorful found images on a dark glass platen.">
-        <div class="scanner-fallback"><img src="/artwork/train-scan.webp" alt="Red exit and caution lettering, distorted by a handheld scan"><span></span></div>
-      </div>
-      <div class="room-title"><h1>Images,<br>in translation.</h1><p>Art, moving image<br>& material experiments.</p></div>
-      <div class="scan-caption"><span id="scan-caption">Found on the train</span><span id="scan-count">1 / 3</span></div>
-      <div class="room-actions"><button type="button" id="lift-scan">Lift a scan <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></button><span class="lift-hint">Take an image out of the machine.</span></div>
-      <div class="motion-control"><button type="button" id="pause-motion" aria-pressed="false">Pause motion</button></div>
-      <div id="print-layer" aria-label="Your loose scans"></div>
-      <p id="print-status" class="sr-only" aria-live="polite"></p>
+  <main class="scanner-room" id="experience" aria-label="Beneath the glass, an interactive scanner">
+    <div id="scanner-scene" role="img" aria-label="A scanner holding a worn red EXIT sign. Look closer to explore its surface in three dimensions."><div class="scanner-fallback"><img src="/studio/scan-world/assets/train-scan.jpg" alt="Red exit and caution signage"><span></span></div></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div id="transition-wash" aria-hidden="true"></div>
+    <header class="site-header">
+      <a href="/" class="wordmark" id="brand-home">Helen Zhang<span class="world-wordmark">Beneath the glass</span></a>
+      <nav class="home-nav" aria-label="Portfolio"><a href="/" class="active" id="home-link">Home</a><a href="/archive">Archive</a><a href="/gallery" data-open-gallery>Gallery</a></nav>
+      <div class="world-top" inert><button id="return-home" class="quiet-button"><span aria-hidden="true">↗</span> Back to the surface</button></div>
+    </header>
+
+    <section class="home-copy room-title" aria-label="Introduction">
+      <h1>Images,<br>in translation.</h1>
+      <p>Art, moving image<br>&amp; material experiments.</p>
+      <button id="lift-print" class="print-button">Lift a scan <span aria-hidden="true">↗</span></button>
     </section>
-    <section id="entrances" class="entrances" aria-label="Explore Helen’s work">
-      <a href="/archive"><span>The archive</span><small>Things collected along the way</small><span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a>
-      <a href="/gallery" data-open-gallery><span>Gallery</span><small>Step inside the installation</small><span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a>
+
+    <div class="home-caption"><span id="scan-caption">Found on the train</span><span class="caption-detail">A surface worth getting lost in.</span><div class="scan-selection" aria-label="Choose a scan"><button id="previous-scan" aria-label="Previous scan">←</button><button id="next-scan" aria-label="Next scan">→</button></div></div>
+
+    <button id="entry-handle" class="entry-handle" aria-label="Look closer: enter this scan in three dimensions" disabled>
+      <span class="lens-glass" aria-hidden="true"></span>
+      <span class="handle-label">Look closer</span>
+      <span class="handle-note">Drag up, or tap.</span>
+    </button>
+    <div class="pull-progress" aria-hidden="true"><span id="pull-fill"></span></div>
+
+    <div id="journey-caption" class="journey-caption" aria-hidden="true"><span>A little closer.</span></div>
+
+    <section class="world-caption" aria-label="Current location">
+      <span class="location-rule" aria-hidden="true"></span>
+      <div><p id="location-kicker">Beneath the glass</p><h2 id="location-title">The paper shore</h2><p id="location-description">An ordinary image. An extraordinary distance.</p></div>
     </section>
+
+    <div class="world-controls" inert>
+      <div class="travel-tools"><button class="tool-button" id="map-toggle" aria-expanded="false" aria-controls="map-panel"><span class="map-icon" aria-hidden="true"></span><span>The whole image</span></button><button class="tool-button" id="photo-button"><span class="camera-icon" aria-hidden="true"></span><span>Take a picture</span></button></div>
+      <div id="movement-hint" class="movement-hint"><span>Click to wander</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move</span><span>Drag to look</span><span><kbd>Space</kbd> hop</span></div>
+    </div>
+
+    <aside id="map-panel" class="map-panel" hidden aria-label="Explore the image">
+      <div class="panel-heading"><div><span>The whole image</span><p>Choose a place. Or find your own way.</p></div><button id="map-close" class="close-button" aria-label="Close image map">×</button></div>
+      <div class="map-image"><img id="map-source" src="/studio/scan-world/assets/train-scan.jpg" alt="The original scan, with places to explore"><span id="map-crop" aria-hidden="true"></span><div id="map-pins"></div><span id="map-player" aria-label="Your position"><i></i></span></div>
+      <div id="station-list" class="station-list"></div>
+      <p class="map-note">Relief drawn from the scan’s lettering and marks.<br>Depth is an imagined interpretation of the surface.</p>
+    </aside>
+
+    <div class="touch-controls" inert aria-label="Touch movement controls">
+      <div id="joystick" class="joystick" role="group" aria-label="Drag to move"><span id="joystick-knob"></span><small>Move</small></div>
+      <button id="touch-hop" class="hop-button" aria-label="Hop">↑<small>Hop</small></button>
+    </div>
+
+    <footer class="utility-bar"><span class="prototype-label">Helen Zhang</span><div><button id="motion-button" class="utility-button" aria-pressed="false">Motion on</button><button id="sound-button" class="utility-button" aria-pressed="false"><span class="sound-indicator" aria-hidden="true"><i></i><i></i><i></i></span><span id="sound-label">Sound off</span></button><button id="help-button" class="help-button" aria-label="How to explore">?</button></div></footer>
+
+    <div id="loading" class="loading" aria-live="polite"><span class="loading-line"><i></i></span><p>Finding the surface.</p></div>
+    <div id="fallback" class="fallback" hidden><img src="/studio/scan-world/assets/train-scan.jpg" alt="Helen Zhang’s scan of EXIT and caution lettering"><h2>A world beneath the glass.</h2><p>This experience needs WebGL. Try a browser with hardware acceleration enabled.</p><button id="retry-button" class="print-button">Try again</button></div>
+    <p id="status" class="sr-only" aria-live="polite"></p>
+    <div id="toast" class="toast" role="status"></div>
+    <div id="print-layer" aria-label="Your loose scans"></div>
   </main>
-  <footer><a href="/" aria-current="page">Home</a><a href="/archive">Archive</a><a href="/gallery" data-open-gallery>Gallery</a></footer>
-  <StudioPortal />
+  <section id="entrances" class="entrances" aria-label="Explore Helen’s work"><a href="/archive"><span>The archive</span><small>Things collected along the way</small><span aria-hidden="true">↗</span></a><a href="/gallery" data-open-gallery><span>Gallery</span><small>Step inside the installation</small><span aria-hidden="true">↗</span></a></section>
+  <footer class="site-footer"><a href="/">Home</a><a href="/archive">Archive</a><a href="/gallery" data-open-gallery>Gallery</a></footer>
+
+  <dialog id="help-dialog" class="help-dialog">
+    <button class="close-button" id="help-close" aria-label="Close help">×</button>
+    <span class="tiny-mote" aria-hidden="true">✳</span>
+    <h2>Make yourself<br>a little smaller.</h2>
+    <p>Use the magnifier to shrink into a scan. Drag it upwards, or tap it. Then take your time. There is no route to complete.</p>
+    <dl><div><dt>Wander</dt><dd>Click the paper, or use W A S D</dd></div><div><dt>Look around</dt><dd>Drag anywhere in the scene</dd></div><div><dt>Hop</dt><dd>Space</dd></div><div><dt>Move faster</dt><dd>Hold Shift</dd></div><div><dt>The whole image</dt><dd>M</dd></div><div><dt>Return</dt><dd>Escape</dd></div></dl>
+    <p class="touch-help">On a phone, use the left thumb control to move and drag with your right thumb to look.</p>
+    <p class="help-footnote">Made from the actual contours of Helen’s scans. The landscape’s height and tiny visitor are imagined.</p>
+    <button id="help-done" class="print-button">Let me wander <span aria-hidden="true">↗</span></button>
+  </dialog>
+
+  <dialog id="print-dialog" class="print-dialog">
+    <div class="print-top"><span id="print-heading">Fresh from the scanner</span><button id="print-close" class="close-button" aria-label="Put the print away">×</button></div>
+    <img id="print-image" src="/studio/scan-world/assets/train-scan.jpg" alt="A print of the original scan">
+    <div class="print-bottom"><div><span id="print-title">Found on the train</span><small id="print-subtitle">Helen Zhang</small></div><a id="print-archive" class="print-link" href="/archive">Find it in the archive <span aria-hidden="true">↗</span></a><button id="print-enter" class="print-link">Go beneath the glass <span aria-hidden="true">↗</span></button><a id="photo-download" class="print-link" download="beneath-the-glass.png" hidden>Keep this picture <span aria-hidden="true">↓</span></a></div>
+  </dialog>
+<StudioPortal />
 </body>
 </html>

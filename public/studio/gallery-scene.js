@@ -1,9 +1,10 @@
 import * as THREE from './vendor/three.module.min.js';
 import { RoundedBoxGeometry } from './vendor/rounded-box.js';
 import { createComputer } from './computer-model.js';
+import { createGalleryArchitecture } from './gallery-room.js';
 
 /** The approved doorway and installation are one scene, with one camera. */
-export async function createGalleryScene(renderer, { homepageCanvas, computerCanvas } = {}) {
+export async function createGalleryScene(renderer, { homepageCanvas, portalCanvas = homepageCanvas, computerCanvas } = {}) {
   const textures = new Set();
   const loader = new THREE.TextureLoader();
   const loaded = await Promise.allSettled([
@@ -34,23 +35,26 @@ export async function createGalleryScene(renderer, { homepageCanvas, computerCan
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
+  renderer.toneMappingExposure = 1.06;
 
-  scene.add(new THREE.HemisphereLight('#faf9eb','#4e5046',2));
-  const key = new THREE.DirectionalLight('#fff8e7',2);
-  key.position.set(0,6,6);
+  scene.add(new THREE.HemisphereLight('#f7f8f7','#81796c',1.45));
+  const key = new THREE.DirectionalLight('#f5f5f0',1.1);
+  key.position.set(.8,5.8,5.5);
   key.castShadow = true;
   key.shadow.mapSize.set(1024,1024);
   Object.assign(key.shadow.camera,{left:-6,right:6,top:8,bottom:-6});
   key.shadow.bias = -.0005;
   scene.add(key);
-  const fill = new THREE.PointLight('#f4f9ef',18,13,2);
-  fill.position.set(0,3,-1);
+  key.shadow.normalBias = .017;
+  key.shadow.radius = 3;
+  const fill = new THREE.PointLight('#fffbef',12,12,2);
+  fill.position.set(-.22,3.45,.25);
   scene.add(fill);
+  const backFill = new THREE.PointLight('#f9f8f0',7,6,2);
+  backFill.position.set(-.22,3.45,-2.85);scene.add(backFill);
 
   const material = (color, roughness=.9) => new THREE.MeshStandardMaterial({color,roughness});
-  const plaster=material('#d1d2c8'), outside=material('#252a23');
-  const floorMat=material('#b3b5aa'), trim=material('#56584c');
+  const outside=material('#292b28');
   function box(w,h,d,mat,x,y,z,parent=scene) {
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
     mesh.position.set(x,y,z);
@@ -59,14 +63,7 @@ export async function createGalleryScene(renderer, { homepageCanvas, computerCan
     parent.add(mesh);
     return mesh;
   }
-  box(4,.15,8,floorMat,0,-.09,-.4);
-  box(.14,3.65,8,plaster,-1.98,1.82,-.4);
-  box(.14,3.65,8,plaster,1.98,1.82,-.4);
-  box(4,3.65,.14,plaster,0,1.82,-4.4);
-  box(4,.1,8,material('#dedfd6'),0,3.65,-.4);
-  box(.035,.13,8,trim,-1.90,.065,-.4);
-  box(.035,.13,8,trim,1.90,.065,-.4);
-  box(3.85,.13,.04,trim,0,.065,-4.30);
+  const architecture = createGalleryArchitecture(scene, renderer);
 
   // Solid front wall surrounds a real aperture. Its jamb passes the viewer
   // during entry; no image swap or curtain conceals the camera's movement.
@@ -105,13 +102,11 @@ export async function createGalleryScene(renderer, { homepageCanvas, computerCan
   plaque.colorSpace=THREE.SRGBColorSpace;
   textures.add(plaque);
   box(.63,.197,.012,new THREE.MeshStandardMaterial({map:plaque,roughness:.7}),.82,1.94,.052,door);
-  const lightMat = new THREE.MeshStandardMaterial({color:'#fffff7',emissive:'#ffffed',emissiveIntensity:2});
-  box(.07,.075,2.1,lightMat,0,3.48,-.4);
-
   const artworks=[];
   function art(id,title,w,h,x,y,z,rotation,map,pose) {
     const group=new THREE.Group();
     group.position.set(x,y,z); group.rotation.y=rotation; scene.add(group);
+    architecture.addArtworkContact(group,w,h,rotation === 0 ? z + 4.4 : 1.91 - Math.abs(x));
     box(w+.015,h+.015,.05,material('#44483e'),0,0,-.032,group);
     const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map,roughness:.95}));
     mesh.userData.art=id;
@@ -142,7 +137,7 @@ export async function createGalleryScene(renderer, { homepageCanvas, computerCan
   projection.position.z=.011;
   gaps.add(projection);
 
-  let homepageTexture=null;
+  let homepageTexture=null, portalTexture=null, portalSheet=null;
   if (homepageCanvas) {
     homepageTexture=new THREE.CanvasTexture(homepageCanvas);
     homepageTexture.colorSpace=THREE.SRGBColorSpace;
@@ -161,6 +156,17 @@ export async function createGalleryScene(renderer, { homepageCanvas, computerCan
     homepage.position.set(0,1.62,portrait ? 5.5 : 7.3);
     homepage.name='homepage-outside';
     scene.add(homepage);
+    // The front is visible only during the perspective hand-off. The original
+    // BackSide plane above still shows the real reversed homepage from inside.
+    portalTexture = portalCanvas === homepageCanvas ? homepageTexture : new THREE.CanvasTexture(portalCanvas);
+    portalTexture.colorSpace=THREE.SRGBColorSpace;
+    portalTexture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),8);textures.add(portalTexture);
+    portalSheet = new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({
+      map:portalTexture,toneMapped:false,depthTest:false,depthWrite:false,transparent:true,
+    }));
+    portalSheet.name='Homepage front — portal handoff';
+    portalSheet.position.z=-1;portalSheet.renderOrder=1000;portalSheet.frustumCulled=false;
+    portalSheet.visible=false;camera.add(portalSheet);scene.add(camera);
   }
 
   let computer=null;
@@ -179,7 +185,12 @@ export async function createGalleryScene(renderer, { homepageCanvas, computerCan
 
   let disposed=false;
   return {
-    scene,camera,door,handle,artworks,homepageTexture,computer,
+    scene,camera,door,handle,artworks,homepageTexture,portalTexture,portalSheet,computer,
+    fitPortalSheet() {
+      if (!portalSheet) return;
+      const height=2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
+      portalSheet.scale.set(height*camera.aspect,height,1);
+    },
     update() {
       const inside=camera.position.z < 3.7;
       exteriorFloor.visible=!inside;

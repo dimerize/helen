@@ -94,3 +94,64 @@ test('an entrance cancelled halfway can retreat without stepping farther into th
   }
   timeline.kill();
 });
+
+test('portal arrival begins on the homepage and settles at the same closed doorway', () => {
+  assert.equal(typeof travel.createPortalArrivalTimeline,'function');
+  const parts=setup();
+  const sheet=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({transparent:true}));
+  sheet.position.z=-1;
+  let complete=0;
+  const timeline=travel.createPortalArrivalTimeline({camera:parts.camera,sheet,onComplete:()=>complete++});
+  assert.equal(timeline.paused(),true);
+  assert.equal(sheet.visible,true);
+  assert.equal(sheet.material.opacity,1);
+  const first=parts.camera.position.clone();
+  timeline.time(.35,false);
+  assert.ok(sheet.rotation.y<-.05,'homepage turns as a physical surface');
+  assert.ok(sheet.position.x<0,'homepage moves aside instead of dissolving');
+  assert.ok(parts.camera.position.distanceTo(first)>.05,'door comes forward through an actual camera move');
+  assert.equal(parts.door.rotation.y,0,'navigation itself does not force entry');
+  timeline.progress(1,false);
+  assert.ok(parts.camera.position.distanceTo(new THREE.Vector3(...travel.GALLERY_OUTSIDE.p))<1e-7);
+  assert.equal(sheet.visible,false);
+  assert.equal(complete,1);
+  timeline.kill();
+});
+
+test('homepage return resolves to a full screen upright page after the door has closed', () => {
+  assert.equal(typeof travel.createHomepageReturnTimeline,'function');
+  const parts=setup();
+  const sheet=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({transparent:true}));
+  let complete=0;
+  const timeline=travel.createHomepageReturnTimeline({camera:parts.camera,sheet,onComplete:()=>complete++});
+  assert.equal(timeline.paused(),true);
+  let previous=parts.camera.position.clone();
+  for(let t=0;t<=timeline.duration();t+=.01){
+    timeline.time(t,false);
+    assert.ok(parts.camera.position.distanceTo(previous)<.04,'retreat has no final camera snap');
+    previous.copy(parts.camera.position);
+  }
+  timeline.progress(1,false);
+  assert.deepEqual(sheet.position.toArray(),[0,0,-1]);
+  assert.deepEqual(sheet.rotation.toArray().slice(0,3),[0,0,0]);
+  assert.equal(sheet.material.opacity,1);
+  assert.equal(sheet.visible,true);
+  assert.equal(complete,1);
+  timeline.kill();
+});
+
+test('cancelling the page peel reverses from its current frame without a reset',()=>{
+  const parts=setup();
+  const sheet=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({transparent:true}));
+  const arrival=travel.createPortalArrivalTimeline({camera:parts.camera,sheet});
+  arrival.time(.35,false);arrival.kill();
+  const before={page:sheet.position.clone(),rotation:sheet.quaternion.clone(),camera:parts.camera.position.clone()};
+  const returning=travel.createHomepageReturnTimeline({camera:parts.camera,sheet,preserveSheet:true});
+  assert.ok(sheet.position.distanceTo(before.page)<1e-9);
+  assert.ok(sheet.quaternion.angleTo(before.rotation)<1e-7);
+  assert.ok(parts.camera.position.distanceTo(before.camera)<1e-9);
+  returning.progress(1,false);
+  assert.deepEqual(sheet.position.toArray(),[0,0,-1]);
+  assert.equal(sheet.material.opacity,1);
+  returning.kill();
+});

@@ -33,7 +33,7 @@
 @media(max-width:800px){#studio-portal .hz-stage{height:100dvh}#studio-portal .hz-top{inset:12px 12px auto}#studio-portal .hz-intro{left:22px;top:68px;bottom:auto}#studio-portal .hz-intro h2{font-size:18px}#studio-portal .hz-intro span{display:none}#studio-portal .hz-enter{bottom:30px}#studio-portal .hz-menu{right:16px;top:67px}}
 
 #studio-portal{position:fixed;inset:0;max-width:none;max-height:none;width:100%;height:100dvh;margin:0;padding:0;border:0;overflow:hidden;color-scheme:dark}
-#studio-portal::backdrop{background:#111311}
+#studio-portal::backdrop{background:#111311;backdrop-filter:none}
 #studio-portal .hz-brand{pointer-events:auto;display:flex;align-items:center;min-height:44px}
 #studio-portal .hz-top{top:max(18px,env(safe-area-inset-top));left:max(24px,env(safe-area-inset-left));right:max(24px,env(safe-area-inset-right))}
 #studio-portal .hz-enter{bottom:max(44px,env(safe-area-inset-bottom))}
@@ -41,6 +41,11 @@
 #studio-portal .hz-scene:focus-visible{outline:2px solid #a5b69b;outline-offset:-4px}
 #studio-portal[data-state="loading"] .hz-intro,#studio-portal[data-state="loading"] .hz-exit,#studio-portal[data-state="loading"] .hz-menu-toggle,#studio-portal[data-state="loading"] .hz-menu,#studio-portal[data-state="loading"] .hz-caption,#studio-portal[data-state="loading"] .hz-hint{display:none!important}
 #studio-portal[data-state="loading"] .hz-enter{display:block!important}
+#studio-portal[data-state="loading"],#studio-portal[data-state="loading"] .hz-stage{background:transparent}
+#studio-portal[data-state="loading"]::backdrop{background:transparent}
+#studio-portal[data-state="loading"] .hz-top{visibility:hidden}
+#studio-portal[data-state="loading"] .hz-enter{background:#efeee9;color:#222720;box-shadow:0 3px 20px #0003;bottom:28px;font-size:12px;opacity:.86}
+#studio-portal[data-state="arriving"] .hz-top,#studio-portal[data-state="arriving"] .hz-intro,#studio-portal[data-state="arriving"] .hz-enter,#studio-portal[data-state="returning"] .hz-top,#studio-portal[data-state="returning"] .hz-intro,#studio-portal[data-state="returning"] .hz-enter{visibility:hidden;pointer-events:none}
 #studio-portal .hz-fallback{position:absolute;inset:0;background:#111311;display:grid;place-items:center}
 #studio-portal .hz-fallback img{width:100%;height:100%;object-fit:contain;opacity:.7}
 #studio-portal .hz-fallback-links{position:absolute;bottom:42px;left:16px;right:16px;display:flex;justify-content:center;flex-wrap:wrap;gap:8px}

@@ -26,3 +26,11 @@ test('homepage echo bounds large textures without changing page or scanner propo
   assert.equal(layout.height * layout.scale, 864);
   assert.deepEqual(layout.scanner, {x: 0, y: 0, width: 1536, height: 660});
 });
+
+test('a below-fold portal sheet keeps viewport coordinates without changing the backwards homepage',()=>{
+  const layout=echo.homepageCaptureLayout({viewportWidth:1280,viewportHeight:800,scrollX:0,scrollY:250,sceneRect:{left:0,top:-250,width:1280,height:800}});
+  assert.deepEqual(layout.viewportScanner,{x:0,y:-250,width:1280,height:800});
+  assert.deepEqual(layout.viewportOffset,{x:0,y:250});
+  assert.equal(layout.captureHeight,1050);
+  assert.deepEqual(layout.scanner,{x:0,y:0,width:1280,height:800});
+});

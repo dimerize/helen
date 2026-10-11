@@ -6,6 +6,15 @@ export function homepageCaptureLayout({viewportWidth, viewportHeight, scrollX = 
   const scale = Math.min(1, 1536 / Math.max(width, height));
   return {
     width, height, scale,
+    captureHeight: height + Math.max(0, Math.ceil(scrollY)),
+    captureWidth: width + Math.max(0, Math.ceil(scrollX)),
+    viewportOffset: {x: Math.max(0, scrollX) * scale, y: Math.max(0, scrollY) * scale},
+    viewportScanner: {
+      x: sceneRect.left * scale,
+      y: sceneRect.top * scale,
+      width: sceneRect.width * scale,
+      height: sceneRect.height * scale,
+    },
     scanner: {
       x: (sceneRect.left + scrollX) * scale,
       y: (sceneRect.top + scrollY) * scale,
@@ -40,6 +49,11 @@ export async function createHomepageEcho() {
   canvas.width = Math.round(layout.width * layout.scale);
   canvas.height = Math.round(layout.height * layout.scale);
   const ctx = canvas.getContext('2d', {alpha: false});
+  // The room looks back at the canonical top of Home. The flight into and out
+  // of the room uses the actual opener viewport, including its scroll position.
+  const viewportCanvas = layout.viewportOffset.x || layout.viewportOffset.y ? document.createElement('canvas') : canvas;
+  viewportCanvas.width = canvas.width; viewportCanvas.height = canvas.height;
+  const viewportContext = viewportCanvas === canvas ? ctx : viewportCanvas.getContext('2d', {alpha: false});
   const scanner = document.createElement('canvas');
   scanner.width = Math.max(1, Math.round(layout.scanner.width));
   scanner.height = Math.max(1, Math.round(layout.scanner.height));
@@ -67,7 +81,7 @@ export async function createHomepageEcho() {
     const captureHasScanner = hasLiveScanner;
     try {
       const result = await html2canvas(document.documentElement, {
-        width: layout.width, height: layout.height, x: 0, y: 0,
+        width: layout.captureWidth, height: layout.captureHeight, x: 0, y: 0,
         windowWidth: layout.width, windowHeight: layout.height,
         scrollX: 0, scrollY: 0, scale: layout.scale,
         backgroundColor: null, logging: false, imageTimeout: 5000,
@@ -75,8 +89,8 @@ export async function createHomepageEcho() {
           || (captureHasScanner && element.id === 'scanner-scene')
           || (element.tagName === 'CANVAS' && element.closest('#scanner-scene')),
         onclone: clonedDocument => {
-          // Always look back onto the top of the homepage, including after a
-          // visitor opened the door card from further down or on a return visit.
+          // Capture once from document origin, far enough down to crop both the
+          // top-of-home backwards view and the visitor's actual return viewport.
           clonedDocument.documentElement.style.background = 'transparent';
           const body = clonedDocument.body;
           body.classList.remove('studio-open');
@@ -109,12 +123,21 @@ export async function createHomepageEcho() {
       const box = layout.scanner;
       ctx.drawImage(scanner, box.x, box.y, box.width, box.height);
     }
-    if (overlay) ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
+    if (overlay) ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+    if (viewportCanvas !== canvas) {
+      viewportContext.fillStyle = '#080809';
+      viewportContext.fillRect(0, 0, viewportCanvas.width, viewportCanvas.height);
+      if (hasLiveScanner) {
+        const box = layout.viewportScanner;
+        viewportContext.drawImage(scanner, box.x, box.y, box.width, box.height);
+      }
+      if (overlay) viewportContext.drawImage(overlay, layout.viewportOffset.x, layout.viewportOffset.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+    }
     dirty = false;
   }
   paint();
   return {
-    canvas,
+    canvas, viewportCanvas,
     // True means the caller should set CanvasTexture.needsUpdate. The DOM layer
     // is captured only on scan changes; moving pixels are sampled at 15 fps.
     update(timeSeconds) {
@@ -136,6 +159,7 @@ export async function createHomepageEcho() {
       overlay = null;
       scanner.width = scanner.height = 1;
       canvas.width = canvas.height = 1;
+      viewportCanvas.width = viewportCanvas.height = 1;
     },
   };
 }

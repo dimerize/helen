@@ -1,0 +1,17 @@
+/* Native document handoff is progressive; never photograph a WebGL scene into
+   a second moving page. WAAPI moves the live semantic scene in every browser. */
+@view-transition { navigation: auto; }
+:root { view-transition-name: none; }
+
+[data-spatial-moving] {
+  transform-origin: var(--spatial-origin, 50% 45%);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+html[data-spatial-phase] { overflow-x: clip; }
+::view-transition { pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  [data-spatial-moving] { will-change: auto; }
+}

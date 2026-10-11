@@ -14,6 +14,7 @@ export function createStudioPortal({dialog, createExperience, captureHomepage, p
     doc.body.classList.remove('studio-open');
     win.scrollTo({top: scrollPosition, behavior: 'instant'});
     notify(false); returnFocus?.focus({preventScroll: true});
+    doc.dispatchEvent(new CustomEvent('studio:portal-travel', {detail: {phase: 'returned', from: 'gallery', to: 'home'}}));
     if (!fromHistory && roomURL()) {
       if (pushed && hist.state?.studioPortal) hist.back();
       else {const url = new URL(loc.href); url.searchParams.delete('room'); hist.replaceState(hist.state, '', url);}
@@ -28,6 +29,7 @@ export function createStudioPortal({dialog, createExperience, captureHomepage, p
     // Begin measuring the real page before scroll locking changes its layout.
     const capturing = captureHomepage();
     dialog.showModal(); doc.body.classList.add('studio-open'); notify(true);
+    doc.dispatchEvent(new CustomEvent('studio:portal-travel', {detail: {phase: 'depart', from: 'home', to: 'gallery'}}));
     if (!fromHistory) {
       const url = new URL(loc.href); url.searchParams.set('room', 'gallery');
       hist.pushState({...hist.state, studioPortal: true}, '', url); pushed = true;
