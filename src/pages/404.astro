@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import { nav } from '../data/site';
 
 /*
   Not found, in the register of the rest of the site: a placement that has
@@ -13,11 +14,14 @@ import Base from '../layouts/Base.astro';
     <h1 class="nf__title">Nothing on the glass</h1>
     <p class="nf__body prose">There is no page at this address.</p>
     <p class="meta nf__back">
-      <a class="u tap" href="/">Home</a>
-      <span aria-hidden="true"> · </span>
-      <a class="u tap" href="/archive">Archive</a>
-      <span aria-hidden="true"> · </span>
-      <a class="u tap" href="/gallery">Gallery</a>
+      {
+        nav.map((item, i) => (
+          <>
+            {i > 0 && <span aria-hidden="true"> · </span>}
+            <a class="u tap" href={item.href}>{item.label}</a>
+          </>
+        ))
+      }
     </p>
   </div>
 </Base>

@@ -2,6 +2,7 @@
 import Meta from "../components/Meta.astro";
 import ArchiveSurface from "../components/ArchiveSurface.astro";
 import StudioPortal from "../components/StudioPortal.astro";
+import StudioNav from "../components/StudioNav.astro";
 ---
 <!doctype html>
 <html lang="en">
@@ -31,7 +32,7 @@ import StudioPortal from "../components/StudioPortal.astro";
     <div id="transition-wash" aria-hidden="true"></div>
     <header class="site-header">
       <a href="/" class="wordmark" id="brand-home">Helen Zhang</a>
-      <nav class="home-nav" id="portfolio-nav" aria-label="Portfolio"><a href="/" class="active" id="home-link">Home</a><a href="/archive">Archive</a><a href="/gallery" data-open-gallery>Gallery</a></nav>
+      <StudioNav home current="/" />
       <div class="world-top" inert><button id="return-home" class="quiet-button"><span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span> Return</button></div>
       <button id="help-button" class="help-button" aria-label="Controls and settings"><span class="ui-icon icon-more" aria-hidden="true"></span></button>
     </header>

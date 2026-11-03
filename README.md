@@ -27,6 +27,7 @@ npm run verify
 - `public/studio/doorway.js`: lazy gallery overlay and browser history. The scanner page stays mounted beneath the room. Close restores its scroll position, lifted scans and focus.
 - `public/studio/gallery-controls.js`: first-person Camera Controls adapter, damped movement, bounded eye height, and short-arc viewpoint changes.
 - `public/studio/studio-motion.js`: reduced-motion-aware, cancellable reveal and native-dialog springs.
+- `src/components/StudioNav.astro`: the navigation every studio page shares. Its items live in `src/data/site.ts`.
 - `public/studio`: page styles and interactions, with shared navigation styles.
 - `public/artwork`: optimized WebP derivatives of Helen's artwork and documentation.
 - `src/content/site/about.md`, `src/data/cv.ts`, `src/data/site.ts`: existing biography, CV, contact details and navigation.
