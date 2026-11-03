@@ -57,3 +57,4 @@ body[data-studio-travel] .site-header,body[data-studio-travel] .home-copy,body[d
  .archive-camera-controls{right:6.3%;bottom:28px;gap:5px}
  .archive-camera-controls button{width:32px;height:32px}
 }
+@media(max-width:360px){#archive-surface .site-header nav{gap:16px}}

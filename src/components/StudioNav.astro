@@ -1,0 +1,53 @@
+---
+import { nav } from '../data/site';
+
+/*
+  The studio pages' navigation. Every page renders the same items from
+  src/data/site.ts, so a destination is added in one place.
+
+  The homepage variant keeps the hooks its scripts rely on: .home-nav and
+  #home-link for the scanner, and data-open-gallery, which opens the gallery
+  over the scanner instead of loading /gallery. Its current link is marked
+  with .active rather than aria-current, because the archive's
+  aria-current underline is loaded on the homepage too.
+*/
+
+interface Props {
+  /** href of the destination this page is, or belongs to. */
+  current?: string;
+  /** This page sits inside `current`, as a project sits inside Selected Works. */
+  within?: boolean;
+  /** Render the homepage variant. */
+  home?: boolean;
+}
+
+const { current, within = false, home = false } = Astro.props;
+---
+
+{
+  home ? (
+    <nav class="home-nav" id="portfolio-nav" aria-label="Portfolio">
+      {nav.map((item) => (
+        <a
+          href={item.href}
+          class={item.href === current ? 'active' : undefined}
+          id={item.href === '/' ? 'home-link' : undefined}
+          data-open-gallery={item.href === '/gallery' ? '' : undefined}
+        >
+          {item.label}
+        </a>
+      ))}
+    </nav>
+  ) : (
+    <nav aria-label="Main navigation">
+      {nav.map((item) => (
+        <a
+          href={item.href}
+          aria-current={item.href === current ? (within ? 'true' : 'page') : undefined}
+        >
+          {item.label}
+        </a>
+      ))}
+    </nav>
+  )
+}
