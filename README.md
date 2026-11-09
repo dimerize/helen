@@ -19,7 +19,7 @@ npm run verify
 - `src/pages/index.astro`: scanner homepage.
 - `src/pages/work.astro`: selected projects, moving strip and stationary index.
 - `src/pages/archive.astro`: freely draggable image surfaces, project gathering, index, and a magnifying detail viewer.
-- `src/pages/project.astro`: shared project structure. `public/studio/project.js` supplies each project's content and media.
+- `src/pages/project.astro`: shared project structure. Out of Context (`?work=thesis`) is static markup from `src/data/out-of-context.ts`, one long scroll. It waits in `<noscript>`, so the other projects never fetch its images; an inline script picks the layout before first paint and expands it. `public/studio/project.js` supplies the other four projects' content and tabbed media.
 - `src/pages/gallery.astro`: canonical redirect into the persistent gallery overlay. `gallery-scene.js` builds the installation and original scanner echo; `gallery-room.js` builds photo-informed plaster, concrete, skirting and ceiling structure; `gallery.js` provides navigation and accessible controls.
 - `public/studio/scan-world/`: continuous camera travel from the original scanner into three source-derived relief worlds. `original-scanner.js` preserves the original hardware geometry; tests compare it with a production fixture. The depth is an artistic interpretation, not a measured reconstruction.
 - `public/studio/scan-world/magnifier.js`: a separate 3D magnifier accessory with curved glass, barrel distortion, restrained edge dispersion, drifting reflections, a machined metal rim and source-image magnification. Lifted prints use a render of this same model. It does not modify the scanner hardware.

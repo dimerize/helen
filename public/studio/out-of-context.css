@@ -1,0 +1,50 @@
+/* project.astro picks the layout from ?work= before first paint. Without
+   JavaScript there is no data-work, and the page shows Out of Context. */
+html[data-work]:not([data-work="thesis"]) .thesis-only{display:none}
+html:not([data-work]) .tabs-only,html[data-work="thesis"] .tabs-only{display:none}
+
+/* Images keep their own proportions, and no painting is taller than the screen. */
+.zoom-figure{margin:0}
+.zoom-trigger{display:block;width:fit-content;max-width:100%;cursor:zoom-in}
+.zoom-figure img{display:block;width:auto;height:auto;max-width:100%;max-height:88svh}
+.zoom-figure figcaption,.ooc-drawings>figcaption{font-size:13px;line-height:1.5;color:var(--muted);padding-top:12px;max-width:650px}
+
+/* The opening image dominates the first screen at every width. */
+.ooc-opening{margin:26px 0 30px}
+.ooc-opening .zoom-trigger{width:auto;display:flex;justify-content:center;background:var(--stage)}
+.ooc-opening img{height:min(calc(100svh - 300px),1000px);min-height:320px;max-height:none;object-fit:contain}
+@media(max-width:800px){.ooc-opening img{width:100%;height:auto;min-height:0}}
+
+/* Jump links stay on screen; on phones they scroll sideways. */
+.ooc-jump{position:sticky;top:0;z-index:5;display:flex;gap:clamp(20px,2.6vw,34px);overflow-x:auto;scrollbar-width:none;margin:40px var(--gutter) 0;background:var(--paper);border-bottom:1px solid var(--line)}
+.ooc-jump::-webkit-scrollbar{display:none}
+.ooc-jump a{position:relative;display:flex;align-items:center;min-height:48px;white-space:nowrap;font-size:15px;color:var(--muted)}
+.ooc-jump a:hover{color:var(--ink)}
+.ooc-jump a[aria-current="true"]{color:var(--control)}
+.ooc-jump a[aria-current="true"]:after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--control)}
+
+.ooc-section{margin:clamp(72px,9vw,130px) var(--gutter) 0;scroll-margin-top:72px}
+.ooc-section h2{font-weight:400;font-size:clamp(28px,2.6vw,40px);letter-spacing:-.045em;line-height:1.08;margin:0 0 28px}
+.ooc-section h3{font-weight:400;font-size:20px;letter-spacing:-.025em;margin:0 0 16px}
+
+/* Paintings: the full view large, close-ups beside it on wide screens and below it on phones. */
+.ooc-painting+.ooc-painting{margin-top:72px}
+.ooc-painting-images,.ooc-closeups{display:grid;gap:16px;align-content:start}
+@media(min-width:801px){.ooc-painting-images{grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;align-items:start}.ooc-closeups{gap:24px}}
+
+#transfers .zoom-figure+.zoom-figure{margin-top:40px}
+
+.ooc-drawings{margin:24px 0 0}
+.ooc-drawing-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.ooc-drawing-grid .zoom-trigger,.ooc-drawing-grid img{width:100%}
+@media(min-width:801px){.ooc-drawing-grid{grid-template-columns:repeat(8,minmax(0,1fr))}}
+
+.ooc-proposal{margin-top:56px}
+.ooc-proposal .gallery-project-link{margin-top:20px}
+
+/* Documentation still to come: a quiet frame, never a mockup or a broken image.
+   Like the images, it keeps its proportions and stays within the screen's height. */
+.artwork-gap{display:grid;place-items:center;width:min(100%,calc(88svh * var(--aspect)));background:var(--stage);border:1px solid var(--line)}
+.artwork-gap p{margin:0;padding:16px;font-size:13px;line-height:1.5;color:var(--muted);text-align:center}
+
+@media(max-width:480px){.ooc-jump a{font-size:13px}}

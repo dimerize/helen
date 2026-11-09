@@ -1,16 +1,36 @@
 ---
 import Meta from "../components/Meta.astro";
 import StudioNav from "../components/StudioNav.astro";
+import OutOfContext from "../components/OutOfContext.astro";
+import ZoomFigure from "../components/ZoomFigure.astro";
+import { opening } from "../data/out-of-context";
+
+// The same keys as `projects` in public/studio/project.js.
+const works = ['thesis', 'standing', '8ppi', 'jack', 'side-effects'];
 ---
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script is:inline data-works={works.join(' ')} data-opening={`/artwork/${opening.file}`}>
+    // Pick the layout before first paint: Out of Context is one long scroll,
+    // the other projects keep their tabs. project.js reads the same key.
+    (() => {
+      const { works, opening } = document.currentScript.dataset;
+      const requested = new URLSearchParams(location.search).get('work');
+      const work = works.split(' ').includes(requested) ? requested : 'thesis';
+      document.documentElement.dataset.work = work;
+      // The opening image is lazy so the other projects never fetch it. Here it
+      // still starts loading at once.
+      if (work === 'thesis') document.head.append(Object.assign(document.createElement('link'), { rel: 'preload', as: 'image', href: opening, fetchPriority: 'high' }));
+    })();
+  </script>
   <meta name="theme-color" content="#f7f7f3">
   <Meta title="Projects" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/studio/project.css">
+  <link rel="stylesheet" href="/studio/out-of-context.css">
   <script is:inline type="module" src="/studio/project.js"></script>
   <link rel="stylesheet" href="/studio/shared.css">
   <link rel="stylesheet" href="/studio/spatial-navigation.css">
@@ -28,13 +48,21 @@ import StudioNav from "../components/StudioNav.astro";
     <section class="project-intro" aria-labelledby="project-title">
       <a class="back-link" href="/work"><span class="ui-icon icon-arrow-left" aria-hidden="true"></span> All work</a>
       <h1 id="project-title">Out of Context</h1>
+      <noscript class="thesis-markup"><ZoomFigure art={opening} class="ooc-opening thesis-only" /></noscript>
       <div class="intro-bottom">
         <p id="project-type" class="project-type">Fine art installation</p>
         <p id="project-summary" class="project-summary">A scan becomes a painting. A painting becomes someone else’s image. An installation about what changes each time we translate what we see.</p>
       </div>
     </section>
 
-    <section class="project-media" aria-label="Explore the project">
+    <OutOfContext />
+    <script is:inline>
+      // Out of Context waits in <noscript> so the other projects never fetch its
+      // images. Without JavaScript the browser shows it as it is.
+      if (document.documentElement.dataset.work === 'thesis') for (const markup of document.querySelectorAll('noscript.thesis-markup')) markup.outerHTML = markup.textContent;
+    </script>
+
+    <section class="project-media tabs-only" aria-label="Explore the project">
       <div class="media-toolbar">
         <div id="view-tabs" class="view-tabs" role="tablist" aria-label="Project views"></div>
         <button id="reset-view" class="text-button" type="button">Reset view <span aria-hidden="true"><svg viewBox="0 0 20 20" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4.4 5.4A6.4 6.4 0 1 1 3.6 12M4.4 5.4V1.8M4.4 5.4H8" /></svg></span></button>
