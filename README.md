@@ -30,6 +30,7 @@ npm run verify
 - `src/components/StudioNav.astro`: the navigation every studio page shares. Its items live in `src/data/site.ts`.
 - `public/studio`: page styles and interactions, with shared navigation styles.
 - `public/artwork`: optimized WebP derivatives of Helen's artwork and documentation.
+- `scripts/adopt-artwork.mjs` (`npm run adopt`): turns photographs dropped into `incoming/` into WebP files in `public/artwork`, and makes the interpretation-grid thumbnails.
 - `src/content/site/about.md`, `src/data/cv.ts`, `src/data/site.ts`: existing biography, CV, contact details and navigation.
 
 The scanner runs without input. Visitors may lift a scan into a movable print, follow its exact archive link, or use its magnifier to step into that scan. All three original images have walkable, source-derived typography and named viewpoints. The scanner chooses each image on its automatic cadence. There are no manual previous/next scan controls; this is an invariant. The muted Lift control sits at the bottom on phones. The scanner resumes immediately after a visit. Reduced motion uses a static scanner. WebGL failure retains a still image. The Work and Archive indexes provide a stationary route through the content. The archive’s Gather by project arrangement makes relationships visible, while Spread out keeps every image independently movable. On phones, hold an image or enable Move images; ordinary swipes continue to scroll. Interactive archive and project views require JavaScript.
