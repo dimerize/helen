@@ -19,7 +19,7 @@ npm run verify
 - `src/pages/index.astro`: scanner homepage.
 - `src/pages/work.astro`: selected projects, moving strip and stationary index.
 - `src/pages/archive.astro`: freely draggable image surfaces, project gathering, index, and a magnifying detail viewer.
-- `src/pages/project.astro`: shared project structure. `public/studio/project.js` supplies each project's content and media.
+- `src/pages/project.astro`: shared project structure. Out of Context (`?work=thesis`) is static markup from `src/data/out-of-context.ts`, one long scroll. It waits in `<noscript>`, so the other projects never fetch its images; an inline script picks the layout before first paint and expands it. `public/studio/project.js` supplies the other four projects' content and tabbed media.
 - `src/pages/gallery.astro`: canonical redirect into the persistent gallery overlay. `gallery-scene.js` builds the installation and original scanner echo; `gallery-room.js` builds photo-informed plaster, concrete, skirting and ceiling structure; `gallery.js` provides navigation and accessible controls.
 - `public/studio/scan-world/`: continuous camera travel from the original scanner into three source-derived relief worlds. `original-scanner.js` preserves the original hardware geometry; tests compare it with a production fixture. The depth is an artistic interpretation, not a measured reconstruction.
 - `public/studio/scan-world/magnifier.js`: a separate 3D magnifier accessory with curved glass, barrel distortion, restrained edge dispersion, drifting reflections, a machined metal rim and source-image magnification. Lifted prints use a render of this same model. It does not modify the scanner hardware.
@@ -27,8 +27,10 @@ npm run verify
 - `public/studio/doorway.js`: lazy gallery overlay and browser history. The scanner page stays mounted beneath the room. Close restores its scroll position, lifted scans and focus.
 - `public/studio/gallery-controls.js`: first-person Camera Controls adapter, damped movement, bounded eye height, and short-arc viewpoint changes.
 - `public/studio/studio-motion.js`: reduced-motion-aware, cancellable reveal and native-dialog springs.
+- `src/components/StudioNav.astro`: the navigation every studio page shares. Its items live in `src/data/site.ts`.
 - `public/studio`: page styles and interactions, with shared navigation styles.
 - `public/artwork`: optimized WebP derivatives of Helen's artwork and documentation.
+- `scripts/adopt-artwork.mjs` (`npm run adopt`): turns photographs dropped into `incoming/` into WebP files in `public/artwork`, and makes the interpretation-grid thumbnails.
 - `src/content/site/about.md`, `src/data/cv.ts`, `src/data/site.ts`: existing biography, CV, contact details and navigation.
 
 The scanner runs without input. Visitors may lift a scan into a movable print, follow its exact archive link, or use its magnifier to step into that scan. All three original images have walkable, source-derived typography and named viewpoints. The scanner chooses each image on its automatic cadence. There are no manual previous/next scan controls; this is an invariant. The muted Lift control sits at the bottom on phones. The scanner resumes immediately after a visit. Reduced motion uses a static scanner. WebGL failure retains a still image. The Work and Archive indexes provide a stationary route through the content. The archive’s Gather by project arrangement makes relationships visible, while Spread out keeps every image independently movable. On phones, hold an image or enable Move images; ordinary swipes continue to scroll. Interactive archive and project views require JavaScript.

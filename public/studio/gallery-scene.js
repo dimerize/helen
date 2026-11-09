@@ -104,9 +104,9 @@ export async function createGalleryScene(renderer, { homepageCanvas, computerCan
     artworks.push({mesh,title,pose});
     return group;
   }
-  art(0,'Elongated',1.3,3.05,-1.897,1.70,.7,Math.PI/2,maps[0],{p:[.45,1.62,1.08],t:[-1.89,1.80,.7]});
-  const gaps=art(1,'Gaps',1.35,2.04,0,1.94,-4.30,0,maps[1],{p:[0,1.62,-1.7],t:[0,1.9,-4.3]});
-  art(2,'Bent Mesh',1.42,2.4,1.897,1.9,-1.3,-Math.PI/2,maps[2],{p:[-.45,1.62,-.5],t:[1.89,1.85,-1.3]});
+  art(0,'Stretched Out (proposal mockup)',1.3,3.05,-1.897,1.70,.7,Math.PI/2,maps[0],{p:[.45,1.62,1.08],t:[-1.89,1.80,.7]});
+  const gaps=art(1,'Gaping Net',1.35,2.04,0,1.94,-4.30,0,maps[1],{p:[0,1.62,-1.7],t:[0,1.9,-4.3]});
+  art(2,'Bent Mesh (proposal mockup)',1.42,2.4,1.897,1.9,-1.3,-Math.PI/2,maps[2],{p:[-.45,1.62,-.5],t:[1.89,1.85,-1.3]});
   const black=material('#0e110e');
   for (const side of [-1,1]) for (let i=0;i<3;i++) {
     box(.035,.40,.27,black,side*1.891,1.68,side===-1?-1.6-i*.40:1.4+i*.40);

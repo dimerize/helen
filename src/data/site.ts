@@ -25,11 +25,13 @@ export const site = {
 } as const;
 
 /**
- * Bottom-edge navigation. There is no top bar; this is the whole thing.
+ * Every navigation item, in order. Studio pages render these through
+ * StudioNav; the 404 page's bottom edge renders them through EdgeNav, where
  * `match` decides which item is marked as current.
  */
 export const nav = [
   { label: 'Home', href: '/', match: /^\/$/ },
+  { label: 'Selected Works', href: '/work', match: /^\/(work|project)/ },
   { label: 'Archive', href: '/archive', match: /^\/archive/ },
   { label: 'Gallery', href: '/gallery', match: /^\/gallery/ },
 ] as const;

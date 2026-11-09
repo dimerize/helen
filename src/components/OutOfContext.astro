@@ -1,0 +1,70 @@
+---
+import ZoomFigure from './ZoomFigure.astro';
+import ArtworkGap from './ArtworkGap.astro';
+import {
+  sections, source, paintings, transfers, projectionVideo, interpretations, installationPhotos, proposal, isGap,
+} from '../data/out-of-context';
+
+/*
+  The Out of Context page below its opening image. The jump bar and the
+  sections are siblings in <main>, so the bar stays on screen to the end of
+  the page. They wait in <noscript>, which never parses while JavaScript
+  runs, so the other projects never fetch these images; project.astro
+  expands it in place for ?work=thesis.
+*/
+---
+<noscript class="thesis-markup">
+<nav class="ooc-jump thesis-only" aria-label="On this page">
+  {sections.map(({ id, label }) => <a href={`#${id}`}>{label}</a>)}
+</nav>
+
+<div class="ooc-sections thesis-only">
+  <section class="ooc-section" id="source" aria-labelledby="source-title" data-zoom-group>
+    <h2 id="source-title">Source</h2>
+    <ZoomFigure art={source} />
+  </section>
+
+  <section class="ooc-section" id="paintings" aria-labelledby="paintings-title" data-zoom-group>
+    <h2 id="paintings-title">Paintings</h2>
+    {paintings.map(({ name, full, closeUps }) => (
+      <article class="ooc-painting">
+        <h3>{name}</h3>
+        <div class="ooc-painting-images">
+          <div class="ooc-full">
+            {isGap(full) ? <ArtworkGap label={full.gap} aspect={full.aspect} /> : <ZoomFigure art={full} />}
+          </div>
+          <div class="ooc-closeups">
+            {closeUps.map((slot) => (isGap(slot) ? <ArtworkGap label={slot.gap} aspect={slot.aspect} /> : <ZoomFigure art={slot} />))}
+          </div>
+        </div>
+      </article>
+    ))}
+  </section>
+
+  <section class="ooc-section" id="transfers" aria-labelledby="transfers-title" data-zoom-group>
+    <h2 id="transfers-title">Image transfers (set of six)</h2>
+    {transfers.map((transfer) => <ZoomFigure art={transfer} />)}
+  </section>
+
+  <section class="ooc-section" id="projection" aria-labelledby="projection-title" data-zoom-group>
+    <h2 id="projection-title">Projection</h2>
+    <ArtworkGap label={projectionVideo.gap} aspect={projectionVideo.aspect} />
+    <figure class="ooc-drawings">
+      <ul class="ooc-drawing-grid">
+        {interpretations.map((drawing) => <li><ZoomFigure art={drawing} caption={false} /></li>)}
+      </ul>
+      <figcaption>Viewer drawings over Gaping Net</figcaption>
+    </figure>
+  </section>
+
+  <section class="ooc-section" id="installation" aria-labelledby="installation-title" data-zoom-group>
+    <h2 id="installation-title">Installation</h2>
+    <ArtworkGap label={installationPhotos.gap} aspect={installationPhotos.aspect} />
+    <div class="ooc-proposal">
+      <h3>The original proposal</h3>
+      <ZoomFigure art={proposal} />
+      <a class="gallery-project-link" href="/gallery">Walk through the proposal in 3D <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a>
+    </div>
+  </section>
+</div>
+</noscript>

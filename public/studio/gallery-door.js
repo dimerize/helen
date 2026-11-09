@@ -15,7 +15,7 @@ export function createGalleryNameplate(kit=detailKit()) {
     const canvas=document.createElement('canvas');canvas.width=1536;canvas.height=614;
     const ctx=canvas.getContext('2d');
     ctx.fillStyle='#30342f';ctx.font='500 79px Arial';ctx.fillText('Helen Zhang',123,365);
-    ctx.font='400 38px Arial';ctx.fillText('Beyond the humanized machine',123,460);
+    ctx.font='400 38px Arial';ctx.fillText('Out of Context',123,460);
     const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;
     const text=new THREE.Mesh(new THREE.PlaneGeometry(.70,.28),new THREE.MeshStandardMaterial({map:texture,transparent:true,roughness:.86,depthWrite:false}));
     text.name='Printed exhibition identification';text.position.z=.008;plaque.add(text);

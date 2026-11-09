@@ -6,13 +6,13 @@ import { reveal, createDialogMotion } from './studio-motion.js';
   const A = name => `/artwork/${name}`;
   const projects = {
     thesis: {
-      title: 'Beyond the Humanized Machine', titleHTML: 'Beyond the<br>Humanized Machine', type: 'Fine art installation',
+      title: 'Out of Context', type: 'Fine art installation',
       summary: 'A scan becomes a painting. A painting becomes someone else’s image. An installation about what changes each time we translate what we see.',
       heading: 'The image keeps changing.',
       context: 'A handheld scan holds the movement of a hand as much as the image it records. Painting translates that imperfect record into a surface. Viewers then draw what they see within it, introducing another reading. Each transfer produces something that the previous image could not contain.',
       details: [['Role', 'Artist'], ['Materials', 'Acrylic, homasote, burlap, projection'], ['Process', 'Handheld scanning, painting, viewer interpretation, TouchDesigner']],
-      process: '<p>The work follows repeated translations: a source image passes through a handheld scanner, into paint, and into a viewer’s drawing. Distortion, gaps, and misreadings become part of the image.</p><p>The thesis paper combines completed work with proposed installation components. “Gaps in Netted Mesh” is a painting photograph. “Bent Mesh,” “Elongated,” and the room view shown here are mockups. The interpretation images are viewers’ drawings over the painting. The comparison makes their different readings visible.</p>',
-      views: ['Source', 'Painting', 'Interpretations', 'Installation'], defaultView: 'Painting', next: ['Standing Room Only', 'standing']
+      process: '<p>The work follows repeated translations: a source image passes through a handheld scanner, into paint, and into a viewer’s drawing. Distortion, gaps, and misreadings become part of the image.</p><p>The interpretation images are viewers’ drawings over Gaping Net. The comparison makes their different readings visible.</p>',
+      next: ['Standing Room Only', 'standing']
     },
     '8ppi': {
       title: '8PPI', type: 'Painting, collage & moving image',
@@ -48,18 +48,13 @@ import { reveal, createDialogMotion } from './studio-motion.js';
       context: 'VideoGrep creates supercuts from an archive of prescription advertisements. The artist then selects and edits those fragments in Premiere, working with the patterns produced by recurring phrases.',
       details: [['Role', 'Artist, archive selection & editing'], ['Source', '50+ archival US prescription advertisements, 2012–2018'], ['Tools', 'VideoGrep command line, Premiere']],
       process: '<p>VideoGrep is used to locate and assemble repeated language from the collected advertisements. Curating and editing the resulting supercuts is a separate part of the work.</p><p>Film documentation is forthcoming.</p>',
-      views: ['Film'], defaultView: 'Film', next: ['Beyond the Humanized Machine', 'thesis']
+      views: ['Film'], defaultView: 'Film', next: ['Out of Context', 'thesis']
     }
   };
-  const requested = new URLSearchParams(location.search).get('work') || 'thesis';
-  const key = Object.hasOwn(projects, requested) ? requested : 'thesis';
+  // project.astro resolves ?work= before first paint and leaves the key on <html>.
+  const key = Object.hasOwn(projects, document.documentElement.dataset.work) ? document.documentElement.dataset.work : 'thesis';
   const project = projects[key];
-  const state = {view: project.defaultView, painting: 0, drawing: 0, compare: true, scan: 0};
-  const paintings = [
-    {file: 'thesis-painting.webp', title: 'Gaps in Netted Mesh', note: 'Painting photograph. Acrylic on homasote.'},
-    {file: 'thesis-dark-grid.webp', title: 'Bent Mesh', note: 'Painting mockup from the thesis materials.'},
-    {file: 'thesis-elongated.webp', title: 'Elongated', note: 'Painting mockup from the thesis materials.'}
-  ];
+  const state = {view: project.defaultView, scan: 0};
   const scans = [
     {file: 'train-scan.webp', title: 'Exit / caution', note: 'Handheld scan of train signage; process material.'},
     {file: 'train-scan-wide.webp', title: 'Watch your step', note: 'Handheld scan of worn warning lettering; process material.'},
@@ -78,6 +73,11 @@ import { reveal, createDialogMotion } from './studio-motion.js';
   $('process-copy').innerHTML = project.process;
   $('next-project').href = project.next[1] === 'thesis' ? '/project' : `/project?work=${project.next[1]}`;
   $('next-project').firstElementChild.textContent = project.next[0];
+  if (key === 'thesis') {
+    // The page itself is static markup; this adds the zoom viewer and the jump-bar highlight.
+    import('./out-of-context.js').then(({ initOutOfContext }) => initOutOfContext());
+    return;
+  }
   $('view-tabs').innerHTML = project.views.map((view, i) => `<button type="button" role="tab" id="view-${i}" aria-controls="media-panel" aria-selected="${view === state.view}" tabindex="${view === state.view ? 0 : -1}" data-view="${view}">${view}</button>`).join('');
 
   function imageMarkup(file, alt) { return `<img src="${A(file)}" alt="${alt}" decoding="async">`; }
@@ -94,29 +94,7 @@ import { reveal, createDialogMotion } from './studio-motion.js';
     content.className = 'art-content';
     $('enlarge').hidden = false;
     let title, note, file;
-    if (key === 'thesis') {
-      if (state.view === 'Source') {
-        file = 'thesis-source.webp'; title = 'Three fragments of an advertisement';
-        note = 'Partial handheld scans assembled together. The partial capture is the starting point for the work.';
-      } else if (state.view === 'Painting') {
-        controls.innerHTML = chooseGroup('Work', paintings.map(item => item.title), state.painting, 'painting');
-        ({file, title, note} = paintings[state.painting]);
-      } else if (state.view === 'Interpretations') {
-        controls.innerHTML = chooseGroup('Viewer drawing', ['1', '2', '3', '4'], state.drawing, 'drawing') + `<label class="compare-control"><input id="compare-toggle" type="checkbox" ${state.compare ? 'checked' : ''}>Compare with painting</label>`;
-        file = `interpretation-${state.drawing + 1}.webp`;
-        title = `Viewer interpretation ${state.drawing + 1}`;
-        note = 'Viewer drawing over the painting. Compare how the image changes through another person’s interpretation.';
-        if (state.compare) {
-          content.classList.add('double');
-          content.innerHTML = `<div class="art-pair">${imageMarkup('thesis-painting.webp', 'Gaps in Netted Mesh, painting photograph')}<span>Painting</span></div><div class="art-pair">${imageMarkup(file, title)}<span>${title}</span></div>`;
-        }
-      } else {
-        file = 'thesis-installation.webp'; title = 'Installation mockup';
-        note = 'Proposed arrangement of paintings and projected interpretations, from the thesis materials.';
-        content.classList.add('landscape');
-        controls.innerHTML = '<a class="gallery-project-link" href="/gallery">Step inside the installation <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a>';
-      }
-    } else if (key === '8ppi' && state.view !== 'Film') {
+    if (key === '8ppi' && state.view !== 'Film') {
       file = state.view === 'Installation' ? '8ppi-installation.webp' : '8ppi-panels.webp';
       title = state.view === 'Installation' ? '8PPI, installation view' : 'Sixteen painted panels';
       note = state.view === 'Installation' ? 'Installation photograph, with painted panels and a screen below.' : 'Paint and paper collage on small canvas panels, photographed on their support.';
@@ -138,7 +116,7 @@ import { reveal, createDialogMotion } from './studio-motion.js';
       content.innerHTML = '<div class="missing-media"><p>Film documentation<br>forthcoming</p><span>The original moving image will be added here.</span></div>';
       $('enlarge').hidden = true;
     }
-    if (file && !(key === 'thesis' && state.view === 'Interpretations' && state.compare)) content.innerHTML = imageMarkup(file, title);
+    if (file) content.innerHTML = imageMarkup(file, title);
     currentCaption = `${title}. ${note}`;
     $('figure-caption').innerHTML = `<p><strong>${title}</strong></p><p>${note}</p>`;
     // A failed source remains legible and never resembles a missing-image icon.
@@ -167,12 +145,8 @@ import { reveal, createDialogMotion } from './studio-motion.js';
     state[choice] = index; render();
     $('sub-controls').querySelector(`[data-choice="${choice}"][data-index="${index}"]`).focus({preventScroll: true});
   });
-  $('sub-controls').addEventListener('change', event => {
-    if (event.target.id !== 'compare-toggle') return;
-    state.compare = event.target.checked; render(); $('compare-toggle').focus({preventScroll: true});
-  });
   $('reset-view').addEventListener('click', () => {
-    Object.assign(state, {view: project.defaultView, painting: 0, drawing: 0, compare: true, scan: 0}); render();
+    Object.assign(state, {view: project.defaultView, scan: 0}); render();
   });
   function openDetail() {
     if ($('enlarge').hidden) return;

@@ -1,0 +1,14 @@
+---
+/*
+  A quiet frame where documentation is still to come, at the proportions the
+  photograph or video is expected to have. Never a mockup in its place.
+*/
+
+interface Props {
+  label: string;
+  aspect: string;
+}
+
+const { label, aspect } = Astro.props;
+---
+<div class="artwork-gap" style={`aspect-ratio: ${aspect}; --aspect: ${aspect}`}><p>{label}</p></div>

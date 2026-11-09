@@ -15,6 +15,7 @@
     "verify": "npm run test && npm run check && npm run build && npm run links",
     "astro": "astro",
     "og": "node scripts/make-og.mjs",
+    "adopt": "node scripts/adopt-artwork.mjs",
     "vendor:studio": "node scripts/vendor-studio.mjs"
   },
   "dependencies": {

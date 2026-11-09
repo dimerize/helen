@@ -1,5 +1,6 @@
 ---
 import Meta from "../components/Meta.astro";
+import StudioNav from "../components/StudioNav.astro";
 ---
 <!doctype html>
 <html lang="en">
@@ -7,7 +8,7 @@ import Meta from "../components/Meta.astro";
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f4f4f0">
-  <Meta title="Selected work" />
+  <Meta title="Selected Works" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/studio/work.css">
   <script is:inline type="module" src="/studio/work.js"></script>
@@ -16,14 +17,14 @@ import Meta from "../components/Meta.astro";
   <script is:inline type="module" src="/studio/spatial-navigation.js"></script>
 </head>
 <body>
-  <a class="skip" href="#main">Skip to selected work</a>
+  <a class="skip" href="#main">Skip to selected works</a>
   <header class="site-header">
     <a class="wordmark" href="/">Helen Zhang</a>
-    <nav aria-label="Main navigation"><a href="/">Home</a><a href="/archive">Archive</a><a href="/gallery">Gallery</a></nav>
+    <StudioNav current="/work" />
   </header>
   <main id="main">
     <div class="work-intro">
-      <h1>Selected work</h1>
+      <h1>Selected Works</h1>
     </div>
     <div class="view-bar">
       <div class="view-options" role="group" aria-label="View selected work"><button id="strip-view" aria-pressed="true" aria-controls="strip">In motion</button><button id="index-view" aria-pressed="false" aria-controls="index">Index</button></div>
@@ -34,8 +35,8 @@ import Meta from "../components/Meta.astro";
         <div class="track" id="track">
           <div class="work-group" id="original-group">
             <a class="work-sheet thesis" href="/project?work=thesis">
-              <div class="sheet-image"><img src="/artwork/thesis-painting.webp" alt="Gaps in Netted Mesh, a painting of dark loops across a pale surface" fetchpriority="high"><span class="open-mark" aria-hidden="true">Open</span></div>
-              <div class="sheet-caption"><h2>Beyond the<br>Humanized Machine</h2><span class="medium">Painting, projection &amp; installation</span><p class="sheet-description">A scan becomes a painting, then someone else’s image.</p></div>
+              <div class="sheet-image"><img src="/artwork/thesis-painting.webp" alt="Gaping Net, a painting of dark loops across a pale surface" fetchpriority="high"><span class="open-mark" aria-hidden="true">Open</span></div>
+              <div class="sheet-caption"><h2>Out of Context</h2><span class="medium">Painting, projection &amp; installation</span><p class="sheet-description">A scan becomes a painting, then someone else’s image.</p></div>
             </a>
             <a class="work-sheet standing" href="/project?work=standing">
               <div class="sheet-image"><img src="/artwork/train-installation.webp" alt="Train footage projected across the walls of an installation"><span class="open-mark" aria-hidden="true">Open</span></div>
@@ -59,7 +60,7 @@ import Meta from "../components/Meta.astro";
       <div class="strip-foot"><p id="motion-hint">Hold over a work to look closer.</p><div class="step-buttons" role="group" aria-label="Browse projects"><button id="previous" aria-label="Previous project"><span class="ui-icon icon-arrow-left" aria-hidden="true"></span></button><button id="next" aria-label="Next project"><span class="ui-icon icon-arrow-right" aria-hidden="true"></span></button></div></div>
     </section>
     <section id="index" class="work-index" aria-label="Project index" hidden>
-      <a href="/project?work=thesis"><span class="index-title">Beyond the Humanized Machine</span><span>Painting, projection &amp; installation</span><span class="index-open">View project</span></a>
+      <a href="/project?work=thesis"><span class="index-title">Out of Context</span><span>Painting, projection &amp; installation</span><span class="index-open">View project</span></a>
       <a href="/project?work=standing"><span class="index-title">Standing Room Only</span><span>Video &amp; interactive installation</span><span class="index-open">View project</span></a>
       <a href="/project?work=8ppi"><span class="index-title">8PPI</span><span>Painting, collage &amp; moving image</span><span class="index-open">View project</span></a>
       <a href="/project?work=jack"><span class="index-title">Jack.exe &amp; Rose-liet</span><span>Language-model experiments &amp; film</span><span class="index-open">View project</span></a>

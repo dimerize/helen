@@ -1,0 +1,35 @@
+---
+import sharp from 'sharp';
+import type { Artwork } from '../data/out-of-context';
+
+/*
+  One image on the Out of Context page: a plain link to the full file, which
+  the zoom viewer opens in place once JavaScript runs. The shown file's pixel
+  size is read at build time, from the project root where every build runs,
+  so nothing jumps as images load and a missing file fails the build.
+*/
+
+interface Props {
+  art: Artwork;
+  caption?: boolean;
+  class?: string;
+}
+
+const { art, caption = true, class: className } = Astro.props;
+const shown = art.thumb ?? art.file;
+const { width, height } = await sharp(`public/artwork/${shown}`).metadata();
+---
+<figure class:list={['zoom-figure', className]}>
+  <a
+    class="zoom-trigger"
+    href={`/artwork/${art.file}`}
+    data-zoom
+    data-caption={art.caption}
+    data-compare={art.compare && `/artwork/${art.compare.file}`}
+    data-compare-label={art.compare?.label}
+    style={`--ratio: ${width} / ${height}`}
+  >
+    <img src={`/artwork/${shown}`} alt={art.alt} width={width} height={height} loading="lazy" decoding="async" />
+  </a>
+  {caption && <figcaption>{art.caption}</figcaption>}
+</figure>
