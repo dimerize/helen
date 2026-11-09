@@ -6,12 +6,12 @@ import { reveal, createDialogMotion } from './studio-motion.js';
   const A = name => `/artwork/${name}`;
   const projects = {
     thesis: {
-      title: 'Beyond the Humanized Machine', titleHTML: 'Beyond the<br>Humanized Machine', type: 'Fine art installation',
+      title: 'Out of Context', type: 'Fine art installation',
       summary: 'A scan becomes a painting. A painting becomes someone else’s image. An installation about what changes each time we translate what we see.',
       heading: 'The image keeps changing.',
       context: 'A handheld scan holds the movement of a hand as much as the image it records. Painting translates that imperfect record into a surface. Viewers then draw what they see within it, introducing another reading. Each transfer produces something that the previous image could not contain.',
       details: [['Role', 'Artist'], ['Materials', 'Acrylic, homasote, burlap, projection'], ['Process', 'Handheld scanning, painting, viewer interpretation, TouchDesigner']],
-      process: '<p>The work follows repeated translations: a source image passes through a handheld scanner, into paint, and into a viewer’s drawing. Distortion, gaps, and misreadings become part of the image.</p><p>The thesis paper combines completed work with proposed installation components. “Gaps in Netted Mesh” is a painting photograph. “Bent Mesh,” “Elongated,” and the room view shown here are mockups. The interpretation images are viewers’ drawings over the painting. The comparison makes their different readings visible.</p>',
+      process: '<p>The work follows repeated translations: a source image passes through a handheld scanner, into paint, and into a viewer’s drawing. Distortion, gaps, and misreadings become part of the image.</p><p>The interpretation images are viewers’ drawings over Gaping Net. The comparison makes their different readings visible.</p>',
       views: ['Source', 'Painting', 'Interpretations', 'Installation'], defaultView: 'Painting', next: ['Standing Room Only', 'standing']
     },
     '8ppi': {
@@ -48,7 +48,7 @@ import { reveal, createDialogMotion } from './studio-motion.js';
       context: 'VideoGrep creates supercuts from an archive of prescription advertisements. The artist then selects and edits those fragments in Premiere, working with the patterns produced by recurring phrases.',
       details: [['Role', 'Artist, archive selection & editing'], ['Source', '50+ archival US prescription advertisements, 2012–2018'], ['Tools', 'VideoGrep command line, Premiere']],
       process: '<p>VideoGrep is used to locate and assemble repeated language from the collected advertisements. Curating and editing the resulting supercuts is a separate part of the work.</p><p>Film documentation is forthcoming.</p>',
-      views: ['Film'], defaultView: 'Film', next: ['Beyond the Humanized Machine', 'thesis']
+      views: ['Film'], defaultView: 'Film', next: ['Out of Context', 'thesis']
     }
   };
   const requested = new URLSearchParams(location.search).get('work') || 'thesis';
@@ -56,9 +56,9 @@ import { reveal, createDialogMotion } from './studio-motion.js';
   const project = projects[key];
   const state = {view: project.defaultView, painting: 0, drawing: 0, compare: true, scan: 0};
   const paintings = [
-    {file: 'thesis-painting.webp', title: 'Gaps in Netted Mesh', note: 'Painting photograph. Acrylic on homasote.'},
+    {file: 'thesis-painting.webp', title: 'Gaping Net', note: 'Painting photograph. Acrylic on homasote.'},
     {file: 'thesis-dark-grid.webp', title: 'Bent Mesh', note: 'Painting mockup from the thesis materials.'},
-    {file: 'thesis-elongated.webp', title: 'Elongated', note: 'Painting mockup from the thesis materials.'}
+    {file: 'thesis-elongated.webp', title: 'Stretched Out', note: 'Painting mockup from the thesis materials.'}
   ];
   const scans = [
     {file: 'train-scan.webp', title: 'Exit / caution', note: 'Handheld scan of train signage; process material.'},
@@ -108,7 +108,7 @@ import { reveal, createDialogMotion } from './studio-motion.js';
         note = 'Viewer drawing over the painting. Compare how the image changes through another person’s interpretation.';
         if (state.compare) {
           content.classList.add('double');
-          content.innerHTML = `<div class="art-pair">${imageMarkup('thesis-painting.webp', 'Gaps in Netted Mesh, painting photograph')}<span>Painting</span></div><div class="art-pair">${imageMarkup(file, title)}<span>${title}</span></div>`;
+          content.innerHTML = `<div class="art-pair">${imageMarkup('thesis-painting.webp', 'Gaping Net, painting photograph')}<span>Painting</span></div><div class="art-pair">${imageMarkup(file, title)}<span>${title}</span></div>`;
         }
       } else {
         file = 'thesis-installation.webp'; title = 'Installation mockup';
