@@ -1,0 +1,32 @@
+---
+/*
+  The full-screen zoom viewer. public/studio/zoom-viewer.js opens it from any
+  link with data-zoom and moves through the other links in its section.
+*/
+---
+<dialog id="zoom-viewer" class="zoom-viewer" aria-labelledby="zoom-caption" aria-describedby="zoom-help">
+  <div class="zoom-top">
+    <p class="zoom-position" aria-live="polite"></p>
+    <button type="button" class="zoom-close">Close <span class="ui-icon icon-close" aria-hidden="true"></span></button>
+  </div>
+  <div class="zoom-stage">
+    <figure class="zoom-pane" data-pane="item"><img alt="" draggable="false"><figcaption class="zoom-pane-label"></figcaption></figure>
+    <figure class="zoom-pane" data-pane="compare"><img alt="" draggable="false"><figcaption class="zoom-pane-label"></figcaption></figure>
+  </div>
+  <div class="zoom-bottom">
+    <p id="zoom-caption" class="zoom-caption"></p>
+    <div class="zoom-controls">
+      <div class="zoom-group" role="group" aria-label="Zoom">
+        <button type="button" data-zoom-action="out" aria-label="Zoom out"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4 10h12" /></svg></button>
+        <button type="button" data-zoom-action="in" aria-label="Zoom in"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M10 4v12M4 10h12" /></svg></button>
+        <button type="button" data-zoom-action="reset">Reset</button>
+      </div>
+      <button type="button" class="zoom-compare" aria-pressed="false" hidden>Compare with <span></span></button>
+      <div class="zoom-group" role="group" aria-label="Browse this section">
+        <button type="button" data-zoom-step="-1" aria-label="Previous image"><span class="ui-icon icon-arrow-left" aria-hidden="true"></span></button>
+        <button type="button" data-zoom-step="1" aria-label="Next image"><span class="ui-icon icon-arrow-right" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </div>
+  <p id="zoom-help" class="zoom-visually-hidden">Pinch, scroll or double-tap to zoom, and drag to move. Arrow keys move between images, or move a zoomed image. Plus and minus zoom; 0 resets.</p>
+</dialog>

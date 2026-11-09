@@ -3,6 +3,7 @@ import Meta from "../components/Meta.astro";
 import StudioNav from "../components/StudioNav.astro";
 import OutOfContext from "../components/OutOfContext.astro";
 import ZoomFigure from "../components/ZoomFigure.astro";
+import ZoomViewer from "../components/ZoomViewer.astro";
 import { opening } from "../data/out-of-context";
 
 // The same keys as `projects` in public/studio/project.js.
@@ -31,6 +32,7 @@ const works = ['thesis', 'standing', '8ppi', 'jack', 'side-effects'];
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/studio/project.css">
   <link rel="stylesheet" href="/studio/out-of-context.css">
+  <link rel="stylesheet" href="/studio/zoom-viewer.css">
   <script is:inline type="module" src="/studio/project.js"></script>
   <link rel="stylesheet" href="/studio/shared.css">
   <link rel="stylesheet" href="/studio/spatial-navigation.css">
@@ -105,5 +107,6 @@ const works = ['thesis', 'standing', '8ppi', 'jack', 'side-effects'];
     <div id="dialog-content" class="dialog-content"></div>
     <p id="dialog-caption" class="dialog-caption"></p>
   </dialog>
+  <ZoomViewer />
 </body>
 </html>

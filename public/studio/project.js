@@ -73,7 +73,11 @@ import { reveal, createDialogMotion } from './studio-motion.js';
   $('process-copy').innerHTML = project.process;
   $('next-project').href = project.next[1] === 'thesis' ? '/project' : `/project?work=${project.next[1]}`;
   $('next-project').firstElementChild.textContent = project.next[0];
-  if (key === 'thesis') return;
+  if (key === 'thesis') {
+    // The page itself is static markup; this adds the zoom viewer and the jump-bar highlight.
+    import('./out-of-context.js').then(({ initOutOfContext }) => initOutOfContext());
+    return;
+  }
   $('view-tabs').innerHTML = project.views.map((view, i) => `<button type="button" role="tab" id="view-${i}" aria-controls="media-panel" aria-selected="${view === state.view}" tabindex="${view === state.view ? 0 : -1}" data-view="${view}">${view}</button>`).join('');
 
   function imageMarkup(file, alt) { return `<img src="${A(file)}" alt="${alt}" decoding="async">`; }
