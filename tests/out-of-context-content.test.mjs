@@ -37,6 +37,16 @@ test('the other projects never parse Out of Context’s images', () => {
   assert.match(page, /if \(document\.documentElement\.dataset\.work === 'thesis'\)[^\n]*noscript\.thesis-markup/);
 });
 
+// Before an image loads only its ratio is known, so the link takes its width
+// from it; otherwise lazy images sit at 0 × 0 and jump links land short.
+test('every image keeps its space before it loads', () => {
+  const figure = readFileSync(new URL('../src/components/ZoomFigure.astro', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../public/studio/out-of-context.css', import.meta.url), 'utf8');
+  assert.match(figure, /style=\{`--ratio: \$\{width\} \/ \$\{height\}`\}/);
+  assert.match(css, /\.zoom-trigger\{[^}]*width:min\(100%,calc\(88svh \* var\(--ratio\)\)\)/);
+  assert.match(css, /\.zoom-figure img\{[^}]*width:100%;height:auto/);
+});
+
 test('captions carry only what Helen supplied', () => {
   assert.ok(data.includes("caption: 'Gaping Net, full view. Acrylic on homasote.'"));
   assert.match(data, /compare: \{ file: 'thesis-painting\.webp', label: 'Gaping Net' \}/);

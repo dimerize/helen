@@ -10,7 +10,7 @@ const AT_FIT = { scale: 1, x: 0, y: 0 };
 
 export function createZoomViewer(dialog) {
   const $ = selector => dialog.querySelector(selector);
-  const stage = $('.zoom-stage'), caption = $('#zoom-caption'), position = $('.zoom-position'), compareButton = $('.zoom-compare');
+  const stage = $('.zoom-stage'), caption = $('#zoom-caption'), position = $('.zoom-position'), status = $('.zoom-status'), compareButton = $('.zoom-compare');
   const panes = [...dialog.querySelectorAll('.zoom-pane')].map(element => ({ element, img: element.querySelector('img'), label: element.querySelector('.zoom-pane-label') }));
   const [itemPane, comparePane] = panes;
   const motion = createDialogMotion(dialog, { initialFocus: $('.zoom-close') });
@@ -36,8 +36,8 @@ export function createZoomViewer(dialog) {
   function layout() {
     for (const pane of visible()) {
       if (!pane.natural) continue;
-      const rect = pane.element.getBoundingClientRect();
-      pane.size = { width: rect.width, height: rect.height };
+      // Layout sizes, not the drawn rect, which shrinks while the dialog scales in.
+      pane.size = { width: pane.element.clientWidth, height: pane.element.clientHeight };
       pane.fit = fitSize(pane.size, pane.natural);
       pane.img.style.width = `${pane.fit.width}px`;
       pane.img.style.height = `${pane.fit.height}px`;
@@ -99,7 +99,11 @@ export function createZoomViewer(dialog) {
   }
 
   function step(delta) {
-    if (items.length > 1) show(stepIndex(index, delta, items.length));
+    if (items.length < 2) return;
+    // On phones comparing switches between two images, so a step shows the next one.
+    if (comparing && !itemPane.element.getClientRects().length) comparing = false;
+    show(stepIndex(index, delta, items.length));
+    status.textContent = `${position.textContent}. ${caption.textContent}`;
   }
 
   function zoom(action) {
@@ -114,16 +118,18 @@ export function createZoomViewer(dialog) {
     items = group ? [...group.querySelectorAll('a[data-zoom]')] : [trigger];
     // Comparing carries across steps, but every opening starts on the image that was chosen.
     comparing = false;
+    // Opening is announced by the dialog's name; the status speaks only for steps.
+    status.textContent = '';
     show(Math.max(0, items.indexOf(trigger)));
     motion.open(trigger);
     // Panes have a size only once the dialog is showing.
     layout();
   }
 
-  const fingers = () => {
+  // Measured from the pane the pinch began on, which side by side may be the right-hand one.
+  const fingers = pane => {
     const [a, b] = [...pointers.values()];
-    const mid = centred(reference(), (a.x + b.x) / 2, (a.y + b.y) / 2);
-    return { mid, distance: Math.hypot(a.x - b.x, a.y - b.y) || 1 };
+    return { mid: centred(pane, (a.x + b.x) / 2, (a.y + b.y) / 2), distance: Math.hypot(a.x - b.x, a.y - b.y) || 1 };
   };
   const dragFrom = (point, afterPinch = false) => ({ kind: 'drag', origin: point, last: point, startScale: view.scale, afterPinch });
 
@@ -132,7 +138,10 @@ export function createZoomViewer(dialog) {
     stage.setPointerCapture(event.pointerId);
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     stage.classList.add('is-gesturing');
-    gesture = pointers.size === 2 ? { kind: 'pinch', start: { view, ...fingers() } } : dragFrom({ x: event.clientX, y: event.clientY });
+    if (pointers.size === 2) {
+      const pane = paneAt(event.target);
+      gesture = { kind: 'pinch', pane, start: { view, ...fingers(pane) } };
+    } else gesture = dragFrom({ x: event.clientX, y: event.clientY });
   });
   stage.addEventListener('pointermove', event => {
     if (!pointers.has(event.pointerId) || !gesture) return;
@@ -140,7 +149,7 @@ export function createZoomViewer(dialog) {
     const ref = reference();
     if (!ref) return;
     if (gesture.kind === 'pinch' && pointers.size === 2) {
-      view = pinchView(gesture.start, fingers(), ref.fit, ref.size);
+      view = pinchView(gesture.start, fingers(gesture.pane), ref.fit, ref.size);
       apply();
     } else if (gesture.kind === 'drag' && view.scale > 1) {
       view = panBy(view, event.clientX - gesture.last.x, event.clientY - gesture.last.y, ref.fit, ref.size);
@@ -175,7 +184,9 @@ export function createZoomViewer(dialog) {
   stage.addEventListener('pointerup', release);
   stage.addEventListener('pointercancel', release);
 
-  stage.addEventListener('wheel', event => {
+  // A trackpad pinch arrives as ctrl+wheel: anywhere in the viewer it zooms the image, never the page.
+  dialog.addEventListener('wheel', event => {
+    if (!event.ctrlKey && !stage.contains(event.target)) return;
     event.preventDefault();
     const ref = reference();
     if (!ref) return;
@@ -185,6 +196,25 @@ export function createZoomViewer(dialog) {
     view = zoomAt(view, view.scale * wheelFactor(event), centred(paneAt(event.target), event.clientX, event.clientY), ref.fit, ref.size);
     apply();
   }, { passive: false });
+
+  // Safari on a Mac reports trackpad pinches as gesture events instead. Touch screens
+  // pinch through the stage's pointers, and keep the system pinch on the bars.
+  if (!navigator.maxTouchPoints) {
+    let pinchStart = null;
+    dialog.addEventListener('gesturestart', event => { event.preventDefault(); pinchStart = view; stage.classList.add('is-gesturing'); });
+    dialog.addEventListener('gesturechange', event => {
+      event.preventDefault();
+      const ref = reference();
+      if (!ref || !pinchStart) return;
+      view = zoomAt(view, pinchStart.scale * event.scale, centred(paneAt(event.target), event.clientX, event.clientY), ref.fit, ref.size);
+      apply();
+    });
+    dialog.addEventListener('gestureend', event => {
+      event.preventDefault();
+      pinchStart = null;
+      if (!pointers.size) stage.classList.remove('is-gesturing');
+    });
+  }
 
   dialog.addEventListener('keydown', event => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;

@@ -1,5 +1,5 @@
 /* The zoom viewer fills the screen. The work sits on paper, with quiet controls below it. */
-.zoom-viewer{width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:var(--paper);color:var(--ink);overflow:hidden;overscroll-behavior:contain;touch-action:none}
+.zoom-viewer{width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:var(--paper);color:var(--ink);overflow:hidden;overscroll-behavior:contain}
 .zoom-viewer[open]{display:grid;grid-template-rows:auto minmax(0,1fr) auto}
 .zoom-viewer::backdrop{background:var(--paper)}
 .zoom-top,.zoom-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 24px;padding:8px var(--gutter)}
@@ -12,7 +12,9 @@
 .zoom-compare[aria-pressed="true"]{text-decoration:underline;text-underline-offset:5px}
 .zoom-close .ui-icon{font-size:20px}
 
-.zoom-stage{position:relative;display:flex;gap:16px;overflow:hidden;padding:0 var(--gutter);cursor:zoom-in}
+/* Only the stage takes over touch. The bars keep the system pinch, so a page that was
+   already zoomed can still be zoomed back out to reach Close. */
+.zoom-stage{position:relative;display:flex;gap:16px;overflow:hidden;padding:0 var(--gutter);cursor:zoom-in;touch-action:none}
 .zoom-stage.is-zoomed{cursor:grab}
 .zoom-stage.is-dragging{cursor:grabbing}
 .zoom-pane{position:relative;flex:1;min-width:0;margin:0;display:grid;place-items:center;overflow:hidden}

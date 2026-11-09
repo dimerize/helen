@@ -27,6 +27,7 @@ const { width, height } = await sharp(`public/artwork/${shown}`).metadata();
     data-caption={art.caption}
     data-compare={art.compare && `/artwork/${art.compare.file}`}
     data-compare-label={art.compare?.label}
+    style={`--ratio: ${width} / ${height}`}
   >
     <img src={`/artwork/${shown}`} alt={art.alt} width={width} height={height} loading="lazy" decoding="async" />
   </a>
