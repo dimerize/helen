@@ -26,7 +26,7 @@ function fixture({loadingImage = false} = {}) {
   const title = new Element(), location = new Element(), status = new Element(), hint = new Element();
   const images = loadingImage ? [Object.assign(new Element(), {complete: false, naturalWidth: 0})] : [];
   const doc = {activeElement: null, createElement() {return {width: 0, height: 0, getContext() {return null;}};}};
-  const container = new Element({profileName: 'Helen Zhang', instagram: 'helen100087'});
+  const container = new Element({profileName: 'Helen Zhang', instagram: 'helenzhang.studio'});
   for (const element of [container, instagram, mail, profile, ...buttons, title, location, status, hint, ...images]) element.ownerDocument = doc;
   const elements = new Map([
     ['[data-computer-pane="instagram"]', instagram], ['[data-computer-pane="mail"]', mail],

@@ -2,9 +2,11 @@
 import { site } from '../data/site';
 
 // These public photos and the profile line are the snapshots in the approved design.
+// Each photo links to its post by code alone, so the link holds whatever the
+// account is called.
 const posts = ['DbdKdHllRjS', 'DSusDmKlbBo', 'DOoktXHkjiZ', 'DNHnFqLO7Oj', 'C9fAEnvubom', 'CxQ6qg9On9V'];
 const profileLine = '@parsonsschoolofdesign';
-const profileLocation = new URL(site.instagramUrl).host + new URL(site.instagramUrl).pathname;
+const profileLocation = `instagram.com/${site.instagram}`;
 ---
 
 <div class="hz-computer-ui" hidden inert role="group" aria-label="Helen’s computer"
@@ -25,7 +27,7 @@ const profileLocation = new URL(site.instagramUrl).host + new URL(site.instagram
         <div><strong>{site.instagram}</strong><span>{site.name}</span><small>{profileLine}</small></div>
       </div>
       <div class="hz-computer-ig-grid" aria-label="Preview of Helen’s public Instagram photos">
-        {posts.map((post, index) => <a href={new URL(`/p/${post}/`, site.instagramUrl).href} target="_blank" rel="noopener noreferrer" aria-label={`View Helen’s Instagram photo ${index + 1}`}>
+        {posts.map((post, index) => <a href={`https://www.instagram.com/p/${post}/`} target="_blank" rel="noopener noreferrer" aria-label={`View Helen’s Instagram photo ${index + 1}`}>
           <img data-computer-photo src={`/studio/computer/photo-${index + 1}.webp`} alt="Public Instagram photo by Helen Zhang" width="240" height="278" loading="eager" decoding="async">
         </a>)}
       </div>

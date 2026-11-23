@@ -4,7 +4,7 @@ import * as THREE from '../public/studio/vendor/three.module.min.js';
 import {createGalleryDoor} from '../public/studio/gallery-door.js';
 import {createParsonsRelief} from '../public/studio/parsons-relief.js';
 import {createMagnifier} from '../public/studio/scan-world/magnifier.js';
-import {placeScannerMagnifier} from '../public/studio/scan-world/magnifier-placement.js';
+import {placeScannerMagnifier,isNarrowScene,MAGNIFIER_LAYOUT} from '../public/studio/scan-world/magnifier-placement.js';
 
 test('physical door details preserve the animated leaf and handle pivots',()=>{
   const {door,handle,plaque}=createGalleryDoor();
@@ -30,13 +30,14 @@ test('official logo has shallow, finite relief with recognizable open letter cou
 });
 test('skewed magnifier handle clears the visible scanner silhouette at phone and desktop sizes',()=>{
   for(const scale of [1,24/9.45]) {
-    const m=createMagnifier(THREE);placeScannerMagnifier(THREE,m.group,scale);
-    const b=new THREE.Box3().setFromObject(m.group);
-    assert.equal(m.group.rotation.y,-.18,'retain the original diagonal, not a straight handle');
-    assert.ok(b.min.y/scale>.462,'the entire tool clears the moving carriage');
+    const m=createMagnifier(THREE);
     // Project the heel against the scanner front edge using its original hero
     // camera. Geometric overhang alone does not guarantee a visible handle.
-    for(const [width,height] of [[1280,680],[390,450],[390,600],[390,844]]) {
+    for(const [width,height] of [[1280,680],[1440,900],[1920,1080],[1024,768],[1000,1000],[700,900],[768,1024],[820,1180],[1024,1366],[699,900],[390,450],[390,600],[390,844],[320,568]]) {
+      placeScannerMagnifier(THREE,m.group,scale,{narrow:isNarrowScene(width,height)});
+      const b=new THREE.Box3().setFromObject(m.group);
+      assert.equal(m.group.rotation.y,-.18,'retain the original diagonal, not a straight handle');
+      assert.ok(b.min.y/scale>.462,'the entire tool clears the moving carriage');
       const narrow=width<700,factor=narrow?Math.max(1,1.35/(width/height)):1;
       const inverse=new THREE.Quaternion().setFromEuler(new THREE.Euler(0,narrow?-.12:-.18,narrow?-.055:-.035)).invert();
       const origin=new THREE.Vector3(narrow?0:1,0,0);
@@ -49,9 +50,28 @@ test('skewed magnifier handle clears the visible scanner silhouette at phone and
       const left=edge(-5.25),right=edge(5.25);
       const edgeY=left.y+(right.y-left.y)*(heel.x-left.x)/(right.x-left.x);
       assert.ok((edgeY-heel.y)*height/2>5,'heel is visibly below the scanner, not only beyond it in world space');
+      // The whole tool stays on screen, clear of the right edge.
+      let toolRight=-Infinity,toolLeft=Infinity,toolBottom=-Infinity;
+      for(const x of [b.min.x,b.max.x])for(const y of [b.min.y,b.max.y])for(const z of [b.min.z,b.max.z]){const p=new THREE.Vector3(x,y,z).project(camera);toolRight=Math.max(toolRight,(p.x*.5+.5)*width);toolLeft=Math.min(toolLeft,(p.x*.5+.5)*width);toolBottom=Math.max(toolBottom,(-p.y*.5+.5)*height);}
+      assert.ok(toolRight<width-40&&toolLeft>0&&toolBottom<height,`the magnifier stays on a ${width}x${height} screen`);
     }
     m.dispose();
   }
+});
+test('the magnifier is smaller and further right on desktop, and only smaller on phones',()=>{
+  const {wide,narrow}=MAGNIFIER_LAYOUT;
+  assert.ok(wide.scale<.73&&narrow.scale<.73,'both layouts are smaller than the original .73');
+  assert.ok(wide.x>narrow.x,'desktop moves the tool toward the right edge');
+  assert.equal(narrow.x,1.35,'phones keep the original sideways position');
+  assert.equal(isNarrowScene(699,500),true,'phones');assert.equal(isNarrowScene(700,500),false);
+  assert.equal(isNarrowScene(768,1024),true,'an upright tablet');assert.equal(isNarrowScene(1024,768),false);assert.equal(isNarrowScene(1000,1000),false);
+  // A resize across the phone threshold places the tool exactly as a fresh load would.
+  const resized=createMagnifier(THREE),fresh=createMagnifier(THREE),unit=24/9.45;
+  placeScannerMagnifier(THREE,resized.group,unit,{narrow:true});placeScannerMagnifier(THREE,resized.group,unit,{narrow:false});
+  placeScannerMagnifier(THREE,fresh.group,unit,{narrow:false});
+  for(const key of ['position','rotation','scale'])assert.deepEqual(resized.group[key].toArray(),fresh.group[key].toArray());
+  assert.ok(Math.abs(resized.group.scale.x-wide.scale*unit)<1e-9);
+  resized.dispose();fresh.dispose();
 });
 
 test('small studio objects rest on supporting surfaces and leave the screen and input devices clear',async()=>{

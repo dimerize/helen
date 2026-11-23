@@ -1,9 +1,14 @@
 @import url('./archive.css');
 html,body{background:#080809}
 #experience.is-away{position:fixed;inset:0;visibility:hidden;pointer-events:none}
-#archive-surface{background:#080809;min-height:100svh;color:#c4c3bf;--white:#c4c3bf;--muted:#96958f;--rule:#30302e;font-family:Arial,sans-serif}
+#archive-surface{background:#080809;min-height:100svh;color:#c4c3bf;--white:#c4c3bf;--muted:#96958f;--rule:#30302e;--footer-ink:var(--white);--footer-quiet:var(--muted);--footer-rule:var(--rule);--footer-hover:#ffffff12;font-family:Arial,sans-serif}
 #archive-surface.is-preparing{position:fixed;inset:0;visibility:hidden;pointer-events:none;overflow:hidden}
 #archive-surface .site-header{position:relative;pointer-events:auto}
+/* The archive's header keeps its own layout but reads the shared type sizes. */
+#archive-surface .site-header .wordmark{font-size:var(--header-name)}
+#archive-surface .site-header nav{font-size:var(--header-links)}
+/* The footer sits inside the index's column, as the old one did. */
+#archive-surface .site-footer{margin-top:24px;padding-left:0;padding-right:0}
 #studio-portal.is-preparing{visibility:hidden;pointer-events:none}
 #studio-portal.is-preparing::backdrop{background:transparent;backdrop-filter:none}
 #studio-journey{position:fixed;inset:0;padding:0;margin:0;border:0;width:100vw;height:100dvh;max-width:none;max-height:none;background:#080809;overflow:hidden;outline:0}
@@ -40,7 +45,7 @@ body[data-studio-travel] .site-header,body[data-studio-travel] .home-copy,body[d
 #archive-surface.has-spatial-room.is-room .fragment{position:absolute;pointer-events:none;background:transparent;border:0;transition:none;transform:none;padding:0;min-height:0;overflow:visible}
 #archive-surface.has-spatial-room.is-room .fragment img,#archive-surface.has-spatial-room.is-room .fragment-caption,#archive-surface.has-spatial-room.is-room .fragment-corner{opacity:0}
 #archive-surface.has-spatial-room.is-room .fragment:focus-visible{outline:none;background:#ccd4b826}
-#archive-surface.has-spatial-room.is-room .archive-footer{display:none}
+#archive-surface.has-spatial-room.is-room .site-footer{display:none}
 .archive-camera-controls{display:none;position:fixed;right:4.3%;bottom:28px;z-index:4;gap:6px}
 #archive-surface.is-room .archive-camera-controls{display:flex}
 .archive-camera-controls button{width:36px;height:36px;border:1px solid #41463b;border-radius:50%;background:#10140f88;color:#959d8b;display:grid;place-items:center}
@@ -48,8 +53,7 @@ body[data-studio-travel] .site-header,body[data-studio-travel] .home-copy,body[d
 #archive-room-view.is-dragging{cursor:grabbing!important}
 @media(max-width:700px){
  #archive-surface .site-header{padding:28px 6.3%;display:block}
- #archive-surface .wordmark{font-size:25px}
- #archive-surface .site-header nav{margin-top:30px;gap:24px;font-size:13px}
+ #archive-surface .site-header nav{margin-top:30px;gap:24px}
  #archive-surface.has-spatial-room.is-room .archive-intro{top:155px;left:6.3%;right:6.3%}
  #archive-surface.has-spatial-room.is-room .room-toolbar{left:6.3%;bottom:24px}
  #archive-surface.has-spatial-room.is-room .view-switch{font-size:12px}

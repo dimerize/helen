@@ -1,5 +1,6 @@
 ---
 import StudioNav from './StudioNav.astro';
+import SiteFooter from './SiteFooter.astro';
 ---
 <section id="archive-surface" hidden>
   <div id="archive-room-view" role="img" aria-label="Archive room. Scans hang on the walls, rest on a workbench, and lie on the floor. Drag an image to move it. Pinch or scroll to look closer."></div>
@@ -31,7 +32,7 @@ import StudioNav from './StudioNav.astro';
     <p id="archive-status" class="visually-hidden" role="status" aria-live="polite"></p>
     <p id="move-instructions" class="visually-hidden">Press Enter to inspect an image. Hold Alt and use the arrow keys to move it on its surface. Drag the empty room to look around; pinch or scroll to look closer.</p>
     <noscript><p>Please enable JavaScript for the image room. <a href="/project?work=thesis">Explore Out of Context.</a></p></noscript>
-    <footer class="archive-footer"><a href="/work">Selected Works <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a></footer>
+    <SiteFooter link={{ href: "/work", label: "Selected Works", icon: "arrow-up-right" }} />
   </main>
   <dialog id="image-dialog" aria-labelledby="detail-title" aria-describedby="detail-caption">
     <div class="detail-layout">

@@ -1,0 +1,66 @@
+/* The homepage's own additions: the about line under the scanner, and below
+   the scanner the five project prints and the footer. Loaded only by
+   src/pages/index.astro, which the archive's URL also serves. */
+
+/* About: Helen's two lines under the scanner's left corner. They share the
+   headline's and the Lift button's left edge at every width, so the three read
+   as one column, and they leave with the headline when the scan opens. */
+.home-about{position:absolute;left:6.3%;bottom:7.5%;z-index:3;margin:0;max-width:600px;font-size:17px;line-height:1.55;letter-spacing:-.012em;color:#cfcdc6;pointer-events:none;transition:opacity .8s}
+.home-about span{display:block}
+body[data-mode=entering] .home-about,body[data-mode=world] .home-about,body[data-mode=leaving] .home-about{opacity:0}
+body[data-studio-travel] .home-about,html[data-camera-travel] .home-about{visibility:hidden}
+@media(min-width:1500px){.home-about{left:7%}}
+@media(max-width:850px) and (min-width:601px){.home-about{left:5%}}
+/* Phones: above Lift a scan, with balanced lines so "2026" never sits alone. */
+@media(max-width:600px){.home-about{left:24px;bottom:132px;max-width:calc(100% - 48px);font-size:14px}.home-about span{text-wrap:balance}}
+/* Shorter phones push the scanner down toward these lines; sitting 24px above
+   Lift a scan keeps them clear of its front edge. */
+@media(max-width:600px) and (max-height:700px){.home-about{bottom:100px}}
+/* Landscape phones move Lift a scan to the bottom corner, where these lines
+   would sit, and have no other free space beside the scanner. */
+@media(max-height:500px) and (min-width:601px){.home-about{display:none}}
+
+/* Below the scanner. These belong to the homepage at rest: they hide with the
+   rest of its text while the scan is open, and leave the page entirely while
+   the archive or the gallery is showing. */
+/* The scanner's vignette darkens its bottom edge to #040404; starting there
+   and easing back to the room's #09090b keeps the hand-off seamless. */
+.home-more{background:linear-gradient(#040404,#09090b 200px);color:#d6d4cd}
+body[data-mode=entering] .home-more,body[data-mode=world] .home-more,body[data-mode=leaving] .home-more{visibility:hidden}
+body[data-studio-route=archive] .home-more,body[data-studio-route=gallery] .home-more{display:none}
+
+/* Five project prints, in Helen's order. Each is a print on paper, like the
+   Selected Works sheets and the scans you lift from the scanner, and it lifts
+   toward you when you point at it. Titles appear on hover or focus; without
+   hover they are always shown. */
+.home-prints{padding:72px 4vw 96px}
+.print-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:24px;margin:0;padding:0;list-style:none}
+.home-print{display:block;color:inherit;text-decoration:none}
+.home-print:focus-visible{outline:none}
+.print-paper{display:block;padding:6px;background:#ecebe6;box-shadow:0 1px 2px #00000080;transition:transform .35s cubic-bezier(.18,.76,.2,1),box-shadow .35s cubic-bezier(.18,.76,.2,1)}
+.print-paper img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;background:#1b1b1e}
+.print-title{display:block;margin-top:14px;font-size:15px;line-height:1.3;letter-spacing:-.01em;opacity:0;transform:translateY(-4px);transition:opacity .3s,transform .35s cubic-bezier(.18,.76,.2,1)}
+@media(hover:hover){
+ .home-print:hover .print-paper{transform:translateY(-6px) rotate(-.6deg);box-shadow:0 18px 34px #00000099}
+ .home-print:hover .print-title{opacity:1;transform:none}
+}
+.home-print:focus-visible .print-paper{transform:translateY(-6px) rotate(-.6deg);box-shadow:0 18px 34px #00000099;outline:2px solid #fff;outline-offset:6px}
+.home-print:focus-visible .print-title{opacity:1;transform:none}
+@media(hover:none){
+ .print-title{opacity:1;transform:none}
+ .home-print:active .print-paper{transform:translateY(-4px) rotate(-.6deg)}
+}
+
+/* Phones: five across would be 64px each, too small to recognise. The row
+   swipes sideways instead and snaps to each print; the cut-off third print
+   says there is more. Its padding leaves room for the lift and focus ring. */
+@media(max-width:700px){
+ .home-prints{padding:24px 0 32px}
+ .print-row{display:flex;gap:14px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scroll-padding-inline:22px;padding:12px 22px;scrollbar-width:none}
+ .print-row::-webkit-scrollbar{display:none}
+ .print-row::after{content:'';flex:0 0 8px}
+ .print-row li{flex:0 0 148px;scroll-snap-align:start}
+ .print-paper{padding:5px}
+ .print-title{margin-top:10px;font-size:13px;opacity:1;transform:none}
+ .home-print:focus-visible .print-paper{outline-offset:4px}
+}

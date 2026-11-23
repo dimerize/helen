@@ -3,6 +3,8 @@ import Meta from "../components/Meta.astro";
 import ArchiveSurface from "../components/ArchiveSurface.astro";
 import StudioPortal from "../components/StudioPortal.astro";
 import StudioNav from "../components/StudioNav.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { about, homePrints } from "../data/home";
 ---
 <!doctype html>
 <html lang="en">
@@ -22,6 +24,7 @@ import StudioNav from "../components/StudioNav.astro";
   <script is:inline type="module" src="/studio/doorway.js"></script>
   <script is:inline type="module" src="/studio/spatial-navigation.js"></script>
 <link rel="stylesheet" href="/studio/integrated-studio.css">
+<link rel="stylesheet" href="/studio/home.css">
 <script is:inline type="module" src="/studio/studio-shell.js"></script>
 </head>
 <body data-mode="loading">
@@ -41,6 +44,7 @@ import StudioNav from "../components/StudioNav.astro";
       <h1>Images,<br>in translation.</h1>
     </section>
     <button id="lift-print" class="print-button scanner-lift">Lift a scan</button>
+    <p class="home-about">{about.map((line, i) => <>{i > 0 && " "}<span>{line}</span></>)}</p>
     <span id="scan-caption" class="sr-only">Found on the train</span>
 
     <button id="entry-handle" class="entry-handle" aria-label="Explore this scan in three dimensions" disabled><span class="sr-only">Explore scan</span></button>
@@ -76,6 +80,17 @@ import StudioNav from "../components/StudioNav.astro";
     <div id="toast" class="toast" role="status"></div>
     <div id="print-layer" aria-label="Your loose scans"></div>
   </main>
+  <div class="home-more">
+    <section class="home-prints" aria-labelledby="home-prints-title">
+      <h2 id="home-prints-title" class="sr-only">Selected projects</h2>
+      <ul class="print-row" role="list">
+        {homePrints.map((print) => (
+          <li><a class="home-print" href={print.href}><span class="print-paper"><img src={print.image} alt="" width="432" height="432" loading="lazy" decoding="async"></span><span class="print-title">{print.title}</span></a></li>
+        ))}
+      </ul>
+    </section>
+    <SiteFooter />
+  </div>
   <dialog id="help-dialog" class="help-dialog">
     <button class="close-button" id="help-close" aria-label="Close help"><span class="ui-icon icon-close" aria-hidden="true"></span></button>
     <h2>Controls</h2>

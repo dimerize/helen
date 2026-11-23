@@ -1,6 +1,7 @@
 ---
 import Meta from "../components/Meta.astro";
 import StudioNav from "../components/StudioNav.astro";
+import SiteFooter from "../components/SiteFooter.astro";
 import OutOfContext from "../components/OutOfContext.astro";
 import ZoomFigure from "../components/ZoomFigure.astro";
 import ZoomViewer from "../components/ZoomViewer.astro";
@@ -100,7 +101,7 @@ const works = ['thesis', 'standing', '8ppi', 'jack', 'side-effects'];
     </nav>
   </main>
 
-  <footer><a href="/">Helen Zhang</a><a href="#main">Back to top <span class="ui-icon icon-arrow-up" aria-hidden="true"></span></a></footer>
+  <SiteFooter link={{ href: "#main", label: "Back to top", icon: "arrow-up" }} />
 
   <dialog id="image-dialog" aria-labelledby="dialog-caption">
     <div class="dialog-header"><p>Look closer</p><button id="close-dialog" type="button">Close <span class="ui-icon icon-close" aria-hidden="true"></span></button></div>

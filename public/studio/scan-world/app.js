@@ -1,6 +1,6 @@
 import { mountCarrier } from '../carrier-preview.js';
 import {createFloorOutlet} from './floor-outlet.js';
-import {placeScannerMagnifier} from './magnifier-placement.js';
+import {placeScannerMagnifier, isNarrowScene} from './magnifier-placement.js';
 import { registerStudioSurface } from '../separated-journey.js';
 import * as THREE from '../vendor/three.module.min.js';
 import { ScannerAudio } from './audio.js';
@@ -144,7 +144,7 @@ function resize() {
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   if (magnifier) {
-    magnifier.group.scale.setScalar(world.width / 9.45 * .73);
+    placeScannerMagnifier(THREE, magnifier.group, world.width / 9.45, { narrow: isNarrowScene(width, height) });
     updateMagnifierSource();
   }
   if (mode === 'home') {
@@ -726,7 +726,7 @@ async function init() {
     world = await createScannerWorld(THREE, renderer);
     world.scene.add(createFloorOutlet(THREE,world.width/9.45));
     magnifier = createMagnifier(THREE);
-    placeScannerMagnifier(THREE,magnifier.group,world.width/9.45);
+    placeScannerMagnifier(THREE,magnifier.group,world.width/9.45,{narrow:isNarrowScene($('scanner-scene').clientWidth,$('scanner-scene').clientHeight)});
     world.scene.add(magnifier.group);
     navigator = createSurfaceNavigator({ bounds: world.bounds, heightAt: clearanceHeight, stepHeight: .29, cellSize: .22 });
     walkableMeshes = [world.scanMesh, ...world.root.getObjectByName('Physical typography, traced from the scan').children];
