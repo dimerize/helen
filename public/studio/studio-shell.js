@@ -9,6 +9,7 @@ let settledURL=location.href,pendingHistory=null;
 const journey=document.createElement('dialog');journey.id='studio-journey';journey.setAttribute('aria-label','Moving through the studio');journey.addEventListener('cancel',e=>e.preventDefault());document.body.append(journey);
 const shading=document.createElement('div');shading.className='vignette';shading.setAttribute('aria-hidden','true');
 const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(resolve));
+const reducedMotion=()=>matchMedia('(prefers-reduced-motion:reduce)').matches||document.body.dataset.motion==='reduced';
 function waitFor(name,ready){return ready()?Promise.resolve():new Promise(resolve=>document.addEventListener(name,resolve,{once:true}));}
 function urlFor(target){return new URL(target==='home'?'/':target==='archive'?'/archive':target==='gallery'?'/?room=gallery':target,location.href);}
 async function prepare(route){
@@ -89,7 +90,12 @@ async function move(from,to,direction,{nearby=false}={}){
 async function go(target,{historyEntry=true,initial=false,handoff=false}={}){
  const url=urlFor(target),to=spatialRoute(url.href,location.href),from=current;
  if(!to||busy)return false;
- if(to===from&&!initial){if(to==='archive')document.dispatchEvent(new CustomEvent('studio:archive-open',{detail:{scan:url.searchParams.get('scan')}}));return false;}
+ if(to===from&&!initial){
+  if(to==='archive')document.dispatchEvent(new CustomEvent('studio:archive-open',{detail:{scan:url.searchParams.get('scan')}}));
+  // The homepage from the homepage, as from the footer's name: back up to the scanner.
+  if(to==='home'&&scrollY>0){scrollTo({top:0,behavior:reducedMotion()?'instant':'smooth'});document.querySelector('#home-link')?.focus({preventScroll:true});}
+  return false;
+ }
  busy=true;viewportDirty=false;let source,destination;
  try{
   // Finish crossing the real threshold before lateral travel begins.
@@ -97,7 +103,7 @@ async function go(target,{historyEntry=true,initial=false,handoff=false}={}){
   if(from==='archive'&&!initial)document.dispatchEvent(new CustomEvent('studio:archive-leave'));
   if(!initial){source=await surface(from);if(from==='home')source?.deactivate?.();}
   await prepare(to);destination=await surface(to);
-  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches||document.body.dataset.motion==='reduced';
+  const reduced=reducedMotion();
   if(!initial&&!handoff&&!reduced&&source&&destination)await move(source,destination,Math.sign(axis[to]-axis[from]),{nearby:[from,to].every(route=>route!=='gallery')});
   if(historyEntry&&!initial&&!pendingHistory)history.pushState({studioRoute:to},'',url);
   if(from!==to)source?.deactivate?.();

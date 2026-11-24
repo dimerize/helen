@@ -10,10 +10,13 @@ export const site = {
   location: 'New York',
   timeZone: 'America/New_York',
 
-  email: 'helen20040707@gmail.com',
-  instagram: 'helen100087',
+  /** The short place name the footer shows beside the contact icons. */
+  city: 'NYC',
+
+  email: 'helenzhang.studio@gmail.com',
+  instagram: 'helenzhang.studio',
   get instagramUrl() {
-    return `https://instagram.com/${this.instagram}`;
+    return `https://www.instagram.com/${this.instagram}/`;
   },
 
   /** Used for <title>, meta description and social previews. */

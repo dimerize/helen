@@ -1,6 +1,7 @@
 ---
 import Meta from "../components/Meta.astro";
 import StudioNav from "../components/StudioNav.astro";
+import SiteFooter from "../components/SiteFooter.astro";
 ---
 <!doctype html>
 <html lang="en">
@@ -67,6 +68,6 @@ import StudioNav from "../components/StudioNav.astro";
       <a href="/project?work=side-effects"><span class="index-title">Side Effects May Include</span><span>Archival video &amp; supercuts</span><span class="index-open">View project</span></a>
     </section>
   </main>
-  <footer class="work-footer"><a href="/archive">Enter the archive <span class="ui-icon icon-arrow-up-right" aria-hidden="true"></span></a></footer>
+  <SiteFooter link={{ href: "/archive", label: "Enter the archive", icon: "arrow-up-right" }} />
 </body>
 </html>

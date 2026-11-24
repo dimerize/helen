@@ -8,8 +8,10 @@
       npm run adopt
 
   Each photograph becomes public/artwork/<name>.webp, and each viewer drawing
-  gets the small thumbnail the Out of Context grid shows. Run it, then commit
-  the output. The originals stay in incoming/ until you delete them.
+  gets the small thumbnail the Out of Context grid shows. A photograph named
+  home-*, one of the homepage's project prints, is cropped square and kept
+  small instead. Run it, then commit the output. The originals stay in
+  incoming/ until you delete them.
 */
 
 import { readdir } from 'node:fs/promises';
@@ -23,6 +25,9 @@ const ARTWORK = 'public/artwork';
 const MAX_EDGE = 2048;
 const PHOTO = /\.(jpe?g|png|tiff?|webp)$/i;
 const DRAWING = /^interpretation-\d+\.webp$/;
+// Homepage prints show at most about 320px wide, so 640px covers a 2x screen.
+const PRINT = /^home-/;
+const PRINT_EDGE = 640;
 
 async function photos(dir) {
   const out = [];
@@ -41,8 +46,11 @@ async function write(image, target) {
 
 for (const file of await photos(INCOMING)) {
   const name = basename(file, extname(file));
+  const size = PRINT.test(name)
+    ? { width: PRINT_EDGE, height: PRINT_EDGE, fit: 'cover' }
+    : { width: MAX_EDGE, height: MAX_EDGE, fit: 'inside' };
   await write(
-    sharp(file).rotate().resize({ width: MAX_EDGE, height: MAX_EDGE, fit: 'inside', withoutEnlargement: true }).webp({ quality: 82 }),
+    sharp(file).rotate().resize({ ...size, withoutEnlargement: true }).webp({ quality: 82 }),
     join(ARTWORK, `${name}.webp`),
   );
 }
